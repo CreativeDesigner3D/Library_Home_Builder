@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<Root Application="Blender" ApplicationVersion="0.1">
+	<Pointer>
+		<Name>Wood Core Surfaces</Name>
+		<Category>Wood</Category>
+		<Asset>PB Small</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Wood Core Edges</Name>
+		<Category>Wood</Category>
+		<Asset>PB Small</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Exposed Cabinet Surfaces</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Exposed Cabinet Edges</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Interior Cabinet Surfaces</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Interior Cabinet Edges</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Door Surface</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Door Edge</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Countertop Surface</Name>
+		<Category>Stone</Category>
+		<Asset>Midnight Granite</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Drawer Box Surface</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Drawer Box Edge</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Pull Finish</Name>
+		<Category>Metal</Category>
+		<Asset>Polished Chrome</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Glass</Name>
+		<Category>Misc</Category>
+		<Asset>Glass</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Molding</Name>
+		<Category>Wood</Category>
+		<Asset>Autumn Leaves</Asset>
+	</Pointer>
+</Root>

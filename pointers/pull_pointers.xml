@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<Root Application="Blender" ApplicationVersion="0.1">
+	<Pointer>
+		<Name>Base Cabinet Pulls</Name>
+		<Category>Decorative Pulls</Category>
+		<Asset>Americana Handle</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Tall Cabinet Pulls</Name>
+		<Category>Decorative Pulls</Category>
+		<Asset>Americana Handle</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Upper Cabinet Pulls</Name>
+		<Category>Decorative Pulls</Category>
+		<Asset>Americana Handle</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Drawer Pulls</Name>
+		<Category>Decorative Pulls</Category>
+		<Asset>Americana Handle</Asset>
+	</Pointer>
+</Root>
