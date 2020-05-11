@@ -80,7 +80,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         constraint_obj['WALL_CONSTRAINT_OBJ_ID'] = self.current_wall.obj_bp.name
 
     def set_child_properties(self,obj):
-        obj["PROMPT_ID"] = "room.wall_prompts"   
+        obj["PROMPT_ID"] = "home_builder.wall_prompts"   
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':

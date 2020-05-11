@@ -58,8 +58,7 @@ class Door(pc_types.Assembly):
     def draw_door(self):
         self.create_assembly("Door")
 
-        boolean_overhang = self.obj_prompts.pyclone.add_prompt('DISTANCE',"Boolean Overhang")
-        boolean_overhang.set_value(pc_unit.inch(1))
+        Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
         Door_Thickness = self.add_prompt("Door Thickness",'DISTANCE',pc_unit.inch(1.5))
         Door_Reveal = self.add_prompt("Door Reveal",'DISTANCE',pc_unit.inch(.125))
         Door_Frame_Width = self.add_prompt("Door Frame Width",'DISTANCE',pc_unit.inch(3))
@@ -71,7 +70,7 @@ class Door(pc_types.Assembly):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
-        boolean_overhang_var = boolean_overhang.get_var("boolean_overhang_var")
+        boolean_overhang_var = Boolean_Overhang.get_var("boolean_overhang_var")
         door_reveal = Door_Reveal.get_var("door_reveal")
         door_thickness = Door_Thickness.get_var("door_thickness")
 

@@ -4,7 +4,6 @@ from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinet_parts
 from .. import home_builder_utils
 from . import common_prompts
-
 from os import path
 
 class Door(pc_types.Assembly):

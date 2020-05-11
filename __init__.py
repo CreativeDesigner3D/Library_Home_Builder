@@ -7,6 +7,7 @@ from . import home_builder_ops
 from . import home_builder_props
 from . import home_builder_utils
 from .walls import place_walls
+from .walls import prompt_walls
 from .cabinets import place_cabinet
 from .doors import place_door
 from bpy.app.handlers import persistent
@@ -28,10 +29,10 @@ bl_info = {
 def load_library_on_file_load(scene=None):
     pyclone = pc_utils.get_wm_props(bpy.context.window_manager)
     if "Home Builder Library" not in pyclone.libraries:
-        library = pyclone.add_library(name="Home Builder Library",
-                                      activate_id='room_builder.activate',
-                                      drop_id='room_builder.drop',
-                                      icon='HOME')
+        pyclone.add_library(name="Home Builder Library",
+                            activate_id='room_builder.activate',
+                            drop_id='room_builder.drop',
+                            icon='HOME')
 
 @persistent
 def load_pointers(scene=None):
@@ -43,6 +44,7 @@ def register():
     home_builder_ops.register()
     home_builder_props.register()
     place_walls.register()
+    prompt_walls.register()
     place_cabinet.register()
     place_door.register()
 
@@ -55,6 +57,7 @@ def unregister():
     home_builder_ops.unregister()
     home_builder_props.unregister()
     place_walls.unregister()
+    prompt_walls.unregister()
     place_cabinet.unregister()
     place_door.unregister()
 
