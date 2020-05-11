@@ -27,12 +27,10 @@ bl_info = {
 
 @persistent
 def load_library_on_file_load(scene=None):
-    pyclone = pc_utils.get_wm_props(bpy.context.window_manager)
-    if "Home Builder Library" not in pyclone.libraries:
-        pyclone.add_library(name="Home Builder Library",
-                            activate_id='room_builder.activate',
-                            drop_id='room_builder.drop',
-                            icon='HOME')
+    pc_utils.register_library(name="Home Builder Library",
+                              activate_id='room_builder.activate',
+                              drop_id='room_builder.drop',
+                              icon='HOME')
 
 @persistent
 def load_pointers(scene=None):
@@ -48,7 +46,6 @@ def register():
     place_cabinet.register()
     place_door.register()
 
-    load_library_on_file_load()
     bpy.app.handlers.load_post.append(load_library_on_file_load)
     bpy.app.handlers.load_post.append(load_pointers)
 
@@ -64,6 +61,5 @@ def unregister():
     bpy.app.handlers.load_post.remove(load_library_on_file_load)  
     bpy.app.handlers.load_post.remove(load_pointers)
 
-    pyclone = pc_utils.get_wm_props(bpy.context.window_manager)
-    pyclone.remove_library("Home Builder Library")
+    pc_utils.unregister_library("Home Builder Library")
 
