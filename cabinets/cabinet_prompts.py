@@ -74,6 +74,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             if "IS_DRAWERS_BP" in child and child["IS_DRAWERS_BP"]:
                 self.drawers = pc_types.Assembly(child)   
                 self.drawer_calculator = self.drawers.get_calculator('Front Height Calculator')
+            if "IS_DOORS_BP" in child and child["IS_DOORS_BP"]:
+                self.doors = pc_types.Assembly(child)
 
         for child in self.carcass.obj_bp.children:
             if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
@@ -168,6 +170,10 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         ctop_left.draw(layout)  
         ctop_right.draw(layout)         
 
+    def draw_door_prompts(self,layout,context):
+        open_door = self.doors.get_prompt("Open Door")
+        open_door.draw(layout)
+
     def draw_drawer_prompts(self,layout,context):
         for prompt in self.drawer_calculator.prompts:
             prompt.draw(layout)
@@ -188,6 +194,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             self.draw_countertop_prompts(prompt_box,context)
 
         if self.product_tabs == 'EXTERIOR':
+            if self.doors:
+                self.draw_door_prompts(prompt_box,context)
             if self.drawer_calculator:
                 self.draw_drawer_prompts(prompt_box,context)
 

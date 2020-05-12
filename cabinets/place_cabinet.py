@@ -118,6 +118,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             if name == filename:
                 self.cabinet = obj()
                 self.cabinet.draw()
+                self.cabinet.set_name(filename.replace("_"," "))
                 self.refresh_data(False)  
                 self.set_child_properties(self.cabinet.obj_bp)
 

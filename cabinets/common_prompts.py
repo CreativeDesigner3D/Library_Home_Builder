@@ -6,7 +6,7 @@ def add_front_prompts(assembly):
     assembly.add_prompt("Front Thickness",'DISTANCE',pc_unit.inch(.75))
 
 def add_door_prompts(assembly):
-    assembly.add_prompt("Door Rotation",'ANGLE',0)
+    assembly.add_prompt("Door Rotation",'ANGLE',120)
     assembly.add_prompt("Open Door",'PERCENTAGE',0)
 
 def add_front_overlay_prompts(assembly):

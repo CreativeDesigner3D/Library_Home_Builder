@@ -15,7 +15,7 @@ class Door(pc_types.Assembly):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
         self.create_assembly("Door")
-        self.obj_bp["IS_DOOR_BP"] = True
+        self.obj_bp["IS_DOORS_BP"] = True
 
         common_prompts.add_door_prompts(self)
         common_prompts.add_front_prompts(self)
@@ -33,6 +33,8 @@ class Door(pc_types.Assembly):
         front_thickness = self.get_prompt("Front Thickness").get_var('front_thickness')
         pull_vertical_location = self.get_prompt("Pull Vertical Location").get_var('pull_vertical_location')
         pull_horizontal_location = self.get_prompt("Pull Horizontal Location").get_var('pull_horizontal_location')
+        door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
+        open_door = self.get_prompt("Open Door").get_var('open_door')
 
         door = data_cabinet_parts.add_door_part(self)
         door.set_name('Door')
@@ -41,17 +43,22 @@ class Door(pc_types.Assembly):
         door.loc_z('-bottom_overlay',[bottom_overlay])
         door.rot_x(value = math.radians(90))
         door.rot_y(value = math.radians(-90))
+        door.rot_z('-door_rotation*open_door',[door_rotation,open_door])
         door.dim_x('z+top_overlay+bottom_overlay',[z,top_overlay,bottom_overlay])
         door.dim_y('(x+left_overlay+right_overlay)*-1',[x,left_overlay,right_overlay])
         door.dim_z('front_thickness',[front_thickness])      
         home_builder_utils.flip_normals(door)  
 
+        door_width = door.obj_y.pyclone.get_var('location.y','door_width')
+        door_length = door.obj_x.pyclone.get_var('location.x','door_length')
+        door_thickness = door.obj_z.pyclone.get_var('location.z','door_thickness')
+
         pull_obj = home_builder_utils.get_pull(props.pull_category,props.pull_name)
-        self.add_object(pull_obj)
-        pull_obj.pyclone.loc_y('-front_thickness',[front_thickness])
-        pull_obj.pyclone.loc_z('z-pull_vertical_location-'+str(pull_obj.dimensions.x)+'/2',[z,pull_vertical_location])
-        pull_obj.pyclone.loc_x('x-pull_horizontal_location',[x,pull_horizontal_location])
-        pull_obj.rotation_euler.y = math.radians(90)
+        door.add_object(pull_obj)
+        pull_obj.pyclone.loc_y('door_width+pull_horizontal_location',[door_width,pull_horizontal_location])
+        pull_obj.pyclone.loc_z('door_thickness',[door_thickness])
+        pull_obj.pyclone.loc_x('door_length-pull_vertical_location-'+str(pull_obj.dimensions.x)+'/2',[door_length,pull_vertical_location])        
+        pull_obj.rotation_euler.x = math.radians(-90)
         home_builder_utils.assign_materials_to_object(pull_obj)
 
 class Drawers(pc_types.Assembly):
