@@ -9,6 +9,7 @@ from . import home_builder_utils
 from .walls import place_walls
 from .walls import prompt_walls
 from .cabinets import place_cabinet
+from .cabinets import cabinet_prompts
 from .doors import place_door
 from bpy.app.handlers import persistent
 
@@ -44,6 +45,7 @@ def register():
     place_walls.register()
     prompt_walls.register()
     place_cabinet.register()
+    cabinet_prompts.register()
     place_door.register()
 
     bpy.app.handlers.load_post.append(load_library_on_file_load)
@@ -56,6 +58,7 @@ def unregister():
     place_walls.unregister()
     prompt_walls.unregister()
     place_cabinet.unregister()
+    cabinet_prompts.unregister()
     place_door.unregister()
 
     bpy.app.handlers.load_post.remove(load_library_on_file_load)  

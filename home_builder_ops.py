@@ -58,11 +58,7 @@ class room_builder_OT_drop(Operator):
             bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
 
         if props.active_category == 'Cabinets':
-            for name, obj in inspect.getmembers(cabinet_library):
-                if name == filename:
-                    cabinet = obj()
-                    cabinet.draw()
-                    bpy.ops.home_builder.place_cabinet(obj_bp_name=cabinet.obj_bp.name)
+            bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
 
         if props.active_category == 'Fences':
             pass

@@ -1,6 +1,8 @@
 import bpy
 import os
 import math
+import inspect
+from . import cabinet_library
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from .. import home_builder_utils
 
@@ -14,6 +16,8 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
     
     cabinet = None
     selected_cabinet = None
+
+    calculators = []
 
     drawing_plane = None
 
@@ -30,7 +34,23 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
     class_name = ""
 
+    def reset_properties(self):
+        self.cabinet = None
+        self.selected_cabinet = None
+        self.calculators = []
+        self.drawing_plane = None
+        self.next_wall = None
+        self.current_wall = None
+        self.previous_wall = None
+        self.starting_point = ()
+        self.placement = ''
+        self.assembly = None
+        self.obj = None
+        self.exclude_objects = []
+        self.class_name = ""
+
     def execute(self, context):
+        self.reset_properties()
         self.create_drawing_plane(context)
         self.get_cabinet(context)
         context.window_manager.modal_handler_add(self)
@@ -92,20 +112,22 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.location = mouse_location
 
     def get_cabinet(self,context):
-        self.exclude_objects = []
-        obj = bpy.data.objects[self.obj_bp_name]
-        cabinet_bp = home_builder_utils.get_cabinet_bp(obj)
-        self.cabinet = pc_types.Assembly(cabinet_bp)
-        self.set_child_properties(self.cabinet.obj_bp)
-        self.refresh_data(False)      
+        directory, file = os.path.split(self.filepath)
+        filename, ext = os.path.splitext(file)        
+        for name, obj in inspect.getmembers(cabinet_library):
+            if name == filename:
+                self.cabinet = obj()
+                self.cabinet.draw()
+                self.refresh_data(False)  
+                self.set_child_properties(self.cabinet.obj_bp)
 
     def set_child_properties(self,obj):
         if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
-            drawers = pc_types.Assembly(obj)   
+            drawers = pc_types.Assembly(obj)
             drawer_calculator = drawers.get_calculator('Front Height Calculator')
-            drawer_calculator.calculate()
+            self.calculators.append(drawer_calculator)
 
-        obj["PROMPT_ID"] = "kitchen.cabinet_prompts"   
+        obj["PROMPT_ID"] = "home_builder.cabinet_prompts"   
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':
@@ -158,6 +180,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             constraint.use_z = True
 
     def modal(self, context, event):
+        bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
         self.mouse_x = event.mouse_x
         self.mouse_y = event.mouse_y
@@ -235,6 +258,8 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
  
     def finish(self,context):
         self.refresh_data(True)
+        for calculator in self.calculators:
+            calculator.calculate()
         context.window.cursor_set('DEFAULT')
         if self.drawing_plane:
             pc_utils.delete_obj_list([self.drawing_plane])
