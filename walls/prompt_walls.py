@@ -24,19 +24,22 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         if self.previous_wall:
             prev_left_angle = self.previous_wall.get_prompt("Left Angle")
             prev_right_angle = self.previous_wall.get_prompt("Right Angle") 
-            prev_rot = self.previous_wall.obj_bp.rotation_euler.z  
+            prev_rot = math.degrees(self.previous_wall.obj_bp.rotation_euler.z)  
 
         if self.next_wall:
             next_left_angle = self.next_wall.get_prompt("Left Angle")
-            next_rot = self.next_wall.obj_bp.rotation_euler.z  
+            next_rot = math.degrees(self.next_wall.obj_bp.rotation_euler.z)  
 
-        rot = self.current_wall.obj_bp.rotation_euler.z
+        rot = math.degrees(self.current_wall.obj_bp.rotation_euler.z)
 
         left_angle.set_value((rot-prev_rot)/2)
+
         if self.next_wall:
             right_angle.set_value((rot-next_rot)/2)
             next_left_angle.set_value((next_rot-rot)/2)
-        prev_right_angle.set_value((prev_rot-rot)/2)
+
+        if self.previous_wall:
+            prev_right_angle.set_value((prev_rot-rot)/2)
 
         self.current_wall.obj_prompts.location = self.current_wall.obj_prompts.location
         if self.previous_wall:
@@ -47,10 +50,9 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
 
     def get_next_wall(self,context):
         obj_x = self.current_wall.obj_x
-        if obj_x and 'WALL_CONSTRAINT_OBJ_ID' in obj_x:
-            if obj_x['WALL_CONSTRAINT_OBJ_ID'] in bpy.data.objects:
-                obj_bp = bpy.data.objects[obj_x['WALL_CONSTRAINT_OBJ_ID']]
-                self.next_wall = pc_types.Assembly(obj_bp)  
+        connected_obj = obj_x.home_builder.connected_object
+        if connected_obj:
+            self.next_wall = pc_types.Assembly(connected_obj) 
 
     def get_previous_wall(self,context):
         if len(self.current_wall.obj_bp.constraints) > 0:
@@ -135,11 +137,11 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         col = layout.column(align=True)
         col.prop(self.current_wall.obj_bp,'rotation_euler',index=2,text="Rotation")
 
-        # left_angle.draw(layout)
-        # right_angle.draw(layout)
+        left_angle.draw(layout)
+        right_angle.draw(layout)
 
-        # layout.label(text=str(left_angle.get_value()))
-        # layout.label(text=str(right_angle.get_value()))
+        layout.label(text=str(left_angle.get_value()))
+        layout.label(text=str(right_angle.get_value()))
 
 classes = (
     home_builder_OT_wall_prompts,

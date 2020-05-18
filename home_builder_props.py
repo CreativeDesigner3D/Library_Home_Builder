@@ -324,8 +324,27 @@ class Home_Builder_Scene_Props(PropertyGroup):
     def unregister(cls):
         del bpy.types.Scene.home_builder
 
+class Home_Builder_Object_Props(PropertyGroup):
+
+    connected_object: bpy.props.PointerProperty(name="Connected Object",
+                                                type=bpy.types.Object,
+                                                description="This is the used to store objects that are connected together.")
+
+    @classmethod
+    def register(cls):
+        bpy.types.Object.home_builder = PointerProperty(
+            name="Home Builder Props",
+            description="Home Builder Props",
+            type=cls,
+        )
+        
+    @classmethod
+    def unregister(cls):
+        del bpy.types.Object.home_builder
+
 classes = (
     Pointer,
+    Home_Builder_Object_Props,
     Home_Builder_Scene_Props,
 )
 

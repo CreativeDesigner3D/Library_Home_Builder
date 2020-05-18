@@ -74,10 +74,8 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         constraint.use_x = True
         constraint.use_y = True
         constraint.use_z = True
-
-        #I NEED A BETTER WAY TO FIND THE CONSTRAINT OBJ FROM THE BP OBJ
-        #THIS IS NEEDED TO SET THE ANGLE OF THE NEXT WALL WHEN ROTATING
-        constraint_obj['WALL_CONSTRAINT_OBJ_ID'] = self.current_wall.obj_bp.name
+        #Used to get connected wall for prompts
+        constraint_obj.home_builder.connected_object = self.current_wall.obj_bp
 
     def set_child_properties(self,obj):
         obj["PROMPT_ID"] = "home_builder.wall_prompts"   
@@ -175,13 +173,9 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             left_angle = self.current_wall.get_prompt("Left Angle")
             prev_right_angle = self.previous_wall.get_prompt("Right Angle") 
 
-            prev_rot = self.previous_wall.obj_bp.rotation_euler.z  
-            rot = self.current_wall.obj_bp.rotation_euler.z
-
-            current_rot = round(math.degrees(rot),0)
-            previous_rot = round(math.degrees(prev_rot),0)
-            diff = int(math.fabs(current_rot-previous_rot))
-
+            prev_rot = round(math.degrees(self.previous_wall.obj_bp.rotation_euler.z),0) 
+            rot = round(math.degrees(self.current_wall.obj_bp.rotation_euler.z),0)
+            diff = int(math.fabs(rot-prev_rot))
             if diff == 0 or diff == 180:
                 left_angle.set_value(0)
                 prev_right_angle.set_value(0)
@@ -190,8 +184,8 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
                 prev_right_angle.set_value((prev_rot-rot)/2)
 
             self.current_wall.obj_prompts.location = self.current_wall.obj_prompts.location
-            self.previous_wall.obj_prompts.location = self.previous_wall.obj_prompts.location            
-        
+            self.previous_wall.obj_prompts.location = self.previous_wall.obj_prompts.location   
+
     def position_object(self,selected_point,selected_obj):
         if self.starting_point == ():
             self.current_wall.obj_bp.location = selected_point
