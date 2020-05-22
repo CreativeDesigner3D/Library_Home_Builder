@@ -133,7 +133,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         if len(self.cabinet.obj_bp.constraints) > 0:
             col = row.column(align=True)
             col.label(text="Location:")
-            col.operator('kitchen.disconnect_cabinet_constraint',text='Disconnect Constraint',icon='CONSTRAINT').obj_name = self.cabinet.obj_bp.name
+            col.operator('home_builder.disconnect_constraint',text='Disconnect Constraint',icon='CONSTRAINT').obj_name = self.cabinet.obj_bp.name
         else:
             col = row.column(align=True)
             col.label(text="Location X:")

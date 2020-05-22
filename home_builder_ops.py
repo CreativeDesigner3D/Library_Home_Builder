@@ -93,10 +93,22 @@ class home_builder_OT_change_library_category(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class KITCHEN_OT_disconnect_constraint(bpy.types.Operator):
+    bl_idname = "home_builder.disconnect_constraint"
+    bl_label = "Disconnect Constraint"
+    
+    obj_name: bpy.props.StringProperty(name="Base Point Name")
+
+    def execute(self, context):
+        obj = bpy.data.objects[self.obj_name]
+        obj.constraints.clear()
+        return {'FINISHED'}
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
     home_builder_OT_change_library_category,
+    KITCHEN_OT_disconnect_constraint,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
