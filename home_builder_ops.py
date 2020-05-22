@@ -23,6 +23,7 @@ from . import home_builder_utils
 class room_builder_OT_activate(Operator):
     bl_idname = "room_builder.activate"
     bl_label = "Activate Room Builder"
+    bl_description = "This activates the room builder"
     bl_options = {'UNDO'}
     
     library_name: StringProperty(name='Library Name')
@@ -44,6 +45,7 @@ class room_builder_OT_activate(Operator):
 class room_builder_OT_drop(Operator):
     bl_idname = "room_builder.drop"
     bl_label = "Activate Room Builder"
+    bl_description = "This is called when an asset is dropped from the home builder library"
     bl_options = {'UNDO'}
     
     filepath: StringProperty(name='Library Name')
@@ -55,7 +57,10 @@ class room_builder_OT_drop(Operator):
         filename, ext = os.path.splitext(file)
 
         if props.active_category == 'Walls':
-            bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
+            if 'Archipack' in self.filepath and hasattr(bpy.ops,'archipack'):
+                bpy.ops.archipack.wall2_draw('INVOKE_DEFAULT')
+            else:
+                bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
 
         if props.active_category == 'Cabinets':
             bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
@@ -75,6 +80,7 @@ class room_builder_OT_drop(Operator):
 class home_builder_OT_change_library_category(bpy.types.Operator):
     bl_idname = "home_builder.change_library_category"
     bl_label = "Change Library Category"
+    bl_description = "This changes the active library category"
 
     category: bpy.props.StringProperty(subtype="DIR_PATH")
 
