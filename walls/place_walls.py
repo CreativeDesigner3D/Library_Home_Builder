@@ -2,6 +2,7 @@ import bpy
 import os
 import math
 import time
+import inspect
 from ..pc_lib import pc_utils, pc_types, pc_unit
 from .. import home_builder_utils
 from . import data_walls
@@ -55,7 +56,14 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
 
     def create_wall(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
-        wall = data_walls.Wall()
+        directory, file = os.path.split(self.filepath)
+        filename, ext = os.path.splitext(file)        
+        wall = None
+        for name, obj in inspect.getmembers(data_walls):
+            if name == filename:        
+                wall = obj()
+        if not wall:
+            wall = data_walls.Wall()
         wall.draw_wall()
         wall.set_name("Wall")
         home_builder_utils.assign_wall_pointers(wall)

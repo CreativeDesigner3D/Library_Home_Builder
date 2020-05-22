@@ -111,10 +111,10 @@ class Wall_with_Studs(pc_types.Assembly):
         right_angle = self.obj_prompts.pyclone.add_prompt('ANGLE',"Right Angle")
 
         stud_spacing_distance = self.obj_prompts.pyclone.add_prompt('DISTANCE',"Stud Spacing Distance")
-        stud_spacing_distance.set_value(bp_unit.inch(16))
+        stud_spacing_distance.set_value(pc_unit.inch(16))
 
         material_thickness = self.obj_prompts.pyclone.add_prompt('DISTANCE',"Material Thickness")
-        material_thickness.set_value(bp_unit.inch(2))
+        material_thickness.set_value(pc_unit.inch(2))
 
         #Get Prompt Variables
         material_thickness = material_thickness.get_var("material_thickness")

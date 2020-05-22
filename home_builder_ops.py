@@ -57,7 +57,7 @@ class room_builder_OT_drop(Operator):
         filename, ext = os.path.splitext(file)
 
         if props.active_category == 'Walls':
-            if 'Archipack' in self.filepath and hasattr(bpy.ops,'archipack'):
+            if 'Archipack' in self.filepath and hasattr(bpy.types,'ARCHIPACK_OT_wall2_draw'):
                 bpy.ops.archipack.wall2_draw('INVOKE_DEFAULT')
             else:
                 bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)

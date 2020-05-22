@@ -13,8 +13,8 @@ class Cube(pc_types.Assembly):
         self.obj_y.location.y = pc_unit.inch(4)   #Depth
         self.obj_z.location.z = pc_unit.inch(2)   #Thickness
 
-        quantity = self.obj_prompts.prompt_page.add_prompt('QUANTITY',"Quantity")
-        array_offset = self.obj_prompts.prompt_page.add_prompt('DISTANCE',"Array Offset")
+        quantity = self.obj_prompts.pyclone.add_prompt('QUANTITY',"Quantity")
+        array_offset = self.obj_prompts.pyclone.add_prompt('DISTANCE',"Array Offset")
         quantity.set_value(1)
         array_offset.set_value(pc_unit.inch(16))
 
@@ -24,7 +24,7 @@ class Cube(pc_types.Assembly):
         #When assigning vertices to a hook the transformation is made so the size must be 0
         # size = (self.obj_x.location.x,self.obj_y.location.y,self.obj_z.location.z)
         size = (0,0,0)
-        obj_mesh = bp_utils.create_cube_mesh("Cube",size)
+        obj_mesh = pc_utils.create_cube_mesh("Cube",size)
         self.add_object(obj_mesh)
 
         vgroup = obj_mesh.vertex_groups[self.obj_x.name]
@@ -51,8 +51,8 @@ class Cube(pc_types.Assembly):
         array = obj_mesh.modifiers.new('Quantity','ARRAY')
         array.use_constant_offset = True
         array.use_relative_offset = False
-        obj_mesh.drivers.modifier(array,'count',-1,'qty',[qty])
-        obj_mesh.drivers.modifier(array,'constant_offset_displace',2,'array_offset',[array_offset])
+        obj_mesh.pyclone.modifier(array,'count',-1,'qty',[qty])
+        obj_mesh.pyclone.modifier(array,'constant_offset_displace',2,'array_offset',[array_offset])
 
         #THIS OPERATION TAKES THE LONGEST
         # obj_mesh.bp_props.hook_vertex_group_to_object(self.obj_x.name,self.obj_x)
@@ -71,8 +71,8 @@ class Stud(pc_types.Assembly):
         self.obj_y.location.y = pc_unit.inch(4)   #Depth
         self.obj_z.location.z = pc_unit.inch(2)   #Thickness
 
-        quantity = self.obj_prompts.prompt_page.add_prompt('QUANTITY',"Quantity")
-        array_offset = self.obj_prompts.prompt_page.add_prompt('DISTANCE',"Array Offset")
+        quantity = self.obj_prompts.pyclone.add_prompt('QUANTITY',"Quantity")
+        array_offset = self.obj_prompts.pyclone.add_prompt('DISTANCE',"Array Offset")
         quantity.set_value(1)
         array_offset.set_value(pc_unit.inch(16))
 
@@ -82,7 +82,7 @@ class Stud(pc_types.Assembly):
         #When assigning vertices to a hook the transformation is made so the size must be 0
         # size = (self.obj_x.location.x,self.obj_y.location.y,self.obj_z.location.z)
         size = (0,0,0)
-        obj_mesh = bp_utils.create_cube_mesh("Bottom Plate",size)
+        obj_mesh = pc_utils.create_cube_mesh("Bottom Plate",size)
         self.add_object(obj_mesh)
 
         vgroup = obj_mesh.vertex_groups[self.obj_x.name]
@@ -109,8 +109,8 @@ class Stud(pc_types.Assembly):
         array = obj_mesh.modifiers.new('Quantity','ARRAY')
         array.use_constant_offset = True
         array.use_relative_offset = False
-        obj_mesh.drivers.modifier(array,'count',-1,'qty',[qty])
-        obj_mesh.drivers.modifier(array,'constant_offset_displace',2,'array_offset',[array_offset])
+        obj_mesh.pyclone.modifier(array,'count',-1,'qty',[qty])
+        obj_mesh.pyclone.modifier(array,'constant_offset_displace',2,'array_offset',[array_offset])
 
         #THIS OPERATION TAKES THE LONGEST
         # obj_mesh.bp_props.hook_vertex_group_to_object(self.obj_x.name,self.obj_x)
