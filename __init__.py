@@ -48,6 +48,7 @@ def register():
     cabinet_prompts.register()
     place_door.register()
 
+    load_library_on_file_load()
     bpy.app.handlers.load_post.append(load_library_on_file_load)
     bpy.app.handlers.load_post.append(load_pointers)
 
