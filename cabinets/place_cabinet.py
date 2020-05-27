@@ -76,7 +76,6 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             rot = self.selected_cabinet.obj_bp.rotation_euler.z
             x_loc = 0
             y_loc = 0
-
             if wall_bp:
                 self.current_wall = pc_types.Assembly(wall_bp)
                 rot += self.current_wall.obj_bp.rotation_euler.z      
@@ -119,8 +118,8 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
                 self.cabinet = obj()
                 self.cabinet.draw()
                 self.cabinet.set_name(filename.replace("_"," "))
-                self.refresh_data(False)  
                 self.set_child_properties(self.cabinet.obj_bp)
+                self.refresh_data(False)  
 
     def set_child_properties(self,obj):
         if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
@@ -248,17 +247,17 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
     def refresh_data(self,hide=True):
         ''' For some reason matrix world doesn't evaluate correctly
-            when placing cabinets next to this
+            when placing cabinets next to this if object is hidden
+            For now set x, y, z object to not be hidden.
         '''
         self.cabinet.obj_x.hide_viewport = hide
         self.cabinet.obj_y.hide_viewport = hide
         self.cabinet.obj_z.hide_viewport = hide
-        self.cabinet.obj_x.empty_display_size = .01
-        self.cabinet.obj_y.empty_display_size = .01
-        self.cabinet.obj_z.empty_display_size = .01
+        self.cabinet.obj_x.empty_display_size = .001
+        self.cabinet.obj_y.empty_display_size = .001
+        self.cabinet.obj_z.empty_display_size = .001
  
     def finish(self,context):
-        self.refresh_data(True)
         for calculator in self.calculators:
             calculator.calculate()
         context.window.cursor_set('DEFAULT')
