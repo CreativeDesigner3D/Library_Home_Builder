@@ -10,9 +10,9 @@ import math
 
 class Standard_Cabinet(pc_types.Assembly):
     show_in_library = True
-    category_name = "Cabinets"
-    prompt_id = "kitchen.cabinet_prompts"
-    placement_id = "kitchen.place_cabinet"
+    # category_name = "Cabinets"
+    # prompt_id = "kitchen.cabinet_prompts"
+    # placement_id = "kitchen.place_cabinet"
 
     carcass = None
     interior = None

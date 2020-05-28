@@ -60,7 +60,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         filename, ext = os.path.splitext(file)        
         wall = None
         for name, obj in inspect.getmembers(data_walls):
-            if name == filename:        
+            if name == filename.replace(" ","_"):        
                 wall = obj()
         if not wall:
             wall = data_walls.Wall()

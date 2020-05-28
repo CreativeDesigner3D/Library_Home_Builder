@@ -1,5 +1,7 @@
 import bpy,os,inspect
 import math
+import subprocess
+import codecs
 from bpy.types import (Header, 
                        Menu, 
                        Panel, 
@@ -322,6 +324,154 @@ class home_builder_OT_toggle_dimensions(bpy.types.Operator):
     def execute(self, context):
         return {'FINISHED'}        
 
+class home_builder_OT_update_scene_materials(bpy.types.Operator):
+    bl_idname = "home_builder.update_scene_materials"
+    bl_label = "Update Scene Materials"
+    
+    def execute(self, context):
+        return {'FINISHED'}
+
+
+class Asset(PropertyGroup):
+    is_selected: BoolProperty(name="Is Selected",default=False)
+    preview_found: BoolProperty(name="Preivew Found",default=False)
+    asset_type: StringProperty(name="Type")
+    library_path: StringProperty(name="Library Path")
+    package_path: StringProperty(name="Package Path")
+    package_name: StringProperty(name="Package Name")
+    module_name: StringProperty(name="Module Name")
+    category_name: StringProperty(name="Category Name")
+    class_name: StringProperty(name="Category Name")
+    asset_class = None
+
+
+class home_builder_OT_render_asset_thumbnails(Operator):
+    bl_idname = "home_builder.render_asset_thumbnails"
+    bl_label = "Render Asset Thumbnails"
+    bl_description = "This will open a dialog and allow you to register assets found in the library"
+    bl_options = {'UNDO'}
+    
+    assets: CollectionProperty(name='Assets',type=Asset)
+    
+    obj = None
+    assembly = None
+    
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def reset_variables(self):
+        pass
+
+    def create_item_thumbnail_script(self,asset):
+        file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+        file.write("import sys\n")
+        file.write("import Library_Home_Builder\n")
+
+        #CREATE DIR
+        file.write("dir_path = r'" + asset.library_path + "'\n")
+        file.write("path = os.path.join(dir_path,'" + asset.name.replace("_"," ") + "')\n")
+        file.write("if not os.path.exists(dir_path):\n")
+        file.write("    os.makedirs(dir_path)\n")
+
+        #SELECT ALL OBJECTS FUNCTION
+        file.write("def select_objects():\n")
+        file.write("    for obj in bpy.data.objects:\n")
+        file.write("        if obj.type == 'MESH':\n")
+        file.write("            obj.select_set(True)\n")
+
+        #CLEAR FILE
+        file.write("for mat in bpy.data.materials:\n")
+        file.write("    bpy.data.materials.remove(mat,do_unlink=True)\n")
+        file.write("for obj in bpy.data.objects:\n")
+        file.write("    bpy.data.objects.remove(obj,do_unlink=True)\n")   
+
+        #DRAW ASSET
+        file.write("item = eval('Library_Home_Builder." + asset.package_name + "." + asset.module_name + "." + asset.class_name + "()')" + "\n")
+        file.write("if hasattr(item,'draw'):\n")
+        file.write("    item.draw()\n")
+        file.write("if hasattr(item,'render'):\n")
+        file.write("    item.render()\n")
+
+        #ADD CAMERA
+        file.write("if bpy.context.scene.camera is None:\n")
+        file.write("    bpy.ops.object.camera_add()\n")
+        file.write("bpy.context.scene.camera = bpy.context.object\n")
+        file.write("bpy.context.scene.camera.rotation_euler = (1.1093,0,.8149)\n")
+
+        file.write("bpy.ops.object.select_all(action='DESELECT')\n")
+        file.write("select_objects()\n")
+        file.write("bpy.ops.view3d.camera_to_view_selected()\n")
+
+        #ADD LIGHTING
+        file.write("bpy.ops.object.light_add(type='SUN')\n")
+        file.write("bpy.context.object.data.energy = 1.5\n")
+        file.write("bpy.context.object.rotation_euler = (1.1093,0,.8149)\n")
+
+        #RENDER
+        file.write("render = bpy.context.scene.render\n")
+        file.write("render.resolution_x = 540\n")
+        file.write("render.resolution_y = 540\n")
+        file.write("render.engine = 'BLENDER_EEVEE'\n")
+        file.write("bpy.context.scene.eevee.use_gtao = True\n")
+        file.write("bpy.context.scene.eevee.use_ssr = True\n")
+        file.write("render.film_transparent = True\n")        
+        file.write("render.use_file_extension = True\n")
+        file.write("render.filepath = path\n")
+        file.write("bpy.ops.render.render(write_still=True)\n")        
+        file.close()
+        return os.path.join(bpy.app.tempdir,'thumb_temp.py')
+
+    def get_assets(self):
+        for name, obj in inspect.getmembers(cabinet_library):
+            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
+                asset = self.assets.add()
+                asset.name = name
+                asset.category_name = "Cabinets"
+                asset.library_path = os.path.join(home_builder_utils.get_library_path(),'Cabinets')
+                asset.package_name = 'cabinets'
+                asset.module_name = 'cabinet_library'
+                asset.class_name = name
+                asset.asset_type = 'Cabinet'
+
+        for name, obj in inspect.getmembers(library_walls):
+            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
+                asset = self.assets.add()
+                asset.name = name
+                asset.asset_type = 'Wall'
+
+    def invoke(self,context,event):
+        self.reset_variables()
+        self.get_assets()
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=400)
+
+    def execute(self, context):
+        for asset in self.assets:
+            if asset.is_selected:
+                script = self.create_item_thumbnail_script(asset)
+                subprocess.call(bpy.app.binary_path + ' -b --python "' + script + '"') 
+        return {'FINISHED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        cabinet_box = layout.box()
+        cabinet_box.label(text="Cabinets")
+        cabinet_col = cabinet_box.column(align=True)
+
+        wall_box = layout.box()
+        wall_box.label(text="Walls")
+        wall_col = wall_box.column(align=True)
+
+        for asset in self.assets:
+            if asset.asset_type == 'Cabinet':
+                cabinet_col.prop(asset,'is_selected',text=asset.name)
+            if asset.asset_type == 'Wall':           
+                wall_col.prop(asset,'is_selected',text=asset.name)
+
 
 classes = (
     room_builder_OT_activate,
@@ -338,6 +488,8 @@ classes = (
     home_builder_OT_auto_add_molding,
     home_builder_OT_generate_2d_views,
     home_builder_OT_toggle_dimensions,
+    Asset,
+    home_builder_OT_render_asset_thumbnails,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

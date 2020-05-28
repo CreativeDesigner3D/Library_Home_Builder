@@ -87,6 +87,7 @@ class Square_Cutout(pc_types.Assembly):
         # size = (self.obj_x.location.x,self.obj_y.location.y,self.obj_z.location.z)
         size = (0,0,0)
         self.obj_mesh = pc_utils.create_cube_mesh("Part",size)
+        self.obj_mesh.hide_render = True
         self.add_object(self.obj_mesh)
 
         uv_layer = self.obj_mesh.data.uv_layers.new()

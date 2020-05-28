@@ -29,7 +29,7 @@ class home_builder_OT_place_door(bpy.types.Operator):
 
     def get_class_name(self):
         name, ext = os.path.splitext(os.path.basename(self.filepath))
-        self.class_name = name
+        self.class_name = name.replace(" ","_")
 
     def create_door(self):
         # props = home_builder_utils.get_scene_props(bpy.context)

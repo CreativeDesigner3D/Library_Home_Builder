@@ -77,7 +77,7 @@ class Wall(pc_types.Assembly):
         right_angle_empty.pyclone.loc_y('wall_thickness',[wall_thickness])
 
 
-class Wall_with_Studs(pc_types.Assembly):
+class Wall_Framed(pc_types.Assembly):
     show_in_library = True
 
     def render(self):

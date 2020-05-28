@@ -22,6 +22,7 @@ class Hole(pc_types.Assembly):
         # size = (self.obj_x.location.x,self.obj_y.location.y,self.obj_z.location.z)
         size = (0,0,0)
         obj_mesh = pc_utils.create_cube_mesh("Hole",size)
+        self.obj_mesh.hide_render = True
         self.add_object(obj_mesh)
         obj_mesh['IS_BOOLEAN'] = True
 

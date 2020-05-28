@@ -336,7 +336,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.operator('home_builder.update_material_pointer',text=mat.name,icon='FORWARD').pointer_name = mat.name
             row.label(text=mat.category + " - " + mat.item_name,icon='MATERIAL')
 
-    def draw_room_tools(self,layout):
+    def draw_tools(self,layout):
         box = layout.box()
         box.label(text="General Room Tools",icon='MOD_BUILD')   
         box.operator('home_builder.auto_add_molding',text="Auto Add Base Molding")
@@ -351,6 +351,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
         box.label(text="2D Drawing Tools",icon='MOD_BUILD')  
         box.operator('home_builder.generate_2d_views',text="Generate 2D View Scenes")      
         box.operator('home_builder.toggle_dimensions',text="Show Dimensions")
+
+        box = layout.box()
+        box.label(text="Thumbnail Tools",icon='MOD_BUILD')  
+        box.operator('home_builder.render_asset_thumbnails',text="Generate Library Thumbnails") 
 
     def draw_hardware(self,layout):
         split = layout.split(factor=.25)
@@ -410,7 +414,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
             self.draw_hardware(box)            
 
         if self.ui_tabs == 'TOOLS':
-            self.draw_room_tools(box)
+            self.draw_tools(box)
 
     @classmethod
     def register(cls):

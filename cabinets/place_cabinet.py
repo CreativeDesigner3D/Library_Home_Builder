@@ -114,7 +114,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         directory, file = os.path.split(self.filepath)
         filename, ext = os.path.splitext(file)        
         for name, obj in inspect.getmembers(cabinet_library):
-            if name == filename:
+            if name == filename.replace(" ","_"):
                 self.cabinet = obj()
                 self.cabinet.draw()
                 self.cabinet.set_name(filename.replace("_"," "))
