@@ -1,5 +1,6 @@
 import bpy
 import os
+import math
 from .pc_lib import pc_types, pc_unit, pc_utils, pc_pointer_utils
 
 def get_scene_props(scene):

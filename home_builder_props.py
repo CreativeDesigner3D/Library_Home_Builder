@@ -77,11 +77,15 @@ class Pointer(PropertyGroup):
 
 
 class Home_Builder_Scene_Props(PropertyGroup):
-    room_tabs: EnumProperty(name="Room Tabs",
-                            items=[('ROOM_SIZES',"Room Sizes","Show the Room Sizes"),
-                                   ('MATERIALS',"Room Materials","Show the Room Materials"),
-                                   ('ROOM_TOOLS',"Room Tools","Show the Room Tools")],
-                            default='ROOM_SIZES')
+    ui_tabs: EnumProperty(name="UI Tabs",
+                          items=[('SIZES',"Sizes","Default Room and Cabinet Sizes"),
+                                 ('CONSTRUCTION',"Construction","Show the Cabinet Construction Options"),
+                                 ('MATERIALS',"Materials","Show the Material Options"),
+                                 ('MOLDINGS',"Moldings","Show the Molding Options"),
+                                 ('FRONTS',"Fronts","Show the Door and Drawer Front Options"),
+                                 ('HARDWARE',"Hardware","Show the Hardware Options"),
+                                 ('TOOLS',"Tools","Show the Tools")],
+                          default='SIZES')
 
     active_category: StringProperty(name="Active Category",default="")
 
@@ -215,7 +219,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
     pull_category: bpy.props.EnumProperty(name="Pull Category",items=enum_pull_categories,update=update_pull_category)
     pull_name: bpy.props.EnumProperty(name="Pull Name",items=enum_pull_names)
 
-    def draw_room_sizes(self,layout):
+    def draw_sizes(self,layout):
         box = layout.box()
         box.label(text="Default Wall Size",icon='MOD_BUILD')
 
@@ -226,6 +230,87 @@ class Home_Builder_Scene_Props(PropertyGroup):
         row = box.row()
         row.label(text="Default Wall Thickness")
         row.prop(self,'wall_thickness',text="")
+
+        col = layout.column(align=True)
+        split = col.split(factor=.7,align=True)
+
+        box = col.box()
+        box.label(text="Standard Cabinet Sizes:")
+        
+        row = box.row(align=True)
+        row.label(text="Base:")
+        row.prop(self,"base_cabinet_height",text="Height")
+        row.prop(self,"base_cabinet_depth",text="Depth")
+        
+        row = box.row(align=True)
+        row.label(text="Tall:")
+        row.prop(self,"tall_cabinet_height",text="Height")
+        row.prop(self,"tall_cabinet_depth",text="Depth")
+        
+        row = box.row(align=True)
+        row.label(text="Upper:")
+        row.prop(self,"upper_cabinet_height",text="Height")
+        row.prop(self,"upper_cabinet_depth",text="Depth")
+
+        row = box.row(align=True)
+        row.label(text="Sink:")
+        row.prop(self,"sink_cabinet_height",text="Height")
+        row.prop(self,"sink_cabinet_depth",text="Depth")
+        
+        row = box.row(align=True)
+        row.label(text="Suspended:")
+        row.prop(self,"suspended_cabinet_height",text="Height")
+        row.prop(self,"suspended_cabinet_depth",text="Depth")
+        
+        row = box.row(align=True)
+        row.label(text="1 Door Wide:")
+        row.prop(self,"width_1_door",text="Width")
+        
+        row = box.row(align=True)
+        row.label(text="2 Door Wide:")
+        row.prop(self,"width_2_door",text="Width")
+        
+        row = box.row(align=True)
+        row.label(text="Drawer Stack Width:")
+        row.prop(self,"width_drawer",text="Width")
+        
+        box = col.box()
+        box.label(text="Blind Cabinet Widths:")
+        
+        row = box.row(align=True)
+        row.label(text='Base:')
+        row.prop(self,"base_width_blind",text="Width")
+        
+        row = box.row(align=True)
+        row.label(text='Tall:')
+        row.prop(self,"tall_width_blind",text="Width")
+        
+        row = box.row(align=True)
+        row.label(text='Upper:')
+        row.prop(self,"upper_width_blind",text="Width")
+        
+        box = col.box()
+        box.label(text="Inside Corner Cabinet Sizes:")
+        row = box.row(align=True)
+        row.label(text="Base:")
+        row.prop(self,"base_inside_corner_size",text="")
+        
+        row = box.row(align=True)
+        row.label(text="Upper:")
+        row.prop(self,"upper_inside_corner_size",text="")
+        
+        box = col.box()
+        box.label(text="Placement:")
+        row = box.row(align=True)
+        row.label(text="Height Above Floor:")
+        row.prop(self,"height_above_floor",text="")
+        
+        box = col.box()
+        box.label(text="Drawer Heights:")
+        row = box.row(align=True)
+        row.prop(self,"equal_drawer_stack_heights")
+        if not self.equal_drawer_stack_heights:
+            row.prop(self,"top_drawer_front_height")
 
     def draw_materials(self,layout):
         split = layout.split(factor=.25)
@@ -242,30 +327,30 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
         right_row = right_col.row()
         right_row.scale_y = 1.3
-        right_row.operator('room.update_scene_materials',text="Update Materials",icon='FILE_REFRESH')
+        right_row.operator('home_builder.update_scene_materials',text="Update Materials",icon='FILE_REFRESH')
 
         box = right_col.box()
         col = box.column(align=True)
         for mat in self.material_pointers:
             row = col.row()
-            row.operator('room.update_material_pointer',text=mat.name,icon='FORWARD').pointer_name = mat.name
+            row.operator('home_builder.update_material_pointer',text=mat.name,icon='FORWARD').pointer_name = mat.name
             row.label(text=mat.category + " - " + mat.item_name,icon='MATERIAL')
 
     def draw_room_tools(self,layout):
         box = layout.box()
         box.label(text="General Room Tools",icon='MOD_BUILD')   
-        box.operator('room.draw_molding',text="Auto Add Base Molding")
-        box.operator('room.draw_molding',text="Auto Add Crown Molding")              
-        box.operator('room.draw_floor_plane',text="Add Floor")
+        box.operator('home_builder.auto_add_molding',text="Auto Add Base Molding")
+        box.operator('home_builder.auto_add_molding',text="Auto Add Crown Molding")              
+        box.operator('home_builder.draw_floor_plane',text="Add Floor")
 
         box = layout.box()
         box.label(text="Room Lighting Tools",icon='MOD_BUILD')  
-        box.operator('room.add_room_light',text="Add Room Light")
+        box.operator('home_builder.add_room_light',text="Add Room Light")
 
         box = layout.box()
         box.label(text="2D Drawing Tools",icon='MOD_BUILD')  
-        box.operator('room.draw_molding',text="Generate 2D View Scenes")      
-        box.operator('room.draw_molding',text="Show Dimensions")
+        box.operator('home_builder.generate_2d_views',text="Generate 2D View Scenes")      
+        box.operator('home_builder.toggle_dimensions',text="Show Dimensions")
 
     def draw_hardware(self,layout):
         split = layout.split(factor=.25)
@@ -280,37 +365,52 @@ class Home_Builder_Scene_Props(PropertyGroup):
         if len(self.pull_name) > 0:
             hardware_box.template_icon_view(self,"pull_name",show_labels=True)  
 
-        # right_row = right_col.row()
-        # right_row.scale_y = 1.3
-        # right_row.operator('kitchen.update_scene_pulls',text="Update Pulls",icon='FILE_REFRESH')
+        right_row = right_col.row()
+        right_row.scale_y = 1.3
+        right_row.operator('home_builder.update_scene_pulls',text="Update Pulls",icon='FILE_REFRESH')
 
         box = right_col.box()
         col = box.column(align=True)
         for pull in self.pull_pointers:
             row = col.row()
-            # row.operator('kitchen.update_pull_pointer',text=pull.name,icon='FORWARD').pointer_name = pull.name
+            row.operator('home_builder.update_pull_pointer',text=pull.name,icon='FORWARD').pointer_name = pull.name
             row.label(text=pull.category + " - " + pull.item_name,icon='MODIFIER_ON')
 
     def draw(self,layout):
         col = layout.column(align=True)
 
         row = col.row(align=True)
-        row.scale_y = 1.3        
-        row.prop_enum(self, "room_tabs", 'ROOM_SIZES', icon='PROPERTIES', text="Settings") 
-        row.prop_enum(self, "room_tabs", 'MATERIALS', icon='COLOR', text="Materials") 
-        row.prop_enum(self, "room_tabs", 'ROOM_TOOLS', icon='MODIFIER_ON', text="Tools") 
+        row.scale_y = 1.3
+        row.prop_enum(self, "ui_tabs", 'SIZES', icon='CON_SAMEVOL', text="Sizes") 
+        row.prop_enum(self, "ui_tabs", 'CONSTRUCTION', icon='MOD_BUILD', text="Construction") 
+        row.prop_enum(self, "ui_tabs", 'MATERIALS', icon='COLOR', text="Materials") 
+        row.prop_enum(self, "ui_tabs", 'MOLDINGS', icon='MOD_SMOOTH', text="Moldings") 
+        row.prop_enum(self, "ui_tabs", 'FRONTS', icon='FACESEL', text="Fronts") 
+        row.prop_enum(self, "ui_tabs", 'HARDWARE', icon='MODIFIER_ON', text="Hardware") 
+        row.prop_enum(self, "ui_tabs", 'TOOLS', icon='TOOL_SETTINGS', text="Tools") 
 
         box = col.box()
 
-        if self.room_tabs == 'ROOM_SIZES':
+        if self.ui_tabs == 'SIZES':
+            self.draw_sizes(box)
+
+        if self.ui_tabs == 'CONSTRUCTION':
             self.draw_room_sizes(box)
 
-        if self.room_tabs == 'MATERIALS':
+        if self.ui_tabs == 'MATERIALS':
             self.draw_materials(box)
 
-        if self.room_tabs == 'ROOM_TOOLS':
+        if self.ui_tabs == 'MOLDINGS':
+            pass          
+
+        if self.ui_tabs == 'FRONTS':
+            pass
+
+        if self.ui_tabs == 'HARDWARE':
+            self.draw_hardware(box)            
+
+        if self.ui_tabs == 'TOOLS':
             self.draw_room_tools(box)
-            self.draw_hardware(box)
 
     @classmethod
     def register(cls):
