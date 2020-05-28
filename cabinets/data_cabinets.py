@@ -83,4 +83,23 @@ class Standard_Cabinet(pc_types.Assembly):
             exterior.dim_y('depth',[depth])
             exterior.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
 
-        print("Test_Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
+        print("Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
+
+    def render(self):
+        left_side = None
+        right_side = None
+
+        for child in self.carcass.obj_bp.children:
+            if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
+                left_side = pc_types.Assembly(child)
+            if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
+                right_side = pc_types.Assembly(child)            
+
+        left_finished_end = self.carcass.get_prompt('Left Finished End')
+        right_finished_end = self.carcass.get_prompt('Right Finished End')
+        if left_finished_end:
+            left_finished_end.set_value(True)
+        if right_finished_end:
+            right_finished_end.set_value(True)            
+        home_builder_utils.update_side_material(left_side,left_finished_end.get_value())
+        home_builder_utils.update_side_material(right_side,right_finished_end.get_value())                

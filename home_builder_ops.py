@@ -337,12 +337,10 @@ class Asset(PropertyGroup):
     preview_found: BoolProperty(name="Preivew Found",default=False)
     asset_type: StringProperty(name="Type")
     library_path: StringProperty(name="Library Path")
-    package_path: StringProperty(name="Package Path")
     package_name: StringProperty(name="Package Name")
     module_name: StringProperty(name="Module Name")
     category_name: StringProperty(name="Category Name")
-    class_name: StringProperty(name="Category Name")
-    asset_class = None
+    class_name: StringProperty(name="Class Name")
 
 
 class home_builder_OT_render_asset_thumbnails(Operator):
