@@ -18,7 +18,8 @@ from bpy.props import (StringProperty,
                        CollectionProperty)
 
 from .pc_lib import pc_unit, pc_utils, pc_types
-from .walls import library_walls
+from .walls import data_walls
+from .doors import data_doors
 from .cabinets import cabinet_library
 from . import home_builder_utils
 
@@ -390,6 +391,10 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.write("item = eval('Library_Home_Builder." + asset.package_name + "." + asset.module_name + "." + asset.class_name + "()')" + "\n")
         file.write("if hasattr(item,'draw'):\n")
         file.write("    item.draw()\n")
+        file.write("if hasattr(item,'draw_door'):\n")
+        file.write("    item.draw_door()\n")      
+        file.write("if hasattr(item,'draw_wall'):\n")
+        file.write("    item.draw_wall()\n")          
         file.write("if hasattr(item,'render'):\n")
         file.write("    item.render()\n")
 
@@ -434,11 +439,27 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset.class_name = name
                 asset.asset_type = 'Cabinet'
 
-        for name, obj in inspect.getmembers(library_walls):
+        for name, obj in inspect.getmembers(data_walls):
             if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
                 asset = self.assets.add()
                 asset.name = name
+                asset.category_name = "Walls"
+                asset.library_path = os.path.join(home_builder_utils.get_library_path(),'Walls')
+                asset.package_name = 'walls'
+                asset.module_name = 'data_walls'
+                asset.class_name = name
                 asset.asset_type = 'Wall'
+
+        for name, obj in inspect.getmembers(data_doors):
+            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
+                asset = self.assets.add()
+                asset.name = name
+                asset.category_name = "Doors"
+                asset.library_path = os.path.join(home_builder_utils.get_library_path(),'Doors')
+                asset.package_name = 'doors'
+                asset.module_name = 'data_doors'
+                asset.class_name = name
+                asset.asset_type = 'Door'
 
     def invoke(self,context,event):
         self.reset_variables()
@@ -464,11 +485,17 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         wall_box.label(text="Walls")
         wall_col = wall_box.column(align=True)
 
+        door_box = layout.box()
+        door_box.label(text="Doors")
+        door_col = door_box.column(align=True)
+
         for asset in self.assets:
             if asset.asset_type == 'Cabinet':
                 cabinet_col.prop(asset,'is_selected',text=asset.name)
-            if asset.asset_type == 'Wall':           
+            if asset.asset_type == 'Wall': 
                 wall_col.prop(asset,'is_selected',text=asset.name)
+            if asset.asset_type == 'Door':
+                door_col.prop(asset,'is_selected',text=asset.name)                
 
 
 classes = (

@@ -93,7 +93,7 @@ class Standard_Cabinet(pc_types.Assembly):
             if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
                 left_side = pc_types.Assembly(child)
             if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
-                right_side = pc_types.Assembly(child)            
+                right_side = pc_types.Assembly(child)
 
         left_finished_end = self.carcass.get_prompt('Left Finished End')
         right_finished_end = self.carcass.get_prompt('Right Finished End')
