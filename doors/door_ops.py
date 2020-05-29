@@ -1,7 +1,7 @@
 import bpy
 import os
 from ..pc_lib import pc_utils, pc_types, pc_unit
-from . import data_doors
+from . import door_library
 
 class home_builder_OT_place_door(bpy.types.Operator):
     bl_idname = "home_builder.place_door"
@@ -33,7 +33,7 @@ class home_builder_OT_place_door(bpy.types.Operator):
 
     def create_door(self):
         # props = home_builder_utils.get_scene_props(bpy.context)
-        self.door = eval("data_doors." + self.class_name + "()")
+        self.door = eval("door_library." + self.class_name + "()")
         self.door.draw_door()
         self.set_child_properties(self.door.obj_bp)
 

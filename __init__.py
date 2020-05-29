@@ -6,11 +6,9 @@ from . import home_builder_ui
 from . import home_builder_ops
 from . import home_builder_props
 from . import home_builder_utils
-from .walls import place_walls
-from .walls import prompt_walls
-from .cabinets import place_cabinet
-from .cabinets import cabinet_prompts
-from .doors import place_door
+from .walls import wall_ops
+from .cabinets import cabinet_ops
+from .doors import door_ops
 from bpy.app.handlers import persistent
 
 bl_info = {
@@ -42,11 +40,9 @@ def register():
     home_builder_ui.register()
     home_builder_ops.register()
     home_builder_props.register()
-    place_walls.register()
-    prompt_walls.register()
-    place_cabinet.register()
-    cabinet_prompts.register()
-    place_door.register()
+    wall_ops.register()
+    cabinet_ops.register()
+    door_ops.register()
 
     load_library_on_file_load()
     bpy.app.handlers.load_post.append(load_library_on_file_load)
@@ -56,11 +52,9 @@ def unregister():
     home_builder_ui.unregister()
     home_builder_ops.unregister()
     home_builder_props.unregister()
-    place_walls.unregister()
-    prompt_walls.unregister()
-    place_cabinet.unregister()
-    cabinet_prompts.unregister()
-    place_door.unregister()
+    wall_ops.unregister()
+    cabinet_ops.unregister()
+    door_ops.unregister()
 
     bpy.app.handlers.load_post.remove(load_library_on_file_load)  
     bpy.app.handlers.load_post.remove(load_pointers)

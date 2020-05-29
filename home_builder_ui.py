@@ -58,7 +58,6 @@ class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
         props = home_builder_utils.get_scene_props(context.scene)
         props.draw(layout)
 
-
 classes = (
     FILEBROWSER_PT_home_builder_headers,
     HOME_BUILDER_MT_category_menu,

@@ -53,8 +53,7 @@ class Hole(pc_types.Assembly):
         # obj_mesh.bp_props.hook_vertex_group_to_object(self.obj_z.name,self.obj_z)
         print("HOLE: Draw Time --- %s seconds ---" % (time.time() - start_time))
 
-class Door(pc_types.Assembly):
-    show_in_library = True
+class Standard_Door(pc_types.Assembly):
 
     def draw_door(self):
         self.create_assembly("Door")

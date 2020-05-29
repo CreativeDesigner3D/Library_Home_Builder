@@ -5,7 +5,7 @@ import time
 from .. import home_builder_utils
 from . import data_parts
 
-class Wall(pc_types.Assembly):
+class Mesh_Wall(pc_types.Assembly):
     show_in_library = True
     
     def render(self):
