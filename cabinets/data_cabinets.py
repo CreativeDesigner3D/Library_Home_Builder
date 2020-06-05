@@ -4,6 +4,7 @@ from . import data_cabinet_parts
 from . import data_cabinet_carcass
 from . import data_countertops
 from . import data_cabinet_doors
+from . import cabinet_utils
 from .. import home_builder_utils
 import time
 import math
@@ -66,13 +67,7 @@ class Standard_Cabinet(pc_types.Assembly):
             countertop.dim_z(value=.1)
 
         if self.exterior:
-            exterior = self.add_assembly(self.exterior)
-            exterior.loc_x('material_thickness',[material_thickness])
-            exterior.loc_y('depth',[depth])
-            exterior.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])
-            exterior.dim_x('width-(material_thickness*2)',[width,material_thickness])
-            exterior.dim_y('depth',[depth])
-            exterior.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
+            cabinet_utils.add_exterior_to_cabinet(self,carcass,self.exterior)
 
         if self.interior:
             exterior = self.add_assembly(self.interior)

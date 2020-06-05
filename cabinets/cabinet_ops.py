@@ -2,9 +2,11 @@ import bpy
 import os
 import math
 import inspect
-from . import cabinet_library
 from ..pc_lib import pc_types, pc_unit, pc_utils
+from . import cabinet_library
+from . import cabinet_utils
 from .. import home_builder_utils
+from . import data_cabinet_doors
 
 class home_builder_OT_place_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.place_cabinet"
@@ -270,6 +272,40 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         return {'FINISHED'}
 
 
+def update_exterior(self,context):
+    bp = home_builder_utils.get_cabinet_bp(context.object)
+
+    cabinet = pc_types.Assembly(bp)    
+    carcass = None
+    exterior_assembly = None
+    drawers = None
+    doors = None
+
+    for child in cabinet.obj_bp.children:
+        if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
+            carcass = pc_types.Assembly(child)        
+        if "IS_EXTERIOR_BP" in child and child["IS_EXTERIOR_BP"]:
+            exterior_assembly = pc_types.Assembly(child)            
+        if "IS_DRAWERS_BP" in child and child["IS_DRAWERS_BP"]:
+            drawers = pc_types.Assembly(child)   
+        if "IS_DOORS_BP" in child and child["IS_DOORS_BP"]:
+            doors = pc_types.Assembly(child)          
+
+    if exterior_assembly:
+        pc_utils.delete_object_and_children(exterior_assembly.obj_bp)
+        exterior = None
+        if self.exterior == 'SINGLE_DOOR':
+            exterior = data_cabinet_doors.Door()
+        elif self.exterior == 'DRAWERS':
+            exterior = data_cabinet_doors.Drawers()
+        if exterior:
+            cabinet_utils.add_exterior_to_cabinet(cabinet,carcass,exterior)
+
+def update_interior(self,context):
+    print(self.interior_assembly)
+    if self.interior_assembly:
+        print(self.interior_assembly.obj_bp)
+
 class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     bl_idname = "home_builder.cabinet_prompts"
     bl_label = "Cabinet Prompts"
@@ -284,6 +320,38 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                                                 ('INTERIOR',"Interior","Interior Options"),
                                                 ('SPLITTER',"Openings","Openings Options")])
 
+    exterior: bpy.props.EnumProperty(name="Exterior",
+                                     items=[('OPEN',"Open","Open"),
+                                            ('SINGLE_DOOR',"Single Door","Single Door"),
+                                            ('DOUBLE_DOOR',"Double Door","Double Door"),
+                                            ('2_DOOR_2_DRAWER',"2 Door 2 Drawer","2 Door 2 Drawer"),
+                                            ('1_DOOR_1_DRAWER',"1 Door 1 Drawer","1 Door 1 Drawer"),
+                                            ('2_DOOR_1_DRAWER',"2 Door 1 Drawer","2 Door 1 Drawer"),
+                                            ('SLIDING_DOORS',"Sliding Doors","Sliding Doors"),
+                                            ('DRAWERS',"Drawers","Drawers")],
+                                    update=update_exterior)
+
+    interior: bpy.props.EnumProperty(name="Interior",
+                                     items=[('OPEN',"Open","Open"),
+                                            ('SHELVES',"Shelves","Shelves"),
+                                            ('ROLLOUTS',"Rollouts","Rollouts"),
+                                            ('DIVISIONS',"Divisions","Divisions"),
+                                            ('CUBBIES',"Cubbies","Cubbies")],
+                                     update=update_interior)
+
+    door_swing: bpy.props.EnumProperty(name="Door Swing",
+                                       items=[('LEFT',"Left Swing","Left Swing"),
+                                              ('RIGHT',"Right Swing","Right Swing"),
+                                              ('TOP',"Top Swing","Top Swing")])
+
+    drawer_qty: bpy.props.EnumProperty(name="Drawer Quantity",
+                                       items=[('1',"1","1"),
+                                              ('2',"2","2"),
+                                              ('3',"3","3"),
+                                              ('4',"4","4"),
+                                              ('5',"5","5"),
+                                              ('6',"6","6")])
+
     drawer_calculator = None
 
     left_side = None
@@ -294,7 +362,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     countertop = None
     doors = None
     drawers = None
-    interior = None
+    interior_assembly = None
+    exterior_assembly = None
 
     def update_product_size(self):
         if 'IS_MIRROR' in self.cabinet.obj_x and self.cabinet.obj_x['IS_MIRROR']:
@@ -319,6 +388,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         home_builder_utils.update_side_material(self.right_side,right_finished_end.get_value())
 
     def check(self, context):
+        print('UPDATING')
         self.update_product_size()
         if self.drawer_calculator:
             self.drawer_calculator.calculate()
@@ -329,13 +399,23 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         return {'FINISHED'}
 
     def get_assemblies(self,context):
+        self.carcass = None
+        self.interior_assembly = None
+        self.exterior_assembly = None
+        self.countertop = None
+        self.drawers = None
+        self.drawer_calculator = None
+        self.doors = None
+        self.left_side = None
+        self.right_side = None
+
         for child in self.cabinet.obj_bp.children:
             if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
                 self.carcass = pc_types.Assembly(child)      
             if "IS_INTERIOR_BP" in child and child["IS_INTERIOR_BP"]:
-                self.interior = pc_types.Assembly(child)              
+                self.interior_assembly = pc_types.Assembly(child)              
             if "IS_EXTERIOR_BP" in child and child["IS_EXTERIOR_BP"]:
-                self.exterior = pc_types.Assembly(child)                     
+                self.exterior_assembly = pc_types.Assembly(child)
             if "IS_COUNTERTOP_BP" in child and child["IS_COUNTERTOP_BP"]:
                 self.countertop = pc_types.Assembly(child)   
             if "IS_DRAWERS_BP" in child and child["IS_DRAWERS_BP"]:
@@ -349,6 +429,9 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 self.left_side = pc_types.Assembly(child)
             if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
                 self.right_side = pc_types.Assembly(child)            
+
+        # if self.drawer_calculator:
+        #     self.drawer_calculator.calculate()
 
     def invoke(self,context,event):
         bp = home_builder_utils.get_cabinet_bp(context.object)
@@ -438,8 +521,18 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         ctop_right.draw(layout)         
 
     def draw_door_prompts(self,layout,context):
-        open_door = self.doors.get_prompt("Open Door")
-        open_door.draw(layout)
+        if self.doors.obj_prompts or self.doors.obj_prompts not in bpy.data.objects:
+            self.get_assemblies(context)
+
+        if self.doors:
+            open_door = self.doors.get_prompt("Open Door")
+            open_door.draw(layout)
+
+        # if self.doors.obj_prompts or self.doors.obj_prompts not in bpy.data.objects:
+        #     open_door = self.doors.get_prompt("Open Door")
+        #     open_door.draw(layout)
+        # else:
+        #     self.get_assemblies(context)
 
     def draw_drawer_prompts(self,layout,context):
         for prompt in self.drawer_calculator.prompts:
@@ -461,10 +554,15 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             self.draw_countertop_prompts(prompt_box,context)
 
         if self.product_tabs == 'EXTERIOR':
+            prompt_box.prop(self,'exterior')
             if self.doors:
                 self.draw_door_prompts(prompt_box,context)
             if self.drawer_calculator:
                 self.draw_drawer_prompts(prompt_box,context)
+
+        if self.product_tabs == 'INTERIOR':
+            prompt_box.prop(self,'interior')
+            # TODO: Draw interior options
 
 
 class home_builder_MT_cabinet_menu(bpy.types.Menu):

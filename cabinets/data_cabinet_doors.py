@@ -16,6 +16,7 @@ class Door(pc_types.Assembly):
 
         self.create_assembly("Door")
         self.obj_bp["IS_DOORS_BP"] = True
+        self.obj_bp["IS_EXTERIOR_BP"] = True
 
         common_prompts.add_door_prompts(self)
         common_prompts.add_front_prompts(self)
@@ -121,6 +122,7 @@ class Drawers(pc_types.Assembly):
     def draw(self):
         self.create_assembly("Drawers")
         self.obj_bp["IS_DRAWERS_BP"] = True
+        self.obj_bp["IS_EXTERIOR_BP"] = True
 
         common_prompts.add_door_prompts(self)
         common_prompts.add_front_prompts(self)
