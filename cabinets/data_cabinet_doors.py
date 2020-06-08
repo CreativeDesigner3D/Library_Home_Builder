@@ -88,6 +88,7 @@ class Drawers(pc_types.Assembly):
         vertical_gap = self.get_prompt("Vertical Gap").get_var('vertical_gap')
 
         front_empty = self.add_empty('Front Z Location ' + str(index))
+        front_empty.empty_display_size = .001
 
         if prev_drawer_empty:
             prev_drawer_z_loc = prev_drawer_empty.pyclone.get_var('location.z','prev_drawer_z_loc')

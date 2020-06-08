@@ -8,6 +8,10 @@ from . import cabinet_utils
 from .. import home_builder_utils
 from . import data_cabinet_doors
 
+def update_cabinet_id_props(obj):
+    obj["PROMPT_ID"] = "home_builder.cabinet_prompts"   
+    obj["MENU_ID"] = "HOME_BUILDER_MT_cabinet_menu"       
+
 class home_builder_OT_place_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.place_cabinet"
     bl_label = "Place Cabinet"
@@ -129,8 +133,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             drawer_calculator = drawers.get_calculator('Front Height Calculator')
             self.calculators.append(drawer_calculator)
 
-        obj["PROMPT_ID"] = "home_builder.cabinet_prompts"   
-        obj["MENU_ID"] = "home_builder_MT_cabinet_menu"   
+        update_cabinet_id_props(obj)
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':
@@ -271,9 +274,17 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         context.area.tag_redraw()
         return {'FINISHED'}
 
+def update_child_props(obj):
+    update_cabinet_id_props(obj)
+    for child in obj.children:
+        update_child_props(child)
 
 def update_exterior(self,context):
-    bp = home_builder_utils.get_cabinet_bp(context.object)
+    if self.cabinet_name not in bpy.data.objects:
+        return
+
+    obj = bpy.data.objects[self.cabinet_name]
+    bp = home_builder_utils.get_cabinet_bp(obj)
 
     cabinet = pc_types.Assembly(bp)    
     carcass = None
@@ -300,6 +311,7 @@ def update_exterior(self,context):
             exterior = data_cabinet_doors.Drawers()
         if exterior:
             cabinet_utils.add_exterior_to_cabinet(cabinet,carcass,exterior)
+            update_child_props(exterior.obj_bp)
 
 def update_interior(self,context):
     print(self.interior_assembly)
@@ -309,6 +321,8 @@ def update_interior(self,context):
 class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     bl_idname = "home_builder.cabinet_prompts"
     bl_label = "Cabinet Prompts"
+
+    cabinet_name: bpy.props.StringProperty(name="Cabinet Name",default="")
 
     width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
     height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
@@ -388,7 +402,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         home_builder_utils.update_side_material(self.right_side,right_finished_end.get_value())
 
     def check(self, context):
-        print('UPDATING')
+        context.view_layer.update()
         self.update_product_size()
         if self.drawer_calculator:
             self.drawer_calculator.calculate()
@@ -428,14 +442,14 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
                 self.left_side = pc_types.Assembly(child)
             if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
-                self.right_side = pc_types.Assembly(child)            
+                self.right_side = pc_types.Assembly(child)  
 
-        # if self.drawer_calculator:
-        #     self.drawer_calculator.calculate()
+        bpy.context.view_layer.update()
 
     def invoke(self,context,event):
         bp = home_builder_utils.get_cabinet_bp(context.object)
         self.cabinet = pc_types.Assembly(bp)
+        self.cabinet_name = self.cabinet.obj_bp.name
         self.depth = math.fabs(self.cabinet.obj_y.location.y)
         self.height = math.fabs(self.cabinet.obj_z.location.z)
         self.width = math.fabs(self.cabinet.obj_x.location.x)
@@ -520,19 +534,23 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         ctop_left.draw(layout)  
         ctop_right.draw(layout)         
 
-    def draw_door_prompts(self,layout,context):
-        if self.doors.obj_prompts or self.doors.obj_prompts not in bpy.data.objects:
+    def check_for_stale_data(self,context,assembly,prompt_name):
+        '''
+        After removing assemblies some data doesn't evaluate correctly
+        This is use to make sure the current assemblies are loaded.
+        TODO: Find a better way to reload current assemblies
+        '''
+        try:
+            prompt = assembly.get_prompt(prompt_name)
+        except:
             self.get_assemblies(context)
+
+    def draw_door_prompts(self,layout,context):
+        self.check_for_stale_data(context,self.doors,"Open Door")
 
         if self.doors:
             open_door = self.doors.get_prompt("Open Door")
             open_door.draw(layout)
-
-        # if self.doors.obj_prompts or self.doors.obj_prompts not in bpy.data.objects:
-        #     open_door = self.doors.get_prompt("Open Door")
-        #     open_door.draw(layout)
-        # else:
-        #     self.get_assemblies(context)
 
     def draw_drawer_prompts(self,layout,context):
         for prompt in self.drawer_calculator.prompts:
@@ -565,7 +583,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             # TODO: Draw interior options
 
 
-class home_builder_MT_cabinet_menu(bpy.types.Menu):
+class HOME_BUILDER_MT_cabinet_menu(bpy.types.Menu):
     bl_label = "Cabinet Commands"
 
     def draw(self, _context):
@@ -584,7 +602,7 @@ class home_builder_OT_delete_cabinet(bpy.types.Operator):
 def register():
     bpy.utils.register_class(home_builder_OT_place_cabinet)  
     bpy.utils.register_class(home_builder_OT_cabinet_prompts)  
-    bpy.utils.register_class(home_builder_MT_cabinet_menu)     
+    bpy.utils.register_class(HOME_BUILDER_MT_cabinet_menu)     
     bpy.utils.register_class(home_builder_OT_delete_cabinet)    
 
 def unregister():
