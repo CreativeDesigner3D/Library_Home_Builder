@@ -1,15 +1,5 @@
 import bpy
-from bpy.types import Header, Menu, Operator, PropertyGroup, Panel
-
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       IntProperty,
-                       FloatProperty,
-                       FloatVectorProperty,
-                       BoolVectorProperty,
-                       PointerProperty,
-                       CollectionProperty,
-                       EnumProperty)
+from . import pc_utils
 
 class Assembly:
 
@@ -19,9 +9,6 @@ class Assembly:
     obj_y = None
     obj_z = None
     obj_prompts = None
-
-    prompt_id = ""
-    placement_id = ""
 
     def __init__(self,obj_bp=None):
         if obj_bp:
@@ -56,10 +43,6 @@ class Assembly:
             for vgroup in vgroupslist:
                 if vgroup not in obj.vertex_groups:
                     obj.vertex_groups.new(name=vgroup)
-
-    def set_id_properties(self,obj):
-        obj["PROMPT_ID"] = self.prompt_id
-        obj["PLACEMENT_ID"] = self.placement_id
 
     def create_assembly(self,assembly_name="New Assembly"):
         """ 
@@ -133,6 +116,37 @@ class Assembly:
         self.obj_prompts["obj_prompts"] = True
         self.coll.objects.link(self.obj_prompts)
 
+    def create_cube(self,name="Cube",size=(0,0,0)):
+        """ This will create a cube mesh and assign mesh hooks
+        """
+        # When assigning vertices to a hook 
+        # the transformation is made so the size must be 0     
+        obj_mesh = pc_utils.create_cube_mesh("Cube",size)
+        self.add_object(obj_mesh)
+
+        vgroup = obj_mesh.vertex_groups[self.obj_x.name]
+        vgroup.add([2,3,6,7],1,'ADD')        
+
+        vgroup = obj_mesh.vertex_groups[self.obj_y.name]
+        vgroup.add([1,2,5,6],1,'ADD')
+
+        vgroup = obj_mesh.vertex_groups[self.obj_z.name]
+        vgroup.add([4,5,6,7],1,'ADD')        
+
+        hook = obj_mesh.modifiers.new('XHOOK','HOOK')
+        hook.object = self.obj_x
+        hook.vertex_indices_set([2,3,6,7])
+
+        hook = obj_mesh.modifiers.new('YHOOK','HOOK')
+        hook.object = self.obj_y
+        hook.vertex_indices_set([1,2,5,6])
+
+        hook = obj_mesh.modifiers.new('ZHOOK','HOOK')
+        hook.object = self.obj_z
+        hook.vertex_indices_set([4,5,6,7])
+
+        return obj_mesh
+
     def add_prompt(self,name,prompt_type,value):
         prompt = self.obj_prompts.pyclone.add_prompt(prompt_type,name)
         prompt.set_value(value)
@@ -148,7 +162,6 @@ class Assembly:
         obj.parent = self.obj_bp
         self.coll.objects.link(obj)
         self.update_vector_groups()
-        self.set_id_properties(obj)
 
     def add_assembly(self,assembly):
         if assembly.obj_bp is None:
@@ -168,7 +181,6 @@ class Assembly:
             if not obj.parent:
                 obj_bp = obj
             self.coll.objects.link(obj)
-            # bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)
 
         obj_bp.parent = self.obj_bp
         return obj_bp

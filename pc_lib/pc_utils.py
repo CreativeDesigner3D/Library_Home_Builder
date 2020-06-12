@@ -6,8 +6,6 @@ from mathutils import Vector
 import math, random
 import bmesh
 import inspect
-# from .xml import XML
-# from .. import kitchen_utils
 
 def get_wm_props(window_manager):
     return window_manager.pyclone
@@ -323,6 +321,8 @@ def get_selection_point(context, event, ray_max=10000.0,objects=None,floor=None,
     return best_hit, best_obj
 
 def get_drivers(obj):
+    """ This gets all the drivers on an object
+    """
     drivers = []
     if obj.animation_data:
         for driver in obj.animation_data.drivers:
@@ -335,6 +335,8 @@ def get_drivers(obj):
     return drivers        
 
 def update_file_browser_path(context,path):
+    """ This updates the filebrowser path
+    """    
     for area in context.screen.areas:
         if area.type == 'FILE_BROWSER':
             for space in area.spaces:
@@ -354,6 +356,8 @@ def update_file_browser_path(context,path):
                         params.use_filter_image = True  
 
 def register_library(name,activate_id,drop_id,icon):
+    """ This registers a library with PyClone
+    """    
     pyclone = get_wm_props(bpy.context.window_manager)
     if name not in pyclone.libraries:
         pyclone.add_library(name=name,
@@ -362,5 +366,7 @@ def register_library(name,activate_id,drop_id,icon):
                             icon=icon)
 
 def unregister_library(name):
+    """ This unregisters a library with PyClone
+    """    
     pyclone = get_wm_props(bpy.context.window_manager)
     pyclone.remove_library(name)
