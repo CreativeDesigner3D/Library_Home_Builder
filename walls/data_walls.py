@@ -64,8 +64,8 @@ class Mesh_Wall(pc_types.Assembly):
         length = self.obj_x.pyclone.get_var('location.x','length')
         wall_thickness = self.obj_y.pyclone.get_var('location.y','wall_thickness')
 
-        left_angle = self.obj_prompts.pyclone.add_prompt('ANGLE',"Left Angle")
-        right_angle = self.obj_prompts.pyclone.add_prompt('ANGLE',"Right Angle")
+        left_angle = self.add_prompt("Left Angle",'ANGLE',0)
+        right_angle = self.add_prompt("Right Angle",'ANGLE',0)
 
         left_angle_var = left_angle.get_var('left_angle_var')
         right_angle_var = right_angle.get_var('right_angle_var')
@@ -85,6 +85,7 @@ class Wall_Framed(pc_types.Assembly):
 
     def draw_wall(self):
         start_time = time.time()
+
         #Create Assembly
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.create_assembly("Wall")
@@ -97,24 +98,16 @@ class Wall_Framed(pc_types.Assembly):
         self.obj_y.location.y = props.wall_thickness
         self.obj_z.location.z = props.wall_height
 
-        #Figure out how to run operators from draw function
-        # bpy.ops.mesh.primitive_circle_add()
-        # bpy.context.view_layer.objects.active.parent = self.obj_bp
-        
         #Get Product Variables
         length = self.obj_x.pyclone.get_var('location.x','length')
         wall_thickness = self.obj_y.pyclone.get_var('location.y','wall_thickness')
         height = self.obj_z.pyclone.get_var('location.z','height')
 
         #Add Prompts
-        left_angle = self.obj_prompts.pyclone.add_prompt('ANGLE',"Left Angle")
-        right_angle = self.obj_prompts.pyclone.add_prompt('ANGLE',"Right Angle")
-
-        stud_spacing_distance = self.obj_prompts.pyclone.add_prompt('DISTANCE',"Stud Spacing Distance")
-        stud_spacing_distance.set_value(pc_unit.inch(16))
-
-        material_thickness = self.obj_prompts.pyclone.add_prompt('DISTANCE',"Material Thickness")
-        material_thickness.set_value(pc_unit.inch(2))
+        left_angle = self.add_prompt("Left Angle",'ANGLE',0)
+        right_angle = self.add_prompt("Right Angle",'ANGLE',0)
+        stud_spacing_distance = self.add_prompt("Stud Spacing Distance",'DISTANCE',pc_unit.inch(16))
+        material_thickness = self.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(2))
 
         #Get Prompt Variables
         material_thickness = material_thickness.get_var("material_thickness")
@@ -177,6 +170,98 @@ class Wall_Framed(pc_types.Assembly):
              
         print("WALL: Draw Time --- %s seconds ---" % (time.time() - start_time))
 
+
+class Wall_Brick(pc_types.Assembly):
+    show_in_library = True
+
+    def render(self):
+        self.draw_wall()
+
+    def draw_wall(self):
+        start_time = time.time()     
+
+        #Create Assembly
+        self.create_assembly("Room")
+
+        #ASSIGN PROPERTY
+        self.obj_bp["IS_WALL_BP"] = True        
+
+        #Set Default Dimensions
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        self.obj_x.location.x = pc_unit.inch(120) #Length
+        self.obj_y.location.y = pc_unit.inch(3.875)
+        self.obj_z.location.z = props.wall_height
+
+        #Get Product Variables
+        length = self.obj_x.pyclone.get_var('location.x','length')
+        wall_thickness = self.obj_y.pyclone.get_var('location.y','wall_thickness')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+
+        #Add Prompts
+        left_angle = self.add_prompt("Left Angle",'ANGLE',0)
+        right_angle = self.add_prompt("Right Angle",'ANGLE',0)
+        brick_length = self.add_prompt("Brick Length",'DISTANCE',pc_unit.inch(7.875))
+        brick_height = self.add_prompt("Brick Height",'DISTANCE',pc_unit.inch(2.25))
+        mortar_thickness = self.add_prompt("Mortar Thickness",'DISTANCE',pc_unit.inch(.5))
+        mortar_inset = self.add_prompt("Mortar Inset",'DISTANCE',pc_unit.inch(.125))
+
+        #Get Vars
+        brick_length = brick_length.get_var("brick_length")
+        brick_height = brick_height.get_var("brick_height")
+        mortar_thickness = mortar_thickness.get_var("mortar_thickness")
+        mortar_inset = mortar_inset.get_var("mortar_inset")
+
+        #Add Parts
+        brick1 = self.add_assembly(data_parts.Brick())
+        brick1.set_name('Bricks')
+        brick1.loc_x(value=0)
+        brick1.loc_y(value=0)
+        brick1.loc_z(value=0)
+        brick1.dim_x('brick_length',[brick_length])
+        brick1.dim_y('wall_thickness',[wall_thickness])
+        brick1.dim_z('brick_height',[brick_height])
+        x_quantity = brick1.get_prompt('X Quantity')
+        x_offset = brick1.get_prompt('X Offset')
+        z_quantity = brick1.get_prompt('Z Quantity')
+        z_offset = brick1.get_prompt('Z Offset')
+
+        x_quantity.set_formula('(length-brick_length)/(brick_length+mortar_thickness)',
+                                [length,brick_length,mortar_thickness])
+        x_offset.set_formula('brick_length+mortar_thickness',[brick_length,mortar_thickness])        
+
+        z_quantity.set_formula('((height-brick_height)/(brick_height+mortar_thickness))/2',
+                                [height,brick_height,mortar_thickness])
+        z_offset.set_formula('(brick_height+mortar_thickness)*2',[brick_height,mortar_thickness])  
+
+        brick2 = self.add_assembly(data_parts.Brick())
+        brick2.set_name('Bricks')
+        brick2.loc_x('-brick_length/2',[brick_length])
+        brick2.loc_y(value=0)
+        brick2.loc_z('brick_height+mortar_thickness',[brick_height,mortar_thickness])
+        brick2.dim_x('brick_length',[brick_length])
+        brick2.dim_y('wall_thickness',[wall_thickness])
+        brick2.dim_z('brick_height',[brick_height])
+        x_quantity = brick2.get_prompt('X Quantity')
+        x_offset = brick2.get_prompt('X Offset')
+        z_quantity = brick2.get_prompt('Z Quantity')
+        z_offset = brick2.get_prompt('Z Offset')
+
+        x_quantity.set_formula('(length-brick_length)/(brick_length+mortar_thickness)',
+                                [length,brick_length,mortar_thickness])
+        x_offset.set_formula('brick_length+mortar_thickness',[brick_length,mortar_thickness])        
+
+        z_quantity.set_formula('((height-brick_height)/(brick_height+mortar_thickness))/2',
+                                [height,brick_height,mortar_thickness])
+        z_offset.set_formula('(brick_height+mortar_thickness)*2',[brick_height,mortar_thickness])  
+
+        morter = self.add_assembly(data_parts.Cube())
+        morter.set_name('Morter')
+        morter.loc_x('mortar_inset',[mortar_inset])
+        morter.loc_y('mortar_inset',[mortar_inset])
+        morter.loc_z('mortar_inset,[mortar_inset')
+        morter.dim_x('length-mortar_inset*2',[length,mortar_inset])
+        morter.dim_y('wall_thickness-mortar_inset*2',[wall_thickness,mortar_inset])
+        morter.dim_z('height-mortar_inset*2',[height,mortar_inset])
 
 class Room(pc_types.Assembly):
     show_in_library = True
@@ -262,4 +347,4 @@ class Room(pc_types.Assembly):
         right_wall.dim_y('-wall_thickness',[wall_thickness])
         right_wall.dim_z('height',[height])            
 
-        print("ROOM: Draw Time --- %s seconds ---" % (time.time() - start_time))
+        print("ROOM: Draw Time --- %s seconds ---" % (time.time() - start_time))   

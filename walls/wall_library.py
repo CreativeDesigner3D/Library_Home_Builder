@@ -22,7 +22,7 @@ class Die_Wall(data_walls.Mesh_Wall):
         pass
 
 
-class Brick_Wall(data_walls.Mesh_Wall):
+class Wall_Brick(data_walls.Wall_Brick):
     show_in_library = True
 
     def __init__(self):
