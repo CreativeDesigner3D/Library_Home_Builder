@@ -60,23 +60,32 @@ class room_builder_OT_drop(Operator):
         directory, file = os.path.split(self.filepath)
         filename, ext = os.path.splitext(file)
 
-        if props.active_category == 'Walls':
-            if 'Archipack' in self.filepath and hasattr(bpy.types,'ARCHIPACK_OT_wall2_draw'):
+        if props.active_category == 'Archipack':
+            if not hasattr(bpy.types,'ARCHIPACK_OT_wall2_draw'):
+                bpy.ops.home_builder.message('INVOKE_DEFAULT',message="Archipack is not Enabled")
+                return {'FINISHED'}
+            if 'Wall' in filename:
                 bpy.ops.archipack.wall2_draw('INVOKE_DEFAULT')
-            else:
-                bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
+            if 'Door' in filename:
+                bpy.ops.archipack.door_draw('INVOKE_DEFAULT')
+            if 'Window' in filename:
+                bpy.ops.archipack.window_draw('INVOKE_DEFAULT')
+            if 'Fence' in filename:
+                bpy.ops.archipack.fence('INVOKE_DEFAULT')
+            if 'Stairs' in filename:
+                bpy.ops.archipack.stair('INVOKE_DEFAULT')
+
+        if props.active_category == 'Walls':
+            bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
 
         if props.active_category == 'Cabinets':
             bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
-
-        if props.active_category == 'Fences':
-            pass
 
         if props.active_category == 'Doors':
             bpy.ops.home_builder.place_door(filepath=self.filepath)
 
         if props.active_category == 'Windows':
-            pass
+            pass #TODO: Implement Window Placement
 
         return {'FINISHED'}
 
@@ -498,6 +507,26 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 door_col.prop(asset,'is_selected',text=asset.name)                
 
 
+class home_builder_OT_message(bpy.types.Operator):
+    bl_idname = "home_builder.message"
+    bl_label = "Message"
+    
+    message: bpy.props.StringProperty(name="Message",description="Message to Display")
+
+    def check(self, context):
+        return True
+
+    def invoke(self,context,event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=350)
+        
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text=self.message)
+
+    def execute(self, context):
+        return {'FINISHED'}
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -515,6 +544,7 @@ classes = (
     home_builder_OT_toggle_dimensions,
     Asset,
     home_builder_OT_render_asset_thumbnails,
+    home_builder_OT_message,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

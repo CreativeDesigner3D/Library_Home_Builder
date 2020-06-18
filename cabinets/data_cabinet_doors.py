@@ -8,8 +8,8 @@ from os import path
 
 class Door(pc_types.Assembly):
     category_name = "Doors"
-    prompt_id = "room.part_prompts"
-    placement_id = "room.draw_multiple_walls"
+    door_swing = 'LEFT' # {'LEFT','RIGHT','TOP'}
+    pull_location = 'BASE' # {'BASE','TALL','UPPER'}
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
@@ -64,8 +64,6 @@ class Door(pc_types.Assembly):
 
 class Drawers(pc_types.Assembly):
     category_name = "Doors"
-    prompt_id = "room.part_prompts"
-    placement_id = "room.draw_multiple_walls"
 
     drawer_qty = 3
 
