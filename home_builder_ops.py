@@ -62,7 +62,7 @@ class room_builder_OT_drop(Operator):
 
         if props.active_category == 'Archipack':
             if not hasattr(bpy.types,'ARCHIPACK_OT_wall2_draw'):
-                bpy.ops.home_builder.message('INVOKE_DEFAULT',message="Archipack is not Enabled")
+                bpy.ops.home_builder.archipack_not_enabled('INVOKE_DEFAULT')
                 return {'FINISHED'}
             if 'Wall' in filename:
                 bpy.ops.archipack.wall2_draw('INVOKE_DEFAULT')
@@ -527,6 +527,40 @@ class home_builder_OT_message(bpy.types.Operator):
     def execute(self, context):
         return {'FINISHED'}
 
+def update_enable_archipack(self,context):
+    if self.enable_archipack:
+        bpy.ops.preferences.addon_enable(module="archipack")
+    else:
+        bpy.ops.preferences.addon_disable(module="archipack")
+
+class home_builder_OT_archipack_not_enabled(bpy.types.Operator):
+    bl_idname = "home_builder.archipack_not_enabled"
+    bl_label = "Archipack Not Enabled"
+    
+    enable_archipack: bpy.props.BoolProperty(
+        name="Enable Archipack",
+        description="Check this to enable Archipack",
+        update=update_enable_archipack)
+
+    def check(self, context):
+        return True
+
+    def invoke(self,context,event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=350)
+        
+    def draw(self, context):
+        layout = self.layout
+        layout.operator('The Archipack add-on is not enabled.')
+        layout.operator('Check the box and try again.')
+        layout.prop(self,'enable_archipack')
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
+
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -545,6 +579,7 @@ classes = (
     Asset,
     home_builder_OT_render_asset_thumbnails,
     home_builder_OT_message,
+    home_builder_OT_archipack_not_enabled,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
