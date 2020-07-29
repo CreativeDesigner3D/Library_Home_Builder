@@ -119,15 +119,18 @@ class Hardware_Part(pc_types.Assembly):
     prompt_id = "room.part_prompts"
     placement_id = "room.draw_multiple_walls"    
 
+
 class Buyout_Part(pc_types.Assembly):
     category_name = "Parts"
     prompt_id = "room.part_prompts"
     placement_id = "room.draw_multiple_walls"        
 
+
 class Extruded_Part(pc_types.Assembly):
     category_name = "Parts"
     prompt_id = "room.part_prompts"
     placement_id = "room.draw_multiple_walls"            
+
 
 def add_countertop_part(assembly):
     part = pc_types.Assembly(assembly.add_assembly_from_file(PART))

@@ -73,11 +73,15 @@ def flip_normals(assembly):
                 polygon.flip()
             child.data.update()
 
-def unwrap_obj(context,obj):
+def apply_hook_modifiers(context,obj):
     context.view_layer.objects.active = obj
     for mod in obj.modifiers:
         if mod.type == 'HOOK':
             bpy.ops.object.modifier_apply(apply_as='DATA',modifier=mod.name)            
+
+def unwrap_obj(context,obj):
+    context.view_layer.objects.active = obj
+    apply_hook_modifiers(context,obj)       
 
     mode = obj.mode
     if obj.mode == 'OBJECT':

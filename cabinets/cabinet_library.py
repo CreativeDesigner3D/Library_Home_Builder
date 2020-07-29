@@ -12,6 +12,24 @@ class Base_Cabinet(data_cabinets.Standard_Cabinet):
         self.splitter = None
         
 
+class Tall_Cabinet(data_cabinets.Standard_Cabinet):
+
+    def __init__(self):
+        self.carcass = data_cabinet_carcass.Tall_Advanced()
+        self.interior = None
+        self.exterior = data_cabinet_doors.Door()
+        self.splitter = None
+
+
+class Upper_Cabinet(data_cabinets.Standard_Cabinet):
+
+    def __init__(self):
+        self.carcass = data_cabinet_carcass.Upper_Advanced()
+        self.interior = None
+        self.exterior = data_cabinet_doors.Door()
+        self.splitter = None
+
+
 class Drawer_Cabinet(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
