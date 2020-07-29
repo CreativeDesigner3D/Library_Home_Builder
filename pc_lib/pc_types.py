@@ -147,9 +147,13 @@ class Assembly:
 
         return obj_mesh
 
-    def add_prompt(self,name,prompt_type,value):
+    def add_prompt(self,name,prompt_type,value,combobox_items=[]):
         prompt = self.obj_prompts.pyclone.add_prompt(prompt_type,name)
         prompt.set_value(value)
+        if prompt_type == 'COMBOBOX':
+            for item in combobox_items: 
+                i = prompt.combobox_items.add()
+                i.name = item
         return prompt
 
     def add_empty(self,obj_name):
