@@ -63,7 +63,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             if name == filename.replace(" ","_"):        
                 wall = obj()
         if not wall:
-            wall = data_walls.Wall()
+            wall = wall_library.Wall()
         wall.draw_wall()
         wall.set_name("Wall")
         home_builder_utils.assign_wall_pointers(wall)

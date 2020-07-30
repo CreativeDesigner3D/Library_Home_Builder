@@ -2,6 +2,7 @@ from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinets
 from . import data_cabinet_doors
 from . import data_cabinet_carcass
+from . import data_appliances
 
 class Base_Cabinet(data_cabinets.Standard_Cabinet):
 
@@ -47,3 +48,9 @@ class Open_Cabinet(data_cabinets.Standard_Cabinet):
         self.interior = None
         self.exterior = None
         self.splitter = None        
+
+
+class Range(data_appliances.Range):
+
+    def __init__(self):
+        self.obj = None 

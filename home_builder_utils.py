@@ -41,6 +41,7 @@ def get_material(category,material_name):
         return bpy.data.materials[material_name]
 
     material_path = os.path.join(get_material_path(),category,material_name + ".blend")
+    
     if os.path.exists(material_path):
 
         with bpy.data.libraries.load(material_path, False, False) as (data_from, data_to):
@@ -117,6 +118,10 @@ def get_default_material_pointers():
     pointers.append(("Pull Finish","Metal","Polished Chrome"))
     pointers.append(("Glass","Misc","Glass"))
     pointers.append(("Molding","Wood","Autumn Leaves"))
+    pointers.append(("Walls","Wall Paint","Textured Paint Cream"))
+    pointers.append(("Floor","Wood Flooring","Provincial Oak Hardwood"))
+    pointers.append(("Entry Doors","Wood","Painted Wood White"))
+    pointers.append(("Entry Door Frame","Wood","Painted Wood White"))
     return pointers
 
 def get_default_pull_pointers():
@@ -227,22 +232,13 @@ def assign_material_pointers(assembly):
                 if pointer.name == 'W2':
                     pointer.name = "Wood Core Edges"                        
 
-def assign_wall_pointers(assembly):
-    for child in assembly.obj_bp.children:
-        if child.type == 'MESH':
-            if len(child.material_slots) == 0:
-                bpy.ops.pc_material.add_material_slot(object_name=child.name)
-            for index, pointer in enumerate(child.pyclone.pointers):  
-                pointer.name = "Walls"  
-            assign_materials_to_object(child)
-
 def assign_door_frame_pointers(assembly):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
             if len(child.material_slots) == 0:
                 bpy.ops.pc_material.add_material_slot(object_name=child.name)
             for index, pointer in enumerate(child.pyclone.pointers):  
-                pointer.name = "Door Trim"  
+                pointer.name = "Entry Door Frame"  
             assign_materials_to_object(child)
 
 def assign_door_panel_pointers(assembly):
@@ -251,7 +247,7 @@ def assign_door_panel_pointers(assembly):
             if len(child.material_slots) == 0:
                 bpy.ops.pc_material.add_material_slot(object_name=child.name)
             for index, pointer in enumerate(child.pyclone.pointers):  
-                pointer.name = "Door Panels"  
+                pointer.name = "Entry Door Panels"  
             assign_materials_to_object(child)
 
 def assign_floor_pointers(obj):

@@ -70,4 +70,24 @@
 		<Category>Wood</Category>
 		<Asset>Autumn Leaves</Asset>
 	</Pointer>
+	<Pointer>
+		<Name>Walls</Name>
+		<Category>Wall Paint</Category>
+		<Asset>Textured Paint Cream</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Floor</Name>
+		<Category>Wood Flooring</Category>
+		<Asset>Provincial Oak Hardwood</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Entry Doors</Name>
+		<Category>Wood</Category>
+		<Asset>Painted Wood White</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Entry Door Frame</Name>
+		<Category>Wood</Category>
+		<Asset>Painted Wood White</Asset>
+	</Pointer>
 </Root>
