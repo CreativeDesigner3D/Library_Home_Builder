@@ -161,6 +161,12 @@ class Assembly:
         self.add_object(obj)
         return obj
 
+    def add_light(self,obj_name,light_type):
+        light = bpy.data.lights.new(obj_name,light_type)
+        obj = bpy.data.objects.new(obj_name,light)
+        self.add_object(obj)
+        return obj
+
     def add_object(self,obj):
         obj.location = (0,0,0)
         obj.parent = self.obj_bp
