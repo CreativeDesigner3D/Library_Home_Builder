@@ -169,6 +169,13 @@ def add_rectangular_part(assembly):
     home_builder_utils.assign_materials_to_assembly(part)
     return part
 
+def add_lighting_strip_part(assembly):
+    part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
+    assembly.add_assembly(part)
+    home_builder_utils.assign_cabinet_lighting_pointers(part)
+    home_builder_utils.assign_materials_to_assembly(part)
+    return part
+
 def add_square_cutout(assembly):
     part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
     assembly.add_assembly(part)

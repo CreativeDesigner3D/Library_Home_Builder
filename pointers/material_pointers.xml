@@ -31,6 +31,11 @@
 		<Asset>Autumn Leaves</Asset>
 	</Pointer>
 	<Pointer>
+		<Name>Cabinet Lighting</Name>
+		<Category>Lighting</Category>
+		<Asset>Under Cabinet Lighting</Asset>
+	</Pointer>
+	<Pointer>
 		<Name>Door Surface</Name>
 		<Category>Wood</Category>
 		<Asset>Autumn Leaves</Asset>

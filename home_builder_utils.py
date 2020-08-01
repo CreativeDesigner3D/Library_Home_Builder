@@ -10,18 +10,24 @@ def get_library_path():
     return os.path.join(os.path.dirname(__file__),'library')   
 
 def get_wall_bp(obj):
+    if not obj:
+        return None
     if "IS_WALL_BP" in obj:
         return obj
     elif obj.parent:
         return get_wall_bp(obj.parent)
 
 def get_room_bp(obj):
+    if not obj:
+        return None    
     if "IS_ROOM_BP" in obj:
         return obj
     elif obj.parent:
         return get_room_bp(obj.parent)
 
 def get_cabinet_bp(obj):
+    if not obj:
+        return None    
     if "IS_CABINET_BP" in obj:
         return obj
     elif obj.parent:
@@ -110,6 +116,7 @@ def get_default_material_pointers():
     pointers.append(("Exposed Cabinet Edges","Wood","Autumn Leaves"))
     pointers.append(("Interior Cabinet Surfaces","Wood","Autumn Leaves"))
     pointers.append(("Interior Cabinet Edges","Wood","Autumn Leaves"))
+    pointers.append(("Cabinet Lighting","Lighting","Under Cabinet Lighting"))
     pointers.append(("Door Surface","Wood","Autumn Leaves"))
     pointers.append(("Door Edge","Wood","Autumn Leaves"))
     pointers.append(("Countertop Surface","Stone","Midnight Granite"))
@@ -197,6 +204,12 @@ def assign_countertop_pointers(assembly):
         if child.type == 'MESH':
             for index, pointer in enumerate(child.pyclone.pointers):  
                 pointer.name = "Countertop Surface"  
+
+def assign_cabinet_lighting_pointers(assembly):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for index, pointer in enumerate(child.pyclone.pointers):  
+                pointer.name = "Cabinet Lighting"  
 
 def assign_door_pointers(assembly):
     for child in assembly.obj_bp.children:

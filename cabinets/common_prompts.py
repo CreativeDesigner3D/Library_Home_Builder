@@ -54,3 +54,10 @@ def add_carcass_prompts(assembly):
     assembly.add_prompt("Run Sides to Floor",'CHECKBOX',True)
     assembly.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(.75))    
     
+def add_cabinet_lighting_prompts(assembly):
+    assembly.add_prompt("Add Top Light",'CHECKBOX',False)    
+    assembly.add_prompt("Add Side Light",'CHECKBOX',False)  
+    assembly.add_prompt("Add Bottom Light",'CHECKBOX',False)  
+    assembly.add_prompt("Lighting Width",'DISTANCE',pc_unit.inch(.75)) 
+    assembly.add_prompt("Lighting Dim From Front",'DISTANCE',pc_unit.inch(1.5)) 
+    assembly.add_prompt("Lighting Inset From Sides",'DISTANCE',pc_unit.inch(.75)) 

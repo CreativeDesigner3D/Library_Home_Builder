@@ -550,9 +550,11 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     def draw_carcass_prompts(self,layout,context):
         left_finished_end = self.carcass.get_prompt("Left Finished End")
         right_finished_end = self.carcass.get_prompt("Right Finished End")
-
         toe_kick_height = self.carcass.get_prompt("Toe Kick Height")
         toe_kick_setback = self.carcass.get_prompt("Toe Kick Setback")
+        add_bottom_light = self.carcass.get_prompt("Add Bottom Light")
+        add_top_light = self.carcass.get_prompt("Add Top Light")
+        add_side_light = self.carcass.get_prompt("Add Side Light")
 
         left_finished_end.draw(layout)
         right_finished_end.draw(layout)
@@ -560,6 +562,12 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             toe_kick_height.draw(layout)
         if toe_kick_setback:
             toe_kick_setback.draw(layout)
+        if add_bottom_light:
+            add_bottom_light.draw(layout)      
+        if add_top_light:
+            add_top_light.draw(layout)                   
+        if add_side_light:
+            add_side_light.draw(layout)    
 
     def draw_countertop_prompts(self,layout,context):
         ctop_front = self.cabinet.get_prompt("Countertop Overhang Front")
