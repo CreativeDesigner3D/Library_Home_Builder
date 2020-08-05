@@ -313,39 +313,39 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         
         col = row.column(align=True)
         row1 = col.row(align=True)
-        if pc_utils.object_has_driver(self.cabinet.obj_x):
-            x = math.fabs(self.cabinet.obj_x.location.x)
+        if pc_utils.object_has_driver(self.current_wall.obj_x):
+            x = math.fabs(self.current_wall.obj_x.location.x)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',x))
-            row1.label(text='Width: ' + value)
+            row1.label(text='Wall Length: ' + value)
         else:
-            row1.label(text='Width:')
-            row1.prop(self,'width',text="")
-            row1.prop(self.cabinet.obj_x,'hide_viewport',text="")
+            row1.label(text='Wall Length:')
+            row1.prop(self.current_wall.obj_x,'location',index=0,text="")
+            row1.prop(self.current_wall.obj_x,'hide_viewport',text="")
         
         row1 = col.row(align=True)
-        if pc_utils.object_has_driver(self.cabinet.obj_z):
-            z = math.fabs(self.cabinet.obj_z.location.z)
+        if pc_utils.object_has_driver(self.current_wall.obj_z):
+            z = math.fabs(self.current_wall.obj_z.location.z)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',z))            
-            row1.label(text='Height: ' + value)
+            row1.label(text='Wall Height: ' + value)
         else:
-            row1.label(text='Height:')
-            row1.prop(self,'height',text="")
-            row1.prop(self.cabinet.obj_z,'hide_viewport',text="")
+            row1.label(text='Wall Height:')
+            row1.prop(self.current_wall.obj_z,'location',index=2,text="")
+            row1.prop(self.current_wall.obj_z,'hide_viewport',text="")
         
         row1 = col.row(align=True)
-        if pc_utils.object_has_driver(self.cabinet.obj_y):
-            y = math.fabs(self.cabinet.obj_y.location.y)
+        if pc_utils.object_has_driver(self.current_wall.obj_y):
+            y = math.fabs(self.current_wall.obj_y.location.y)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',y))                 
-            row1.label(text='Depth: ' + value)
+            row1.label(text='Wall Thickness: ' + value)
         else:
-            row1.label(text='Depth:')
-            row1.prop(self,'depth',text="")
-            row1.prop(self.cabinet.obj_y,'hide_viewport',text="")
+            row1.label(text='Wall Thickness:')
+            row1.prop(self.current_wall.obj_y,'location',index=1,text="")
+            row1.prop(self.current_wall.obj_y,'hide_viewport',text="")
             
-        if len(self.cabinet.obj_bp.constraints) > 0:
+        if len(self.current_wall.obj_bp.constraints) > 0:
             col = row.column(align=True)
             col.label(text="Location:")
-            col.operator('kitchen.disconnect_cabinet_constraint',text='Disconnect Constraint',icon='CONSTRAINT').obj_name = self.cabinet.obj_bp.name
+            col.operator('home_builder.disconnect_constraint',text='Disconnect Wall',icon='CONSTRAINT').obj_name = self.current_wall.obj_bp.name
         else:
             col = row.column(align=True)
             col.label(text="Location X:")
@@ -353,31 +353,34 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
             col.label(text="Location Z:")
         
             col = row.column(align=True)
-            col.prop(self.cabinet.obj_bp,'location',text="")
+            col.prop(self.current_wall.obj_bp,'location',text="")
         
         row = box.row()
         row.label(text='Rotation Z:')
-        row.prop(self.cabinet.obj_bp,'rotation_euler',index=2,text="")  
+        row.prop(self.current_wall.obj_bp,'rotation_euler',index=2,text="")  
 
     def draw(self, context):
         layout = self.layout
+        self.draw_product_size(layout,context)
+        layout.operator('home_builder.add_room_light',text='Add Room Light',icon='LIGHT_SUN')
+        layout.operator('home_builder.draw_floor_plane',text='Add Floor',icon='MESH_PLANE')
+        
+        # left_angle = self.current_wall.get_prompt("Left Angle")
+        # right_angle = self.current_wall.get_prompt("Right Angle")
 
-        left_angle = self.current_wall.get_prompt("Left Angle")
-        right_angle = self.current_wall.get_prompt("Right Angle")
+        # col = layout.column(align=True)
+        # col.prop(self.current_wall.obj_x,'location',index=0,text="Length")
+        # col.prop(self.current_wall.obj_y,'location',index=1,text="Thickness")
+        # col.prop(self.current_wall.obj_z,'location',index=2,text="Height")
 
-        col = layout.column(align=True)
-        col.prop(self.current_wall.obj_x,'location',index=0,text="Length")
-        col.prop(self.current_wall.obj_y,'location',index=1,text="Thickness")
-        col.prop(self.current_wall.obj_z,'location',index=2,text="Height")
+        # col = layout.column(align=True)
+        # col.prop(self.current_wall.obj_bp,'rotation_euler',index=2,text="Rotation")
 
-        col = layout.column(align=True)
-        col.prop(self.current_wall.obj_bp,'rotation_euler',index=2,text="Rotation")
+        # left_angle.draw(layout)
+        # right_angle.draw(layout)
 
-        left_angle.draw(layout)
-        right_angle.draw(layout)
-
-        layout.label(text=str(left_angle.get_value()))
-        layout.label(text=str(right_angle.get_value()))
+        # layout.label(text=str(left_angle.get_value()))
+        # layout.label(text=str(right_angle.get_value()))
 
 classes = (
     home_builder_OT_wall_prompts,

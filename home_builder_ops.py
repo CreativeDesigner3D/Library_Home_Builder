@@ -334,13 +334,6 @@ class home_builder_OT_toggle_dimensions(bpy.types.Operator):
     def execute(self, context):
         return {'FINISHED'}        
 
-class home_builder_OT_update_scene_materials(bpy.types.Operator):
-    bl_idname = "home_builder.update_scene_materials"
-    bl_label = "Update Scene Materials"
-    
-    def execute(self, context):
-        return {'FINISHED'}
-
 
 class Asset(PropertyGroup):
     is_selected: BoolProperty(name="Is Selected",default=False)
