@@ -32,6 +32,8 @@ class Standard_Cabinet(pc_types.Assembly):
         cabinet_type = carcass.get_prompt("Cabinet Type")
         if self.exterior:
             cabinet_utils.add_exterior_to_cabinet(self,carcass,self.exterior,cabinet_type.get_value())
+        if self.splitter:
+            cabinet_utils.add_exterior_to_cabinet(self,carcass,self.splitter,cabinet_type.get_value())            
         if self.interior:
             cabinet_utils.add_interior_to_cabinet(self,carcass,self.interior,cabinet_type.get_value())
         if cabinet_type.get_value() == 0:

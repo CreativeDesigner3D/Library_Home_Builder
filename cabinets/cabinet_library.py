@@ -3,6 +3,7 @@ from . import data_cabinets
 from . import data_cabinet_doors
 from . import data_cabinet_carcass
 from . import data_appliances
+from . import data_cabinet_splitter
 
 class Base_Cabinet(data_cabinets.Standard_Cabinet):
 
@@ -49,6 +50,15 @@ class Open_Cabinet(data_cabinets.Standard_Cabinet):
         self.exterior = None
         self.splitter = None        
 
+
+class Splitter_Cabinet(data_cabinets.Standard_Cabinet):
+
+    def __init__(self):
+        self.carcass = data_cabinet_carcass.Tall_Advanced()
+        self.interior = None
+        self.exterior = None
+        self.splitter = data_cabinet_splitter.Vertical_Splitter()
+        self.splitter.vertical_openings = 4    
 
 class Range(data_appliances.Range):
 

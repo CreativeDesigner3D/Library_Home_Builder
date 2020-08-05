@@ -137,10 +137,16 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
     def set_child_properties(self,obj):
         if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
-            drawers = pc_types.Assembly(obj)
-            drawer_calculator = drawers.get_calculator('Front Height Calculator')
-            drawer_calculator.calculate()
-            self.calculators.append(drawer_calculator)
+            assembly = pc_types.Assembly(obj)
+            calculator = assembly.get_calculator('Front Height Calculator')
+            calculator.calculate()
+            self.calculators.append(calculator)
+
+        if "IS_VERTICAL_SPLITTER_BP" in obj and obj["IS_VERTICAL_SPLITTER_BP"]:
+            assembly = pc_types.Assembly(obj)
+            calculator = assembly.get_calculator('Opening Height Calculator')
+            calculator.calculate()
+            self.calculators.append(calculator)
 
         update_cabinet_id_props(obj)
         if obj.type == 'EMPTY':
