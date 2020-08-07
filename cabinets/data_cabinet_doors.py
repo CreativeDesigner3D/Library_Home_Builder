@@ -8,6 +8,8 @@ from os import path
 
 class Door(pc_types.Assembly):
 
+    door_swing = 0 # Left = 0, Right = 1, Double = 2
+
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
@@ -20,6 +22,9 @@ class Door(pc_types.Assembly):
         common_prompts.add_front_prompts(self)
         common_prompts.add_front_overlay_prompts(self)
         common_prompts.add_pull_prompts(self)
+
+        door_swing = self.get_prompt("Door Swing")
+        door_swing.set_value(self.door_swing)
 
         #VARS
         x = self.obj_x.pyclone.get_var('location.x','x')

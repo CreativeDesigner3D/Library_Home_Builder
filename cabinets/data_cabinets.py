@@ -13,6 +13,8 @@ import math
 class Standard_Cabinet(pc_types.Assembly):
     show_in_library = True
     
+    width = pc_unit.inch(18)
+
     carcass = None
     interior = None
     exterior = None
@@ -39,7 +41,7 @@ class Standard_Cabinet(pc_types.Assembly):
         if cabinet_type.get_value() == 0:
             cabinet_utils.add_countertop(self)
 
-        self.obj_x.location.x = pc_unit.inch(18) 
+        self.obj_x.location.x = self.width 
         if cabinet_type.get_value() == 0:
             self.obj_y.location.y = -props.base_cabinet_depth
             self.obj_z.location.z = props.base_cabinet_height

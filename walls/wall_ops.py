@@ -303,7 +303,7 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         self.get_previous_wall(context)
         self.get_next_wall(context)
         wm = context.window_manager           
-        return wm.invoke_props_dialog(self, width=300)
+        return wm.invoke_props_dialog(self, width=350)
 
     def draw_product_size(self,layout,context):
         unit_system = context.scene.unit_settings.system

@@ -54,6 +54,46 @@ class Vertical_Splitter(pc_types.Assembly):
     interior_11 = None
     exterior_11 = None
 
+    def add_insert(self,assembly,index,z_loc_vars=[],z_loc_expression=""):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+
+        #FIGURE THIS OUT THIS CRASHED THE APP
+        #PROBABLY BECAUSE 
+        calculator = self.get_calculator("Opening Height Calculator")
+        calculator.get_calculator_prompt()
+        opening_height_prompt = eval("self.get_prompt('Opening " + str(index) + " Height')")
+        opening_height_var = opening_height_prompt.get_var("Opening Height Calculator","opening_" + str(index) + "_height")
+        z_dim_expression = "opening_" + str(index) + "_height"
+        print(opening_height_var,z_dim_expression)
+        if assembly:
+            assembly = self.add_assembly(assembly)
+            assembly.loc_x(value = 0)
+            assembly.loc_y(value = 0)
+            if index == self.vertical_openings:
+                assembly.loc_z(value = 0)
+            else:
+                assembly.loc_z(z_loc_expression,z_loc_vars)
+            assembly.rot_x(value = 0)
+            assembly.rot_y(value = 0)
+            assembly.rot_z(value = 0)
+            assembly.dim_x('width',[width])
+            assembly.dim_y('depth',[depth])
+            # assembly.dim_z(z_dim_expression,[opening_height_var])
+            # if index == 1:
+            #     # ALLOW DOOR TO EXTEND TO TOP OF VALANCE
+            #     extend_top_amount = assembly.get_prompt("Extend Top Amount")
+            #     if extend_top_amount:
+            #         Extend_Top_Amount = self.get_var("Extend Top Amount")
+            #         assembly.prompt('Extend Top Amount','Extend_Top_Amount',[Extend_Top_Amount])
+            
+            # if index == self.vertical_openings:
+            #     # ALLOW DOOR TO EXTEND TO BOTTOM OF VALANCE
+            #     extend_bottom_amount = assembly.get_prompt("Extend Bottom Amount")
+            #     if extend_bottom_amount:
+            #         Extend_Bottom_Amount = self.get_var("Extend Bottom Amount")
+            #         assembly.prompt('Extend Bottom Amount','Extend_Bottom_Amount',[Extend_Bottom_Amount])
+
     def add_splitters(self):
         thickness = self.get_prompt('Thickness').get_var("thickness")
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -96,6 +136,13 @@ class Vertical_Splitter(pc_types.Assembly):
                 hide.set_value(True)
             
             previous_splitter = splitter
+
+            opening_z_loc_vars = []
+            opening_z_loc = previous_splitter.obj_bp.pyclone.get_var("location.z","splitter_z_loc")
+            opening_z_loc_vars.append(opening_z_loc)
+
+            exterior = eval('self.exterior_' + str(i))
+            self.add_insert(exterior, i, opening_z_loc_vars, "splitter_z_loc")            
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)

@@ -201,6 +201,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             constraint.use_z = False
 
     def modal(self, context, event):
+        
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
 
