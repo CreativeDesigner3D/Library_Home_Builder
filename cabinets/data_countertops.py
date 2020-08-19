@@ -36,3 +36,5 @@ class Countertop(pc_types.Assembly):
         deck.dim_y('depth',[depth])
         deck.dim_z('deck_thickness',[deck_thickness])
         home_builder_utils.flip_normals(deck)
+
+        self.obj_z.location.z = self.get_prompt("Deck Thickness").get_value()

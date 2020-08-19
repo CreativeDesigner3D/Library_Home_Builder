@@ -92,8 +92,8 @@ class Splitter_Cabinet(data_cabinets.Standard_Cabinet):
         self.exterior = None
         self.splitter = data_cabinet_splitter.Vertical_Splitter()
         self.splitter.vertical_openings = 2
-        self.splitter.exterior_1 = data_cabinet_doors.Door()
-        # self.splitter.exterior_2 = data_cabinet_doors.Door()
+        self.splitter.exterior_1 = data_cabinet_doors.Drawers()
+        self.splitter.exterior_2 = data_cabinet_doors.Drawers()
 
 
 class Range(data_appliances.Range):

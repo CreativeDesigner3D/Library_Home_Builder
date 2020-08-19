@@ -17,58 +17,7 @@ from bpy.props import (
         )
 from .pc_lib import pc_types, pc_unit, pc_utils, pc_pointer_utils
 from . import home_builder_utils
-
-preview_collections = {}
-preview_collections["material_categories"] = pc_pointer_utils.create_image_preview_collection()
-preview_collections["material_items"] = pc_pointer_utils.create_image_preview_collection()
-preview_collections["pull_categories"] = pc_pointer_utils.create_image_preview_collection()
-preview_collections["pull_items"] = pc_pointer_utils.create_image_preview_collection()
-
-def enum_material_categories(self,context):
-    if context is None:
-        return []
-    
-    icon_dir = home_builder_utils.get_material_path()
-    pcoll = preview_collections["material_categories"]
-    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
-
-def enum_material_names(self,context):
-    if context is None:
-        return []
-    
-    icon_dir = os.path.join(home_builder_utils.get_material_path(),self.material_category)
-    pcoll = preview_collections["material_items"]
-    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
-
-def update_material_category(self,context):
-    if preview_collections["material_items"]:
-        bpy.utils.previews.remove(preview_collections["material_items"])
-        preview_collections["material_items"] = pc_pointer_utils.create_image_preview_collection()     
-        
-    enum_material_names(self,context)
-
-def enum_pull_categories(self,context):
-    if context is None:
-        return []
-    
-    icon_dir = home_builder_utils.get_pull_path()
-    pcoll = preview_collections["pull_categories"]
-    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
-
-def enum_pull_names(self,context):
-    if context is None:
-        return []
-    
-    icon_dir = os.path.join(home_builder_utils.get_pull_path(),self.pull_category)
-    pcoll = preview_collections["pull_items"]
-    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
-
-def update_pull_category(self,context):
-    if preview_collections["pull_items"]:
-        bpy.utils.previews.remove(preview_collections["pull_items"])
-        preview_collections["pull_items"] = pc_pointer_utils.create_image_preview_collection()     
-        
-    enum_pull_names(self,context)
+from . import home_builder_enums
 
 
 class Pointer(PropertyGroup):
@@ -213,11 +162,17 @@ class Home_Builder_Scene_Props(PropertyGroup):
     material_pointers: bpy.props.CollectionProperty(name="Material Pointers",type=Pointer)
     pull_pointers: bpy.props.CollectionProperty(name="Pull Pointers",type=Pointer)
 
-    material_category: bpy.props.EnumProperty(name="Material Category",items=enum_material_categories,update=update_material_category)
-    material_name: bpy.props.EnumProperty(name="Material Name",items=enum_material_names)
+    material_category: bpy.props.EnumProperty(name="Material Category",
+        items=home_builder_enums.enum_material_categories,
+        update=home_builder_enums.update_material_category)
+    material_name: bpy.props.EnumProperty(name="Material Name",
+        items=home_builder_enums.enum_material_names)
 
-    pull_category: bpy.props.EnumProperty(name="Pull Category",items=enum_pull_categories,update=update_pull_category)
-    pull_name: bpy.props.EnumProperty(name="Pull Name",items=enum_pull_names)
+    pull_category: bpy.props.EnumProperty(name="Pull Category",
+        items=home_builder_enums.enum_pull_categories,
+        update=home_builder_enums.update_pull_category)
+    pull_name: bpy.props.EnumProperty(name="Pull Name",
+        items=home_builder_enums.enum_pull_names)
 
     def draw_sizes(self,layout):
         box = layout.box()

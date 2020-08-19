@@ -96,4 +96,21 @@ def add_countertop(cabinet):
     countertop.loc_z('height',[height])
     countertop.dim_x('width+ctop_overhang_left+ctop_overhang_right',[width,ctop_overhang_left,ctop_overhang_right])
     countertop.dim_y('depth-(ctop_overhang_front+ctop_overhang_back)',[depth,ctop_overhang_front,ctop_overhang_back])
-    countertop.dim_z(value=.1)
+
+def add_sink(cabinet,carcass,countertop,sink):
+    sink = cabinet.add_assembly(sink)
+    sink.obj_bp.parent = cabinet.obj_bp
+
+    cabinet_width = cabinet.obj_x.pyclone.get_var('location.x','cabinet_width')
+    cabinet_depth = cabinet.obj_y.pyclone.get_var('location.y','cabinet_depth')
+    cabinet_height = cabinet.obj_z.pyclone.get_var('location.z','cabinet_height')
+    countertop_height = countertop.obj_z.pyclone.get_var('location.z','countertop_height')
+    sink_width = sink.obj_x.location.x
+    sink_depth = sink.obj_y.location.y
+
+    # carcass.assign_boolean(sink)
+    # countertop.assign_boolean(sink)
+
+    sink.loc_x('(cabinet_width/2)-' + str(sink_width/2),[cabinet_width])
+    sink.loc_y('(cabinet_depth/2)-' + str(sink_depth/2),[cabinet_depth])
+    sink.loc_z('cabinet_height+countertop_height',[cabinet_height,countertop_height])

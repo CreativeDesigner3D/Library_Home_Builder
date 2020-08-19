@@ -7,6 +7,7 @@ from . import cabinet_library
 from . import cabinet_utils
 from .. import home_builder_utils
 from . import data_cabinet_doors
+from .. import home_builder_enums
 
 def update_cabinet_id_props(obj):
     obj["PROMPT_ID"] = "home_builder.cabinet_prompts"   
@@ -392,7 +393,13 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                                               ('5',"5","5"),
                                               ('6',"6","6")])
 
-    drawer_calculator = None
+    sink_category: bpy.props.EnumProperty(name="Sink Category",
+        items=home_builder_enums.enum_sink_categories,
+        update=home_builder_enums.update_sink_category)
+    sink_name: bpy.props.EnumProperty(name="Sink Name",
+        items=home_builder_enums.enum_sink_names)
+
+    calculators = []
 
     left_side = None
     right_side = None
@@ -404,12 +411,13 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     drawers = None
     interior_assembly = None
     exterior_assembly = None
+    splitter = None
 
     def reset_variables(self):
         #BLENDER CRASHES IF TAB IS SET TO EXTERIOR
         self.product_tabs = 'CARCASS'
 
-        self.drawer_calculator = None
+        self.calculators = []
 
         self.left_side = None
         self.right_side = None
@@ -420,7 +428,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.doors = None
         self.drawers = None
         self.interior_assembly = None
-        self.exterior_assembly = None        
+        self.exterior_assembly = None       
+        self.splitter = None     
 
     def update_product_size(self):
         if 'IS_MIRROR' in self.cabinet.obj_x and self.cabinet.obj_x['IS_MIRROR']:
@@ -446,8 +455,11 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
     def check(self, context):
         self.update_product_size()
-        if self.drawer_calculator and self.drawer_calculator.distance_obj:
-            self.drawer_calculator.calculate()
+
+        for calculator in self.calculators:
+            if calculator.distance_obj:
+                calculator.calculate()
+
         self.update_materials(context)
         return True
 
@@ -476,9 +488,12 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 self.countertop = pc_types.Assembly(child)   
             if "IS_DRAWERS_BP" in child and child["IS_DRAWERS_BP"]:
                 self.drawers = pc_types.Assembly(child)   
-                self.drawer_calculator = self.drawers.get_calculator('Front Height Calculator')
+                self.calculators.append(self.drawers.get_calculator('Front Height Calculator'))
             if "IS_DOORS_BP" in child and child["IS_DOORS_BP"]:
                 self.doors = pc_types.Assembly(child)
+            if "IS_VERTICAL_SPLITTER_BP" in child and child["IS_VERTICAL_SPLITTER_BP"]:
+                self.splitter = pc_types.Assembly(child)   
+                self.calculators.append(self.splitter.get_calculator('Opening Height Calculator'))
 
         for child in self.carcass.obj_bp.children:
             if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
@@ -562,6 +577,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         add_bottom_light = self.carcass.get_prompt("Add Bottom Light")
         add_top_light = self.carcass.get_prompt("Add Top Light")
         add_side_light = self.carcass.get_prompt("Add Side Light")
+        add_sink = self.carcass.get_prompt("Add Sink")
 
         left_finished_end.draw(layout)
         right_finished_end.draw(layout)
@@ -575,6 +591,19 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             add_top_light.draw(layout)                   
         if add_side_light:
             add_side_light.draw(layout)    
+
+    def draw_sink_prompts(self,layout,context):
+        add_sink = self.cabinet.get_prompt("Add Sink")
+
+        if not add_sink:
+            return False
+
+        add_sink.draw(layout)
+
+        if add_sink.get_value():
+            layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
+            if len(self.sink_name) > 0:
+                layout.template_icon_view(self,"sink_name",show_labels=True)  
 
     def draw_countertop_prompts(self,layout,context):
         ctop_front = self.cabinet.get_prompt("Countertop Overhang Front")
@@ -630,6 +659,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         if self.product_tabs == 'CARCASS':
             self.draw_carcass_prompts(prompt_box,context)
             self.draw_countertop_prompts(prompt_box,context)
+            self.draw_sink_prompts(prompt_box,context)
 
         if self.product_tabs == 'EXTERIOR':
             prompt_box.prop(self,'exterior')
@@ -643,13 +673,124 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             # TODO: Draw interior options
 
 
+class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
+    bl_idname = "home_builder.cabinet_sink_options"
+    bl_label = "Cabinet Sink Options"
+
+    cabinet_name: bpy.props.StringProperty(name="Cabinet Name",default="")
+
+    sink_category: bpy.props.EnumProperty(name="Sink Category",
+        items=home_builder_enums.enum_sink_categories,
+        update=home_builder_enums.update_sink_category)
+    sink_name: bpy.props.EnumProperty(name="Sink Name",
+        items=home_builder_enums.enum_sink_names)
+
+    cabinet = None
+    carcass = None
+    countertop = None
+    sink = None
+
+    def reset_variables(self):
+        self.cabinet = None
+        self.carcass = None
+        self.countertop = None
+        self.sink = None
+
+    def check(self, context):
+        
+        return True
+
+    def assign_boolean_to_child_assemblies(self,context,assembly,bool_obj):
+        for child in assembly.obj_bp.children:
+            for nchild in child.children:
+                if nchild.type == 'MESH':       
+                    mod = nchild.modifiers.new(bool_obj.name,'BOOLEAN')
+                    mod.object = bool_obj
+                    mod.operation = 'DIFFERENCE'      
+
+    def assign_boolean_modifiers(self,context):
+        bool_obj = None
+
+        for child in self.sink.obj_bp.children:
+            if child.type == 'MESH':   
+                if 'IS_BOOLEAN' in child and child['IS_BOOLEAN'] == True:   
+                    bool_obj = child  
+                    bool_obj.hide_viewport = True
+                    bool_obj.display_type = 'WIRE'                        
+
+        self.assign_boolean_to_child_assemblies(context,self.countertop,bool_obj)
+        self.assign_boolean_to_child_assemblies(context,self.carcass,bool_obj)                
+
+    def execute(self, context):
+        cabinet_utils.add_sink(self.cabinet,self.carcass,self.countertop,self.get_sink(context))
+        self.assign_boolean_modifiers(context)
+        self.obj_bp.hide = True
+        self.obj_x.hide = True
+        self.obj_y.hide = True
+        self.obj_z.hide = True
+        return {'FINISHED'}
+
+    def get_sink(self,context):
+        root_path = home_builder_utils.get_sink_path()
+        sink_path = os.path.join(root_path,self.sink_category,self.sink_name + ".blend")
+        self.sink = pc_types.Assembly(filepath=sink_path)
+        return self.sink
+
+    def get_assemblies(self,context):
+        self.carcass = None
+        self.countertop = None
+
+        for child in self.cabinet.obj_bp.children:
+            if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
+                self.carcass = pc_types.Assembly(child)      
+            if "IS_COUNTERTOP_BP" in child and child["IS_COUNTERTOP_BP"]:
+                self.countertop = pc_types.Assembly(child)   
+
+    def invoke(self,context,event):
+        self.reset_variables()
+        bp = home_builder_utils.get_cabinet_bp(context.object)
+        self.cabinet = pc_types.Assembly(bp)
+        self.cabinet_name = self.cabinet.obj_bp.name
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=250)
+
+    def draw_sink_prompts(self,layout,context):
+        add_sink = self.cabinet.get_prompt("Add Sink")
+
+        if not add_sink:
+            return False
+
+        add_sink.draw(layout)
+
+        if add_sink.get_value():
+            layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
+            if len(self.sink_name) > 0:
+                layout.template_icon_view(self,"sink_name",show_labels=True)  
+
+    def draw(self, context):
+        layout = self.layout
+
+        prompt_box = layout.box()
+
+        self.draw_sink_prompts(prompt_box,context)
+
+
 class home_builder_MT_cabinet_menu(bpy.types.Menu):
     bl_label = "Cabinet Commands"
 
     def draw(self, context):
         layout = self.layout
         obj_bp = pc_utils.get_assembly_bp(context.object)
+        cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
+              
         layout.operator_context = 'INVOKE_AREA'
+        if cabinet_bp:
+            cabinet = pc_types.Assembly(cabinet_bp)  
+            add_sink = cabinet.get_prompt("Add Sink")
+            if add_sink:
+                layout.operator('home_builder.cabinet_sink_options',text="Cabinet Sink Options",icon='WINDOW')
+
         layout.operator('home_builder.part_prompts',text="Part Prompts - " + obj_bp.name,icon='WINDOW')
         layout.operator('home_builder.hardlock_part_size',icon='FILE_REFRESH')
         layout.separator()
@@ -721,6 +862,7 @@ class home_builder_OT_hardlock_part_size(bpy.types.Operator):
 def register():
     bpy.utils.register_class(home_builder_OT_place_cabinet)  
     bpy.utils.register_class(home_builder_OT_cabinet_prompts)  
+    bpy.utils.register_class(home_builder_OT_cabinet_sink_options)  
     bpy.utils.register_class(home_builder_MT_cabinet_menu)     
     bpy.utils.register_class(home_builder_OT_delete_cabinet)    
     bpy.utils.register_class(home_builder_OT_delete_part)    
@@ -728,9 +870,10 @@ def register():
     bpy.utils.register_class(home_builder_OT_hardlock_part_size)  
 
 def unregister():
-    bpy.utils.register_class(home_builder_OT_place_cabinet)  
+    bpy.utils.unregister_class(home_builder_OT_place_cabinet)  
     bpy.utils.unregister_class(home_builder_OT_cabinet_prompts)   
-    bpy.utils.register_class(home_builder_MT_cabinet_menu)       
+    bpy.utils.unregister_class(home_builder_OT_cabinet_sink_options)   
+    bpy.utils.unregister_class(home_builder_MT_cabinet_menu)       
     bpy.utils.unregister_class(home_builder_OT_delete_cabinet)        
     bpy.utils.unregister_class(home_builder_OT_delete_part)      
     bpy.utils.unregister_class(home_builder_OT_part_prompts) 

@@ -54,18 +54,16 @@ class Vertical_Splitter(pc_types.Assembly):
     interior_11 = None
     exterior_11 = None
 
-    def add_insert(self,assembly,index,z_loc_vars=[],z_loc_expression=""):
+    def add_insert(self,assembly,index,z_loc_expression="",z_loc_vars=[]):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')
 
-        #FIGURE THIS OUT THIS CRASHED THE APP
-        #PROBABLY BECAUSE 
         calculator = self.get_calculator("Opening Height Calculator")
-        calculator.get_calculator_prompt()
-        opening_height_prompt = eval("self.get_prompt('Opening " + str(index) + " Height')")
-        opening_height_var = opening_height_prompt.get_var("Opening Height Calculator","opening_" + str(index) + "_height")
+        prompt = calculator.get_calculator_prompt("Opening " + str(index) + " Height")
+        opening_height_var = prompt.get_var(calculator.name,"opening_" + str(index) + "_height")
         z_dim_expression = "opening_" + str(index) + "_height"
-        print(opening_height_var,z_dim_expression)
+
         if assembly:
             assembly = self.add_assembly(assembly)
             assembly.loc_x(value = 0)
@@ -79,7 +77,7 @@ class Vertical_Splitter(pc_types.Assembly):
             assembly.rot_z(value = 0)
             assembly.dim_x('width',[width])
             assembly.dim_y('depth',[depth])
-            # assembly.dim_z(z_dim_expression,[opening_height_var])
+            assembly.dim_z(z_dim_expression,[opening_height_var])
             # if index == 1:
             #     # ALLOW DOOR TO EXTEND TO TOP OF VALANCE
             #     extend_top_amount = assembly.get_prompt("Extend Top Amount")
@@ -138,11 +136,15 @@ class Vertical_Splitter(pc_types.Assembly):
             previous_splitter = splitter
 
             opening_z_loc_vars = []
-            opening_z_loc = previous_splitter.obj_bp.pyclone.get_var("location.z","splitter_z_loc")
+            opening_z_loc = splitter.obj_bp.pyclone.get_var("location.z","splitter_z_loc")
             opening_z_loc_vars.append(opening_z_loc)
 
             exterior = eval('self.exterior_' + str(i))
-            self.add_insert(exterior, i, opening_z_loc_vars, "splitter_z_loc")            
+            self.add_insert(exterior, i, "splitter_z_loc", opening_z_loc_vars)            
+
+        #LAST EXTERIOR
+        exterior = eval('self.exterior_' + str(self.vertical_openings))
+        self.add_insert(exterior, self.vertical_openings, "splitter_z_loc", opening_z_loc_vars)  
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)

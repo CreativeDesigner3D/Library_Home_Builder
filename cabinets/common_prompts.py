@@ -8,6 +8,9 @@ def add_front_prompts(assembly):
     assembly.add_prompt("Door to Cabinet Gap",'DISTANCE',pc_unit.inch(.125))
     assembly.add_prompt("Front Thickness",'DISTANCE',pc_unit.inch(.75))
 
+def add_sink_prompts(assembly):
+    assembly.add_prompt("Add Sink",'CHECKBOX',False)
+
 def add_door_prompts(assembly):
     door_swing = assembly.add_prompt("Door Swing",'COMBOBOX',0,["Left","Right","Double"])
     door_swing.combobox_columns = 3

@@ -156,6 +156,11 @@ def add_door_part(assembly):
 def add_carcass_part(assembly):
     part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
     assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
     home_builder_utils.add_bevel(part)
     home_builder_utils.assign_material_pointers(part)
     home_builder_utils.assign_materials_to_assembly(part)
@@ -164,6 +169,11 @@ def add_carcass_part(assembly):
 def add_rectangular_part(assembly):
     part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
     assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
     home_builder_utils.add_bevel(part)
     home_builder_utils.assign_material_pointers(part)
     home_builder_utils.assign_materials_to_assembly(part)

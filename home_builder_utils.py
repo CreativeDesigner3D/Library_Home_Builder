@@ -42,6 +42,9 @@ def get_material_path():
 def get_pull_path():
     return os.path.join(get_asset_folder_path(),'Cabinet Pulls') 
 
+def get_sink_path():
+    return os.path.join(get_asset_folder_path(),'Sinks') 
+
 def get_material(category,material_name):
     if material_name in bpy.data.materials:
         return bpy.data.materials[material_name]

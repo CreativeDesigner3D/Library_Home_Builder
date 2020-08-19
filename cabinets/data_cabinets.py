@@ -38,8 +38,11 @@ class Standard_Cabinet(pc_types.Assembly):
             cabinet_utils.add_exterior_to_cabinet(self,carcass,self.splitter,cabinet_type.get_value())            
         if self.interior:
             cabinet_utils.add_interior_to_cabinet(self,carcass,self.interior,cabinet_type.get_value())
+        
+        #BASE CABINET
         if cabinet_type.get_value() == 0:
             cabinet_utils.add_countertop(self)
+            common_prompts.add_sink_prompts(self)
 
         self.obj_x.location.x = self.width 
         if cabinet_type.get_value() == 0:
