@@ -10,7 +10,7 @@ class Assembly:
     obj_z = None
     obj_prompts = None
 
-    def __init__(self,obj_bp=None):
+    def __init__(self,obj_bp=None,filepath=""):
         if obj_bp:
             self.coll = bpy.context.view_layer.active_layer_collection.collection
             self.obj_bp = obj_bp
@@ -22,7 +22,27 @@ class Assembly:
                 if "obj_z" in child:
                     self.obj_z = child
                 if "obj_prompts" in child:
-                    self.obj_prompts = child                    
+                    self.obj_prompts = child    
+
+        if filepath:
+            self.coll = bpy.context.view_layer.active_layer_collection.collection
+
+            with bpy.data.libraries.load(filepath, False, False) as (data_from, data_to):
+                data_to.objects = data_from.objects
+
+            for obj in data_to.objects:
+                if "obj_bp" in obj and obj["obj_bp"] == True:
+                    self.obj_bp = obj
+                if "obj_x" in obj and obj["obj_x"] == True:
+                    self.obj_x = obj
+                if "obj_y" in obj and obj["obj_y"] == True:
+                    self.obj_y = obj
+                if "obj_z" in obj and obj["obj_z"] == True:
+                    self.obj_bp = obj
+                if "obj_prompts" in obj and obj["obj_prompts"] == True:
+                    self.obj_prompts = obj
+                
+                self.coll.objects.link(obj)
 
     def update_vector_groups(self):
         """ 
@@ -177,8 +197,8 @@ class Assembly:
         if assembly.obj_bp is None:
             if hasattr(assembly,'draw'):
                 assembly.draw()
-                assembly.obj_bp.location = (0,0,0)
-                assembly.obj_bp.parent = self.obj_bp
+            assembly.obj_bp.location = (0,0,0)
+            assembly.obj_bp.parent = self.obj_bp
         return assembly
 
     def add_assembly_from_file(self,filepath):
