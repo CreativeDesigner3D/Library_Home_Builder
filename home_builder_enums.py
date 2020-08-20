@@ -10,6 +10,8 @@ preview_collections["pull_categories"] = pc_pointer_utils.create_image_preview_c
 preview_collections["pull_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["sink_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["sink_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["faucet_categories"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["faucet_items"] = pc_pointer_utils.create_image_preview_collection()
 
 #MATERIALS
 def enum_material_categories(self,context):
@@ -82,3 +84,28 @@ def update_sink_category(self,context):
         preview_collections["sink_items"] = pc_pointer_utils.create_image_preview_collection()     
         
     enum_sink_names(self,context)    
+
+
+#FAUCETS
+def enum_faucet_categories(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = home_builder_utils.get_faucet_path()
+    pcoll = preview_collections["faucet_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
+def enum_faucet_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(home_builder_utils.get_faucet_path(),self.faucet_category)
+    pcoll = preview_collections["faucet_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_faucet_category(self,context):
+    if preview_collections["faucet_items"]:
+        bpy.utils.previews.remove(preview_collections["faucet_items"])
+        preview_collections["faucet_items"] = pc_pointer_utils.create_image_preview_collection()     
+        
+    enum_faucet_names(self,context)        

@@ -685,16 +685,27 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
     sink_name: bpy.props.EnumProperty(name="Sink Name",
         items=home_builder_enums.enum_sink_names)
 
+    faucet_category: bpy.props.EnumProperty(name="Faucet Category",
+        items=home_builder_enums.enum_faucet_categories,
+        update=home_builder_enums.update_faucet_category)
+    faucet_name: bpy.props.EnumProperty(name="Faucet Name",
+        items=home_builder_enums.enum_faucet_names)
+
+    add_sink = False
+    add_faucet = False
     cabinet = None
     carcass = None
     countertop = None
+    previous_sink = None
     sink = None
+    faucet = None
 
     def reset_variables(self):
         self.cabinet = None
         self.carcass = None
         self.countertop = None
         self.sink = None
+        self.faucet = None
 
     def check(self, context):
         
@@ -718,22 +729,58 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
                     bool_obj.hide_viewport = True
                     bool_obj.display_type = 'WIRE'                        
 
-        self.assign_boolean_to_child_assemblies(context,self.countertop,bool_obj)
-        self.assign_boolean_to_child_assemblies(context,self.carcass,bool_obj)                
+        if bool_obj:
+            self.assign_boolean_to_child_assemblies(context,self.countertop,bool_obj)
+            self.assign_boolean_to_child_assemblies(context,self.carcass,bool_obj)                
+
+    def delete_previous_sink(self,context):
+        if not self.previous_sink:
+            return
+
+        pc_utils.delete_object_and_children(self.previous_sink.obj_bp)
 
     def execute(self, context):
-        cabinet_utils.add_sink(self.cabinet,self.carcass,self.countertop,self.get_sink(context))
-        self.assign_boolean_modifiers(context)
-        self.obj_bp.hide = True
-        self.obj_x.hide = True
-        self.obj_y.hide = True
-        self.obj_z.hide = True
+        self.delete_previous_sink(context)
+        if self.add_sink:
+            cabinet_utils.add_sink(self.cabinet,self.carcass,self.countertop,self.get_sink(context))
+            self.assign_boolean_modifiers(context)
+            self.sink.obj_bp.hide_viewport = True
+            self.sink.obj_x.hide_viewport = True
+            self.sink.obj_y.hide_viewport = True
+            self.sink.obj_z.hide_viewport = True
+            if self.add_faucet:
+                self.get_faucet(context)
         return {'FINISHED'}
+
+    def get_faucet_bp(self):
+        for child in self.sink.obj_bp.children:
+            if "IS_FAUCET_BP" in child and child["IS_FAUCET_BP"]:
+                return child
+
+    def get_faucet(self,context):
+        root_path = home_builder_utils.get_faucet_path()
+        sink_path = os.path.join(root_path,self.faucet_category,self.faucet_name + ".blend")
+
+        with bpy.data.libraries.load(sink_path, False, False) as (data_from, data_to):
+            data_to.objects = data_from.objects
+
+        for obj in data_to.objects:
+            update_cabinet_id_props(obj)
+            self.faucet = obj
+
+        self.sink.add_object(self.faucet)
+        obj_bp = self.get_faucet_bp()
+        if obj_bp:
+            self.faucet.parent = obj_bp
+        return self.faucet
 
     def get_sink(self,context):
         root_path = home_builder_utils.get_sink_path()
         sink_path = os.path.join(root_path,self.sink_category,self.sink_name + ".blend")
         self.sink = pc_types.Assembly(filepath=sink_path)
+        self.sink.obj_bp["IS_SINK_BP"] = True
+        for child in self.sink.obj_bp.children:
+            update_cabinet_id_props(child)
         return self.sink
 
     def get_assemblies(self,context):
@@ -745,6 +792,8 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
                 self.carcass = pc_types.Assembly(child)      
             if "IS_COUNTERTOP_BP" in child and child["IS_COUNTERTOP_BP"]:
                 self.countertop = pc_types.Assembly(child)   
+            if "IS_SINK_BP" in child and child["IS_SINK_BP"]:
+                self.previous_sink = pc_types.Assembly(child)   
 
     def invoke(self,context,event):
         self.reset_variables()
@@ -753,7 +802,7 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
         self.cabinet_name = self.cabinet.obj_bp.name
         self.get_assemblies(context)
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=250)
+        return wm.invoke_props_dialog(self, width=500)
 
     def draw_sink_prompts(self,layout,context):
         add_sink = self.cabinet.get_prompt("Add Sink")
@@ -762,19 +811,32 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
             return False
 
         add_sink.draw(layout)
-
-        if add_sink.get_value():
+        self.add_sink = add_sink.get_value()
+        if self.add_sink:
             layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
             if len(self.sink_name) > 0:
                 layout.template_icon_view(self,"sink_name",show_labels=True)  
 
+    def draw_faucet_prompts(self,layout,context):
+        add_faucet = self.cabinet.get_prompt("Add Faucet")
+
+        if not add_faucet:
+            return False
+
+        add_faucet.draw(layout)
+        self.add_faucet = add_faucet.get_value()
+        if self.add_faucet:
+            layout.prop(self,'faucet_category',text="",icon='FILE_FOLDER')  
+            if len(self.sink_name) > 0:
+                layout.template_icon_view(self,"faucet_name",show_labels=True)  
+
     def draw(self, context):
         layout = self.layout
 
-        prompt_box = layout.box()
+        split = layout.split()
 
-        self.draw_sink_prompts(prompt_box,context)
-
+        self.draw_sink_prompts(split.box(),context)
+        self.draw_faucet_prompts(split.box(),context)
 
 class home_builder_MT_cabinet_menu(bpy.types.Menu):
     bl_label = "Cabinet Commands"

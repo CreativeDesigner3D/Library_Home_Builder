@@ -38,7 +38,7 @@ class Assembly:
                 if "obj_y" in obj and obj["obj_y"] == True:
                     self.obj_y = obj
                 if "obj_z" in obj and obj["obj_z"] == True:
-                    self.obj_bp = obj
+                    self.obj_z = obj
                 if "obj_prompts" in obj and obj["obj_prompts"] == True:
                     self.obj_prompts = obj
                 
