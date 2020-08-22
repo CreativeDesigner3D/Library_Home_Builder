@@ -159,6 +159,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                       default=pc_unit.inch(6.0),
                                                       unit='LENGTH')
 
+    window_height_from_floor: bpy.props.FloatProperty(name="Window Height from Floor",
+                                                      description="This is location windows are placed from the floor.",
+                                                      default=pc_unit.inch(40.0),
+                                                      unit='LENGTH')
+
     material_pointers: bpy.props.CollectionProperty(name="Material Pointers",type=Pointer)
     pull_pointers: bpy.props.CollectionProperty(name="Pull Pointers",type=Pointer)
 

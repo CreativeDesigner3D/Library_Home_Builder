@@ -33,6 +33,22 @@ def get_cabinet_bp(obj):
     elif obj.parent:
         return get_cabinet_bp(obj.parent)
 
+def get_door_bp(obj):
+    if not obj:
+        return None    
+    if "IS_DOOR_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_door_bp(obj.parent)
+
+def get_window_bp(obj):
+    if not obj:
+        return None    
+    if "IS_WINDOW_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_window_bp(obj.parent)
+
 def get_asset_folder_path():
     return os.path.join(os.path.dirname(__file__),'assets')
 

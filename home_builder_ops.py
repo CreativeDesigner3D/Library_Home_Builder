@@ -19,8 +19,9 @@ from bpy.props import (StringProperty,
 
 from .pc_lib import pc_unit, pc_utils, pc_types
 from .walls import data_walls
-from .doors import data_doors
+from .doors import door_library
 from .cabinets import cabinet_library
+from .windows import window_library
 from . import home_builder_utils
 
 class room_builder_OT_activate(Operator):
@@ -85,7 +86,7 @@ class room_builder_OT_drop(Operator):
             bpy.ops.home_builder.place_door(filepath=self.filepath)
 
         if props.active_category == 'Windows':
-            pass #TODO: Implement Window Placement
+            bpy.ops.home_builder.place_window(filepath=self.filepath)
 
         return {'FINISHED'}
 
@@ -452,7 +453,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset.class_name = name
                 asset.asset_type = 'Wall'
 
-        for name, obj in inspect.getmembers(data_doors):
+        for name, obj in inspect.getmembers(door_library):
             if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
                 asset = self.assets.add()
                 asset.name = name
@@ -462,6 +463,17 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset.module_name = 'data_doors'
                 asset.class_name = name
                 asset.asset_type = 'Door'
+
+        for name, obj in inspect.getmembers(window_library):
+            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
+                asset = self.assets.add()
+                asset.name = name
+                asset.category_name = "Windows"
+                asset.library_path = os.path.join(home_builder_utils.get_library_path(),'Windows')
+                asset.package_name = 'windows'
+                asset.module_name = 'window_library'
+                asset.class_name = name
+                asset.asset_type = 'Window'
 
     def invoke(self,context,event):
         self.reset_variables()
@@ -491,6 +503,10 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         door_box.label(text="Doors")
         door_col = door_box.column(align=True)
 
+        window_box = layout.box()
+        window_box.label(text="Windows")
+        window_col = window_box.column(align=True)
+
         for asset in self.assets:
             if asset.asset_type == 'Cabinet':
                 cabinet_col.prop(asset,'is_selected',text=asset.name)
@@ -498,6 +514,8 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 wall_col.prop(asset,'is_selected',text=asset.name)
             if asset.asset_type == 'Door':
                 door_col.prop(asset,'is_selected',text=asset.name)                
+            if asset.asset_type == 'Window':
+                window_col.prop(asset,'is_selected',text=asset.name)                
 
 
 class home_builder_OT_message(bpy.types.Operator):

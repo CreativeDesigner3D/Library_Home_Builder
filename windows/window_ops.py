@@ -2,12 +2,12 @@ import bpy
 import os
 import math
 from ..pc_lib import pc_utils, pc_types, pc_unit
-from . import door_library
+from . import window_library
 from .. import home_builder_utils
 
-class home_builder_OT_place_door(bpy.types.Operator):
-    bl_idname = "home_builder.place_door"
-    bl_label = "Place Door"
+class home_builder_OT_place_window(bpy.types.Operator):
+    bl_idname = "home_builder.place_window"
+    bl_label = "Place Window"
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -15,16 +15,18 @@ class home_builder_OT_place_door(bpy.types.Operator):
     
     drawing_plane = None
 
-    door = None
+    window = None
     obj = None
     exclude_objects = []
-
+    window_z_location = 0
     class_name = ""
 
     def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        self.window_z_location = props.window_height_from_floor
         self.get_class_name()
         self.create_drawing_plane(context)
-        self.create_door()
+        self.create_window()
         context.window_manager.modal_handler_add(self)
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
@@ -33,14 +35,14 @@ class home_builder_OT_place_door(bpy.types.Operator):
         name, ext = os.path.splitext(os.path.basename(self.filepath))
         self.class_name = name.replace(" ","_")
 
-    def create_door(self):
+    def create_window(self):
         # props = home_builder_utils.get_scene_props(bpy.context)
-        self.door = eval("door_library." + self.class_name + "()")
-        self.door.draw_door()
-        self.set_child_properties(self.door.obj_bp)
+        self.window = eval("window_library." + self.class_name + "()")
+        self.window.draw_window()
+        self.set_child_properties(self.window.obj_bp)
 
     def set_child_properties(self,obj):
-        obj["PROMPT_ID"] = "home_builder.door_prompts"   
+        obj["PROMPT_ID"] = "home_builder.window_prompts"   
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':
@@ -82,19 +84,20 @@ class home_builder_OT_place_door(bpy.types.Operator):
                     return nchild
 
     def add_boolean_modifier(self,wall_mesh):
-        obj_bool = self.get_boolean_obj(self.door.obj_bp)
+        obj_bool = self.get_boolean_obj(self.window.obj_bp)
         if wall_mesh and obj_bool:
             mod = wall_mesh.modifiers.new(obj_bool.name,'BOOLEAN')
             mod.object = obj_bool
             mod.operation = 'DIFFERENCE'
 
-    def parent_door_to_wall(self,obj_wall_bp):
-        x_loc = pc_utils.calc_distance((self.door.obj_bp.location.x,self.door.obj_bp.location.y,0),
+    def parent_window_to_wall(self,obj_wall_bp):
+        x_loc = pc_utils.calc_distance((self.window.obj_bp.location.x,self.window.obj_bp.location.y,0),
                                        (obj_wall_bp.matrix_local[0][3],obj_wall_bp.matrix_local[1][3],0))
-        self.door.obj_bp.location = (0,0,0)
-        self.door.obj_bp.rotation_euler = (0,0,0)
-        self.door.obj_bp.parent = obj_wall_bp
-        self.door.obj_bp.location.x = x_loc        
+        self.window.obj_bp.location = (0,0,0)
+        self.window.obj_bp.rotation_euler = (0,0,0)
+        self.window.obj_bp.parent = obj_wall_bp
+        self.window.obj_bp.location.x = x_loc      
+        self.window.obj_bp.location.z = self.window_z_location  
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -107,10 +110,10 @@ class home_builder_OT_place_door(bpy.types.Operator):
 
         if self.event_is_place_first_point(event):
             self.add_boolean_modifier(selected_obj)
-            self.set_placed_properties(self.door.obj_bp)
+            self.set_placed_properties(self.window.obj_bp)
             if selected_obj.parent:
-                self.parent_door_to_wall(selected_obj.parent)
-            self.create_door()
+                self.parent_window_to_wall(selected_obj.parent)
+            self.create_window()
             return {'RUNNING_MODAL'}
 
         if self.event_is_cancel_command(event):
@@ -158,14 +161,14 @@ class home_builder_OT_place_door(bpy.types.Operator):
     def position_object(self,selected_point,selected_obj):
         if selected_obj:
             wall_bp = selected_obj.parent
-            if self.door.obj_bp and wall_bp:
-                self.door.obj_bp.rotation_euler.z = wall_bp.rotation_euler.z
-                self.door.obj_bp.location.x = selected_point[0]
-                self.door.obj_bp.location.y = selected_point[1]
-                self.door.obj_bp.location.z = 0
+            if self.window.obj_bp and wall_bp:
+                self.window.obj_bp.rotation_euler.z = wall_bp.rotation_euler.z
+                self.window.obj_bp.location.x = selected_point[0]
+                self.window.obj_bp.location.y = selected_point[1]
+                self.window.obj_bp.location.z = self.window_z_location
 
     def cancel_drop(self,context):
-        pc_utils.delete_object_and_children(self.door.obj_bp)
+        pc_utils.delete_object_and_children(self.window.obj_bp)
         pc_utils.delete_object_and_children(self.drawing_plane)
         return {'CANCELLED'}
 
@@ -178,37 +181,37 @@ class home_builder_OT_place_door(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class home_builder_OT_door_prompts(bpy.types.Operator):
-    bl_idname = "home_builder.door_prompts"
-    bl_label = "Door Prompts"
+class home_builder_OT_window_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.window_prompts"
+    bl_label = "Winodw Prompts"
 
-    door_name: bpy.props.StringProperty(name="Door Name",default="")
+    window_name: bpy.props.StringProperty(name="Window Name",default="")
 
     width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
     height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
     depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
-    door = None
+    window = None
 
     def reset_variables(self):
         #BLENDER CRASHES IF TAB IS SET TO EXTERIOR
         pass
 
     def update_product_size(self):
-        if 'IS_MIRROR' in self.door.obj_x and self.door.obj_x['IS_MIRROR']:
-            self.door.obj_x.location.x = -self.width
+        if 'IS_MIRROR' in self.window.obj_x and self.window.obj_x['IS_MIRROR']:
+            self.window.obj_x.location.x = -self.width
         else:
-            self.door.obj_x.location.x = self.width
+            self.window.obj_x.location.x = self.width
 
-        if 'IS_MIRROR' in self.door.obj_y and self.door.obj_y['IS_MIRROR']:
-            self.door.obj_y.location.y = -self.depth
+        if 'IS_MIRROR' in self.window.obj_y and self.window.obj_y['IS_MIRROR']:
+            self.window.obj_y.location.y = -self.depth
         else:
-            self.door.obj_y.location.y = self.depth
+            self.window.obj_y.location.y = self.depth
         
-        if 'IS_MIRROR' in self.door.obj_z and self.door.obj_z['IS_MIRROR']:
-            self.door.obj_z.location.z = -self.height
+        if 'IS_MIRROR' in self.window.obj_z and self.window.obj_z['IS_MIRROR']:
+            self.window.obj_z.location.z = -self.height
         else:
-            self.door.obj_z.location.z = self.height
+            self.window.obj_z.location.z = self.height
 
     def check(self, context):
         self.update_product_size()
@@ -245,11 +248,11 @@ class home_builder_OT_door_prompts(bpy.types.Operator):
 
     def invoke(self,context,event):
         self.reset_variables()
-        bp = home_builder_utils.get_door_bp(context.object)
-        self.door = pc_types.Assembly(bp)
-        self.depth = math.fabs(self.door.obj_y.location.y)
-        self.height = math.fabs(self.door.obj_z.location.z)
-        self.width = math.fabs(self.door.obj_x.location.x)
+        bp = home_builder_utils.get_window_bp(context.object)
+        self.window = pc_types.Assembly(bp)
+        self.depth = math.fabs(self.window.obj_y.location.y)
+        self.height = math.fabs(self.window.obj_z.location.z)
+        self.width = math.fabs(self.window.obj_x.location.x)
         self.get_assemblies(context)
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
@@ -262,36 +265,36 @@ class home_builder_OT_door_prompts(bpy.types.Operator):
         
         col = row.column(align=True)
         row1 = col.row(align=True)
-        if pc_utils.object_has_driver(self.door.obj_x):
-            x = math.fabs(self.door.obj_x.location.x)
+        if pc_utils.object_has_driver(self.window.obj_x):
+            x = math.fabs(self.window.obj_x.location.x)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',x))
             row1.label(text='Width: ' + value)
         else:
             row1.label(text='Width:')
             row1.prop(self,'width',text="")
-            row1.prop(self.door.obj_x,'hide_viewport',text="")
+            row1.prop(self.window.obj_x,'hide_viewport',text="")
         
         row1 = col.row(align=True)
-        if pc_utils.object_has_driver(self.door.obj_z):
-            z = math.fabs(self.door.obj_z.location.z)
+        if pc_utils.object_has_driver(self.window.obj_z):
+            z = math.fabs(self.window.obj_z.location.z)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',z))            
             row1.label(text='Height: ' + value)
         else:
             row1.label(text='Height:')
             row1.prop(self,'height',text="")
-            row1.prop(self.door.obj_z,'hide_viewport',text="")
+            row1.prop(self.window.obj_z,'hide_viewport',text="")
         
         row1 = col.row(align=True)
-        if pc_utils.object_has_driver(self.door.obj_y):
-            y = math.fabs(self.door.obj_y.location.y)
+        if pc_utils.object_has_driver(self.window.obj_y):
+            y = math.fabs(self.window.obj_y.location.y)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',y))                 
             row1.label(text='Depth: ' + value)
         else:
             row1.label(text='Depth:')
             row1.prop(self,'depth',text="")
-            row1.prop(self.door.obj_y,'hide_viewport',text="")
+            row1.prop(self.window.obj_y,'hide_viewport',text="")
             
-        if len(self.door.obj_bp.constraints) > 0:
+        if len(self.window.obj_bp.constraints) > 0:
             col = row.column(align=True)
             col.label(text="Location:")
             col.operator('home_builder.disconnect_constraint',text='Disconnect Constraint',icon='CONSTRAINT').obj_name = self.door.obj_bp.name
@@ -302,11 +305,11 @@ class home_builder_OT_door_prompts(bpy.types.Operator):
             col.label(text="Location Z:")
         
             col = row.column(align=True)
-            col.prop(self.door.obj_bp,'location',text="")
+            col.prop(self.window.obj_bp,'location',text="")
         
         row = box.row()
         row.label(text='Rotation Z:')
-        row.prop(self.door.obj_bp,'rotation_euler',index=2,text="")  
+        row.prop(self.window.obj_bp,'rotation_euler',index=2,text="")  
 
     def check_for_stale_data(self,context,assembly,prompt_name):
         '''
@@ -323,33 +326,10 @@ class home_builder_OT_door_prompts(bpy.types.Operator):
         layout = self.layout
         self.draw_product_size(layout,context)
 
-        # prompt_box = layout.box()
-
-        # row = prompt_box.row(align=True)
-        # row.prop_enum(self, "product_tabs", 'CARCASS') 
-        # row.prop_enum(self, "product_tabs", 'EXTERIOR') 
-        # row.prop_enum(self, "product_tabs", 'INTERIOR') 
-
-        # if self.product_tabs == 'CARCASS':
-        #     self.draw_carcass_prompts(prompt_box,context)
-        #     self.draw_countertop_prompts(prompt_box,context)
-        #     self.draw_sink_prompts(prompt_box,context)
-
-        # if self.product_tabs == 'EXTERIOR':
-        #     prompt_box.prop(self,'exterior')
-        #     if self.doors:
-        #         self.draw_door_prompts(prompt_box,context)
-        #     if self.drawer_calculator:
-        #         self.draw_drawer_prompts(prompt_box,context)
-
-        # if self.product_tabs == 'INTERIOR':
-        #     prompt_box.prop(self,'interior')
-        #     # TODO: Draw interior options
-
 
 classes = (
-    home_builder_OT_place_door,
-    home_builder_OT_door_prompts,
+    home_builder_OT_place_window,
+    home_builder_OT_window_prompts,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
