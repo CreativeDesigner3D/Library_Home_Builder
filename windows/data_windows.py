@@ -4,8 +4,9 @@ import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 import time
 from .. import home_builder_utils
+from .. import home_builder_paths
 
-ASSET_DIR = home_builder_utils.get_asset_folder_path()
+ASSET_DIR = home_builder_paths.get_asset_folder_path()
 WINDOW_FRAME = path.join(ASSET_DIR,"Window Frames","Window Frame.blend")
 
 class Hole(pc_types.Assembly):

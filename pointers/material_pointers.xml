@@ -66,19 +66,34 @@
 		<Asset>Polished Chrome</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Glass</Name>
-		<Category>Misc</Category>
-		<Asset>Glass</Asset>
-	</Pointer>
-	<Pointer>
 		<Name>Molding</Name>
 		<Category>Wood</Category>
 		<Asset>Autumn Leaves</Asset>
 	</Pointer>
 	<Pointer>
+		<Name>Glass</Name>
+		<Category>Misc</Category>
+		<Asset>Glass</Asset>
+	</Pointer>
+	<Pointer>
 		<Name>Walls</Name>
 		<Category>Wall Paint</Category>
 		<Asset>Textured Paint Cream</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Lumber</Name>
+		<Category>Wood</Category>
+		<Asset>Wooden Fine Light 2</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Bricks</Name>
+		<Category>Stone</Category>
+		<Asset>Red Brick</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Morter</Name>
+		<Category>Concrete</Category>
+		<Asset>Concrete Plain Ground 2</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Floor</Name>

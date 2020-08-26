@@ -5,8 +5,10 @@ import inspect
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import cabinet_library
 from . import cabinet_utils
-from .. import home_builder_utils
+from . import data_appliances
 from . import data_cabinet_doors
+from .. import home_builder_utils
+from .. import home_builder_paths
 from .. import home_builder_enums
 
 def update_cabinet_id_props(obj):
@@ -66,7 +68,9 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
     def position_cabinet(self,mouse_location,selected_obj):
         cabinet_bp = home_builder_utils.get_cabinet_bp(selected_obj)
-        
+        if not cabinet_bp:
+            cabinet_bp = home_builder_utils.get_appliance_bp(selected_obj)
+
         wall_bp = home_builder_utils.get_wall_bp(selected_obj)
         if cabinet_bp:
             self.selected_cabinet = pc_types.Assembly(cabinet_bp)
@@ -129,6 +133,17 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
                 self.cabinet.set_name(filename.replace("_"," "))
                 self.set_child_properties(self.cabinet.obj_bp)
                 self.refresh_data(False)  
+
+        if not self.cabinet:
+            directory, file = os.path.split(self.filepath)
+            filename, ext = os.path.splitext(file)        
+            for name, obj in inspect.getmembers(data_appliances):
+                if name == filename.replace(" ","_"):
+                    self.cabinet = obj()
+                    self.cabinet.draw()
+                    self.cabinet.set_name(filename.replace("_"," "))
+                    self.set_child_properties(self.cabinet.obj_bp)
+                    self.refresh_data(False)  
 
         # self.cabinet.obj_bp.hide_viewport = False
         # self.cabinet.obj_bp.location = self.cabinet.obj_bp.location
@@ -393,11 +408,11 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                                               ('5',"5","5"),
                                               ('6',"6","6")])
 
-    sink_category: bpy.props.EnumProperty(name="Sink Category",
-        items=home_builder_enums.enum_sink_categories,
-        update=home_builder_enums.update_sink_category)
-    sink_name: bpy.props.EnumProperty(name="Sink Name",
-        items=home_builder_enums.enum_sink_names)
+    # sink_category: bpy.props.EnumProperty(name="Sink Category",
+    #     items=home_builder_enums.enum_sink_categories,
+    #     update=home_builder_enums.update_sink_category)
+    # sink_name: bpy.props.EnumProperty(name="Sink Name",
+    #     items=home_builder_enums.enum_sink_names)
 
     calculators = []
 
@@ -598,12 +613,14 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         if not add_sink:
             return False
 
-        add_sink.draw(layout)
+        layout.operator_context = 'INVOKE_AREA'
+        layout.operator('home_builder.cabinet_sink_options',text="Sink Options")
+        # add_sink.draw(layout)
 
-        if add_sink.get_value():
-            layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
-            if len(self.sink_name) > 0:
-                layout.template_icon_view(self,"sink_name",show_labels=True)  
+        # if add_sink.get_value():
+        #     layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
+        #     if len(self.sink_name) > 0:
+        #         layout.template_icon_view(self,"sink_name",show_labels=True)  
 
     def draw_countertop_prompts(self,layout,context):
         ctop_front = self.cabinet.get_prompt("Countertop Overhang Front")
@@ -708,7 +725,6 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
         self.faucet = None
 
     def check(self, context):
-        
         return True
 
     def assign_boolean_to_child_assemblies(self,context,assembly,bool_obj):
@@ -758,7 +774,7 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
                 return child
 
     def get_faucet(self,context):
-        root_path = home_builder_utils.get_faucet_path()
+        root_path = home_builder_paths.get_faucet_path()
         sink_path = os.path.join(root_path,self.faucet_category,self.faucet_name + ".blend")
 
         with bpy.data.libraries.load(sink_path, False, False) as (data_from, data_to):
@@ -775,7 +791,7 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
         return self.faucet
 
     def get_sink(self,context):
-        root_path = home_builder_utils.get_sink_path()
+        root_path = home_builder_paths.get_sink_path()
         sink_path = os.path.join(root_path,self.sink_category,self.sink_name + ".blend")
         self.sink = pc_types.Assembly(filepath=sink_path)
         self.sink.obj_bp["IS_SINK_BP"] = True
@@ -838,6 +854,151 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
         self.draw_sink_prompts(split.box(),context)
         self.draw_faucet_prompts(split.box(),context)
 
+def update_range(self,context):
+    if self.appliance_bp_name not in bpy.data.objects:
+        return
+
+    obj = bpy.data.objects[self.appliance_bp_name]
+    bp = home_builder_utils.get_appliance_bp(obj)
+
+    appliance = pc_types.Assembly(bp)    
+    range_assembly = None
+
+    for child in appliance.obj_bp.children:
+        if "IS_RANGE_BP" in child and child["IS_RANGE_BP"]:
+            range_assembly = pc_types.Assembly(child)               
+
+    root_path = home_builder_paths.get_range_path()
+    range_path = os.path.join(root_path,self.range_category,self.range_name + ".blend")
+    range_bp = appliance.add_assembly_from_file(range_path)
+
+    new_range_assembly = pc_types.Assembly(range_bp)
+    new_range_assembly.obj_bp["IS_RANGE_BP"] = True
+
+    appliance.dim_x(value=new_range_assembly.obj_x.location.x)
+    appliance.dim_y(value=new_range_assembly.obj_y.location.y)
+    appliance.dim_z(value=new_range_assembly.obj_z.location.z)
+
+    if range_assembly:
+        pc_utils.delete_object_and_children(range_assembly.obj_bp)
+
+def update_range_hood(self,context):
+    if self.appliance_bp_name not in bpy.data.objects:
+        return
+
+    obj = bpy.data.objects[self.appliance_bp_name]
+    bp = home_builder_utils.get_appliance_bp(obj)
+
+    appliance = pc_types.Assembly(bp)    
+    range_hood_assembly = None
+
+    for child in appliance.obj_bp.children:
+        if "IS_RANGE_HOOD_BP" in child and child["IS_RANGE_HOOD_BP"]:
+            range_hood_assembly = pc_types.Assembly(child)
+
+    if self.add_range_hood:
+        root_path = home_builder_paths.get_range_hood_path()
+        range_path = os.path.join(root_path,self.range_hood_category,self.range_hood_name + ".blend")
+        range_bp = appliance.add_assembly_from_file(range_path)
+
+        new_range_hood_assembly = pc_types.Assembly(range_bp)
+        new_range_hood_assembly.obj_bp["IS_RANGE_HOOD_BP"] = True
+        
+
+        a_width = appliance.obj_x.location.x
+        a_height = appliance.obj_z.location.z
+
+        rh_width = new_range_hood_assembly.obj_x.location.x
+        print('HOOD',(a_width/2)-(rh_width/2))
+        new_range_hood_assembly.loc_x(value = (a_width/2)-(rh_width/2))
+        new_range_hood_assembly.loc_z(value = a_height+pc_unit.inch(36))
+
+    if range_hood_assembly:
+        pc_utils.delete_object_and_children(range_hood_assembly.obj_bp)
+
+class home_builder_OT_range_options(bpy.types.Operator):
+    bl_idname = "home_builder.range_options"
+    bl_label = "Range Options"
+
+    appliance_bp_name: bpy.props.StringProperty(name="Appliance BP Name",default="")
+    add_range_hood: bpy.props.BoolProperty(name="Add Range Hood",default=False,update=update_range_hood)
+
+    range_category: bpy.props.EnumProperty(name="Range Category",
+        items=home_builder_enums.enum_range_categories,
+        update=home_builder_enums.update_range_category)
+    range_name: bpy.props.EnumProperty(name="Range Name",
+        items=home_builder_enums.enum_range_names,
+        update=update_range)
+
+    range_hood_category: bpy.props.EnumProperty(name="Range Hood Category",
+        items=home_builder_enums.enum_range_hood_categories,
+        update=home_builder_enums.update_range_hood_category)
+    range_hood_name: bpy.props.EnumProperty(name="Range Hood Name",
+        items=home_builder_enums.enum_range_hood_names,
+        update=update_range_hood)
+
+    product = None
+    range_appliance = None
+    range_hood_appliance = None
+    previous_range_appliance = None
+    previous_range_hood_appliance = None
+
+    def reset_variables(self):
+        self.product = None
+        self.range_appliance = None
+        self.range_hood_appliance = None
+
+    def check(self, context):
+        
+        return True             
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def get_assemblies(self,context):
+        self.carcass = None
+        self.countertop = None
+
+        for child in self.product.obj_bp.children:
+            if "IS_RANGE_BP" in child and child["IS_RANGE_BP"]:
+                self.range_appliance = pc_types.Assembly(child)
+
+    def invoke(self,context,event):
+        self.reset_variables()
+        bp = home_builder_utils.get_appliance_bp(context.object)
+        self.product = pc_types.Assembly(bp)
+        self.appliance_bp_name = self.product.obj_bp.name
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=500)
+
+    def draw_range_prompts(self,layout,context):
+        layout.label(text="")
+        box = layout.box()
+        box.prop(self,'range_category',text="",icon='FILE_FOLDER')  
+        if len(self.range_name) > 0:
+            box.template_icon_view(self,"range_name",show_labels=True)  
+
+    def draw_range_hood_prompts(self,layout,context):
+        layout.prop(self,'add_range_hood')
+        
+        if not self.add_range_hood:
+            return False
+
+        if self.add_range_hood:
+            box = layout.box()
+            box.prop(self,'range_hood_category',text="",icon='FILE_FOLDER')  
+            if len(self.range_hood_name) > 0:
+                box.template_icon_view(self,"range_hood_name",show_labels=True)  
+
+    def draw(self, context):
+        layout = self.layout
+
+        split = layout.split()
+        self.draw_range_prompts(split.column(),context)
+        self.draw_range_hood_prompts(split.column(),context)
+
+
 class home_builder_MT_cabinet_menu(bpy.types.Menu):
     bl_label = "Cabinet Commands"
 
@@ -845,13 +1006,19 @@ class home_builder_MT_cabinet_menu(bpy.types.Menu):
         layout = self.layout
         obj_bp = pc_utils.get_assembly_bp(context.object)
         cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
-              
+        appliance_bp = home_builder_utils.get_appliance_bp(context.object)
         layout.operator_context = 'INVOKE_AREA'
+
         if cabinet_bp:
             cabinet = pc_types.Assembly(cabinet_bp)  
             add_sink = cabinet.get_prompt("Add Sink")
             if add_sink:
                 layout.operator('home_builder.cabinet_sink_options',text="Cabinet Sink Options",icon='WINDOW')
+
+        if appliance_bp:
+            range_bp = home_builder_utils.get_range_bp(context.object)
+            if range_bp:
+                layout.operator('home_builder.range_options',text="Range Options",icon='WINDOW')
 
         layout.operator('home_builder.part_prompts',text="Part Prompts - " + obj_bp.name,icon='WINDOW')
         layout.operator('home_builder.hardlock_part_size',icon='FILE_REFRESH')
@@ -925,6 +1092,7 @@ def register():
     bpy.utils.register_class(home_builder_OT_place_cabinet)  
     bpy.utils.register_class(home_builder_OT_cabinet_prompts)  
     bpy.utils.register_class(home_builder_OT_cabinet_sink_options)  
+    bpy.utils.register_class(home_builder_OT_range_options)  
     bpy.utils.register_class(home_builder_MT_cabinet_menu)     
     bpy.utils.register_class(home_builder_OT_delete_cabinet)    
     bpy.utils.register_class(home_builder_OT_delete_part)    
@@ -935,6 +1103,7 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_place_cabinet)  
     bpy.utils.unregister_class(home_builder_OT_cabinet_prompts)   
     bpy.utils.unregister_class(home_builder_OT_cabinet_sink_options)   
+    bpy.utils.unregister_class(home_builder_OT_range_options) 
     bpy.utils.unregister_class(home_builder_MT_cabinet_menu)       
     bpy.utils.unregister_class(home_builder_OT_delete_cabinet)        
     bpy.utils.unregister_class(home_builder_OT_delete_part)      

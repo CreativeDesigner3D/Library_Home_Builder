@@ -21,8 +21,10 @@ from .pc_lib import pc_unit, pc_utils, pc_types
 from .walls import data_walls
 from .doors import door_library
 from .cabinets import cabinet_library
+from .cabinets import data_appliances
 from .windows import window_library
 from . import home_builder_utils
+from . import home_builder_paths
 
 class room_builder_OT_activate(Operator):
     bl_idname = "room_builder.activate"
@@ -34,7 +36,7 @@ class room_builder_OT_activate(Operator):
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
-        library_path = home_builder_utils.get_library_path()
+        library_path = home_builder_paths.get_library_path()
         dirs = os.listdir(library_path)
 
         if props.active_category in dirs:
@@ -82,6 +84,9 @@ class room_builder_OT_drop(Operator):
         if props.active_category == 'Cabinets':
             bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
 
+        if props.active_category == 'Appliances':
+            bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
+
         if props.active_category == 'Doors':
             bpy.ops.home_builder.place_door(filepath=self.filepath)
 
@@ -101,7 +106,7 @@ class home_builder_OT_change_library_category(bpy.types.Operator):
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
         props.active_category = self.category
-        path = os.path.join(home_builder_utils.get_library_path(),self.category)
+        path = os.path.join(home_builder_paths.get_library_path(),self.category)
         if os.path.exists(path):
             pc_utils.update_file_browser_path(context,path)
         return {'FINISHED'}
@@ -431,12 +436,13 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         return os.path.join(bpy.app.tempdir,'thumb_temp.py')
 
     def get_assets(self):
+        library_path = home_builder_paths.get_library_path()
         for name, obj in inspect.getmembers(cabinet_library):
             if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
                 asset = self.assets.add()
                 asset.name = name
                 asset.category_name = "Cabinets"
-                asset.library_path = os.path.join(home_builder_utils.get_library_path(),'Cabinets')
+                asset.library_path = os.path.join(library_path,'Cabinets')
                 asset.package_name = 'cabinets'
                 asset.module_name = 'cabinet_library'
                 asset.class_name = name
@@ -447,7 +453,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset = self.assets.add()
                 asset.name = name
                 asset.category_name = "Walls"
-                asset.library_path = os.path.join(home_builder_utils.get_library_path(),'Walls')
+                asset.library_path = os.path.join(library_path,'Walls')
                 asset.package_name = 'walls'
                 asset.module_name = 'data_walls'
                 asset.class_name = name
@@ -458,7 +464,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset = self.assets.add()
                 asset.name = name
                 asset.category_name = "Doors"
-                asset.library_path = os.path.join(home_builder_utils.get_library_path(),'Doors')
+                asset.library_path = os.path.join(library_path,'Doors')
                 asset.package_name = 'doors'
                 asset.module_name = 'data_doors'
                 asset.class_name = name
@@ -469,11 +475,22 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset = self.assets.add()
                 asset.name = name
                 asset.category_name = "Windows"
-                asset.library_path = os.path.join(home_builder_utils.get_library_path(),'Windows')
+                asset.library_path = os.path.join(library_path,'Windows')
                 asset.package_name = 'windows'
                 asset.module_name = 'window_library'
                 asset.class_name = name
                 asset.asset_type = 'Window'
+
+        for name, obj in inspect.getmembers(data_appliances):
+            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
+                asset = self.assets.add()
+                asset.name = name
+                asset.category_name = "Appliances"
+                asset.library_path = os.path.join(library_path,'Appliances')
+                asset.package_name = 'cabinets'
+                asset.module_name = 'data_appliances'
+                asset.class_name = name
+                asset.asset_type = 'Appliance'
 
     def invoke(self,context,event):
         self.reset_variables()
@@ -507,7 +524,13 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         window_box.label(text="Windows")
         window_col = window_box.column(align=True)
 
+        appliance_box = layout.box()
+        appliance_box.label(text="Appliances")
+        appliance_col = appliance_box.column(align=True)
+
         for asset in self.assets:
+            if asset.asset_type == 'Appliance':
+                appliance_col.prop(asset,'is_selected',text=asset.name)            
             if asset.asset_type == 'Cabinet':
                 cabinet_col.prop(asset,'is_selected',text=asset.name)
             if asset.asset_type == 'Wall': 

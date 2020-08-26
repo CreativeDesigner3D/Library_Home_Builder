@@ -227,7 +227,8 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
 
         start_time = time.time()
         for obj in self.obj_wall_meshes:
-            home_builder_utils.unwrap_obj(context,obj)
+            if not obj.hide_viewport:
+                home_builder_utils.unwrap_obj(context,obj)
             self.hide_empties(obj.parent)
         print("Wall Unwrap: Draw Time --- %s seconds ---" % (time.time() - start_time))
 
@@ -303,7 +304,7 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         self.get_previous_wall(context)
         self.get_next_wall(context)
         wm = context.window_manager           
-        return wm.invoke_props_dialog(self, width=350)
+        return wm.invoke_props_dialog(self, width=370)
 
     def draw_product_size(self,layout,context):
         unit_system = context.scene.unit_settings.system
@@ -359,11 +360,45 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         row.label(text='Rotation Z:')
         row.prop(self.current_wall.obj_bp,'rotation_euler',index=2,text="")  
 
+    def draw_brick_wall_props(self,layout,context):
+        brick_length = self.current_wall.get_prompt("Brick Length")
+        brick_height = self.current_wall.get_prompt("Brick Height")
+        mortar_thickness = self.current_wall.get_prompt("Mortar Thickness")
+        mortar_inset = self.current_wall.get_prompt("Mortar Inset")
+
+        box = layout.box()
+        box.label(text="Brick Options")        
+        brick_length.draw(box)
+        brick_height.draw(box)
+        mortar_thickness.draw(box)
+        mortar_inset.draw(box)
+
+    def draw_framed_wall_props(self,layout,context):
+        stud_spacing_distance = self.current_wall.get_prompt("Stud Spacing Distance")
+        material_thickness = self.current_wall.get_prompt("Material Thickness")
+
+        box = layout.box()
+        box.label(text="Framing Wall Options")        
+        stud_spacing_distance.draw(box)
+        material_thickness.draw(box)
+
     def draw(self, context):
         layout = self.layout
         self.draw_product_size(layout,context)
-        layout.operator('home_builder.add_room_light',text='Add Room Light',icon='LIGHT_SUN')
-        layout.operator('home_builder.draw_floor_plane',text='Add Floor',icon='MESH_PLANE')
+
+        brick_length = self.current_wall.get_prompt("Brick Length")
+        if brick_length:
+            self.draw_brick_wall_props(layout,context)
+
+        stud_spacing_distance = self.current_wall.get_prompt("Stud Spacing Distance")
+        if stud_spacing_distance:
+            self.draw_framed_wall_props(layout,context)
+
+        box = layout.box()
+        box.label(text="Room Tools",icon='MODIFIER')
+        row = box.row()
+        row.operator('home_builder.add_room_light',text='Add Room Light',icon='LIGHT_SUN')
+        row.operator('home_builder.draw_floor_plane',text='Add Floor',icon='MESH_PLANE')
         
         # left_angle = self.current_wall.get_prompt("Left Angle")
         # right_angle = self.current_wall.get_prompt("Right Angle")

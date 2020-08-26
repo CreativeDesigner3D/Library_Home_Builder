@@ -3,6 +3,7 @@ import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 import time
 from .. import home_builder_utils
+from .. import home_builder_parts
 from . import data_parts
 
 class Mesh_Wall(pc_types.Assembly):
@@ -122,6 +123,7 @@ class Wall_Framed(pc_types.Assembly):
         bottom_plate.dim_x('length',[length])
         bottom_plate.dim_y('wall_thickness',[wall_thickness])
         bottom_plate.dim_z('material_thickness',[material_thickness])
+        home_builder_utils.assign_pointer_to_assembly(bottom_plate,"Lumber")
 
         top_plate = self.add_assembly(data_parts.Stud())
         top_plate.set_name('Top Plate')
@@ -131,6 +133,7 @@ class Wall_Framed(pc_types.Assembly):
         top_plate.dim_x('length',[length])
         top_plate.dim_y('wall_thickness',[wall_thickness])
         top_plate.dim_z('-material_thickness',[material_thickness])
+        home_builder_utils.assign_pointer_to_assembly(top_plate,"Lumber")
 
         first_stud = self.add_assembly(data_parts.Stud())
         first_stud.set_name('First Stud')
@@ -141,6 +144,7 @@ class Wall_Framed(pc_types.Assembly):
         first_stud.dim_x('height-(material_thickness*2)',[height,material_thickness])
         first_stud.dim_y('wall_thickness',[wall_thickness])
         first_stud.dim_z('-material_thickness',[material_thickness])
+        home_builder_utils.assign_pointer_to_assembly(first_stud,"Lumber")
 
         last_stud = self.add_assembly(data_parts.Stud())
         last_stud.set_name('Last Stud')
@@ -151,6 +155,7 @@ class Wall_Framed(pc_types.Assembly):
         last_stud.dim_x('height-(material_thickness*2)',[height,material_thickness])
         last_stud.dim_y('wall_thickness',[wall_thickness])
         last_stud.dim_z('material_thickness',[material_thickness])
+        home_builder_utils.assign_pointer_to_assembly(last_stud,"Lumber")
 
         center_stud = self.add_assembly(data_parts.Stud())
         center_stud.set_name('Center Stud')
@@ -161,6 +166,7 @@ class Wall_Framed(pc_types.Assembly):
         center_stud.dim_x('height-(material_thickness*2)',[height,material_thickness])
         center_stud.dim_y('wall_thickness',[wall_thickness])
         center_stud.dim_z('material_thickness',[material_thickness])
+        home_builder_utils.assign_pointer_to_assembly(center_stud,"Lumber")
 
         qty = center_stud.get_prompt('Quantity')
         offset = center_stud.get_prompt('Array Offset')
@@ -204,12 +210,14 @@ class Wall_Brick(pc_types.Assembly):
         brick_height = self.add_prompt("Brick Height",'DISTANCE',pc_unit.inch(2.25))
         mortar_thickness = self.add_prompt("Mortar Thickness",'DISTANCE',pc_unit.inch(.5))
         mortar_inset = self.add_prompt("Mortar Inset",'DISTANCE',pc_unit.inch(.125))
+        boolean_overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
 
         #Get Vars
         brick_length = brick_length.get_var("brick_length")
         brick_height = brick_height.get_var("brick_height")
         mortar_thickness = mortar_thickness.get_var("mortar_thickness")
         mortar_inset = mortar_inset.get_var("mortar_inset")
+        boolean_overhang_var = boolean_overhang.get_var("boolean_overhang_var")
 
         #Add Parts
         brick1 = self.add_assembly(data_parts.Brick())
@@ -225,11 +233,11 @@ class Wall_Brick(pc_types.Assembly):
         z_quantity = brick1.get_prompt('Z Quantity')
         z_offset = brick1.get_prompt('Z Offset')
 
-        x_quantity.set_formula('(length-brick_length)/(brick_length+mortar_thickness)',
+        x_quantity.set_formula('(length-brick_length)/(brick_length+mortar_thickness)+1',
                                 [length,brick_length,mortar_thickness])
         x_offset.set_formula('brick_length+mortar_thickness',[brick_length,mortar_thickness])        
 
-        z_quantity.set_formula('((height-brick_height)/(brick_height+mortar_thickness))/2',
+        z_quantity.set_formula('((height-brick_height)/(brick_height+mortar_thickness))/2+1',
                                 [height,brick_height,mortar_thickness])
         z_offset.set_formula('(brick_height+mortar_thickness)*2',[brick_height,mortar_thickness])  
 
@@ -246,7 +254,7 @@ class Wall_Brick(pc_types.Assembly):
         z_quantity = brick2.get_prompt('Z Quantity')
         z_offset = brick2.get_prompt('Z Offset')
 
-        x_quantity.set_formula('(length-brick_length)/(brick_length+mortar_thickness)',
+        x_quantity.set_formula('(length-brick_length)/(brick_length+mortar_thickness)+2',
                                 [length,brick_length,mortar_thickness])
         x_offset.set_formula('brick_length+mortar_thickness',[brick_length,mortar_thickness])        
 
@@ -254,14 +262,42 @@ class Wall_Brick(pc_types.Assembly):
                                 [height,brick_height,mortar_thickness])
         z_offset.set_formula('(brick_height+mortar_thickness)*2',[brick_height,mortar_thickness])  
 
+        right_hole = self.add_assembly(home_builder_parts.Hole())
+        right_hole.set_name("Hole")
+        right_hole.loc_x('length',[length])
+        right_hole.loc_y('-boolean_overhang_var',[boolean_overhang_var])
+        right_hole.loc_z('-boolean_overhang_var',[boolean_overhang_var])
+        right_hole.rot_z(value=math.radians(0))
+        right_hole.dim_x('boolean_overhang_var+(brick_length/2)',[boolean_overhang_var,brick_length])
+        right_hole.dim_y('wall_thickness+(boolean_overhang_var*2)',[wall_thickness,boolean_overhang_var])
+        right_hole.dim_z('height+(boolean_overhang_var*2)',[height,boolean_overhang_var])
+        right_hole.assign_boolean(brick1)
+        right_hole.assign_boolean(brick2)
+
+        left_hole = self.add_assembly(home_builder_parts.Hole())
+        left_hole.set_name("Hole")
+        left_hole.loc_x('-boolean_overhang_var-(brick_length/2)',[boolean_overhang_var,brick_length])
+        left_hole.loc_y('-boolean_overhang_var',[boolean_overhang_var])
+        left_hole.loc_z('-boolean_overhang_var',[boolean_overhang_var])
+        left_hole.rot_z(value=math.radians(0))
+        left_hole.dim_x('boolean_overhang_var+(brick_length/2)',[boolean_overhang_var,brick_length])
+        left_hole.dim_y('wall_thickness+(boolean_overhang_var*2)',[wall_thickness,boolean_overhang_var])
+        left_hole.dim_z('height+(boolean_overhang_var*2)',[height,boolean_overhang_var])
+        left_hole.assign_boolean(brick1)
+        left_hole.assign_boolean(brick2)
+
         morter = self.add_assembly(data_parts.Cube())
         morter.set_name('Morter')
         morter.loc_x('mortar_inset',[mortar_inset])
         morter.loc_y('mortar_inset',[mortar_inset])
-        morter.loc_z('mortar_inset,[mortar_inset')
+        morter.loc_z('mortar_inset',[mortar_inset])
         morter.dim_x('length-mortar_inset*2',[length,mortar_inset])
         morter.dim_y('wall_thickness-mortar_inset*2',[wall_thickness,mortar_inset])
         morter.dim_z('height-mortar_inset*2',[height,mortar_inset])
+
+        home_builder_utils.assign_pointer_to_assembly(morter,"Morter")
+        home_builder_utils.assign_pointer_to_assembly(brick1,"Bricks")
+        home_builder_utils.assign_pointer_to_assembly(brick2,"Bricks")
 
 class Room(pc_types.Assembly):
     show_in_library = True

@@ -3,23 +3,34 @@ import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinet_parts
 from .. import home_builder_utils
+from .. import home_builder_paths
 from . import common_prompts
 
 from os import path
 
-class Range(pc_types.Assembly):
+ASSET_DIR = home_builder_paths.get_asset_folder_path()
+APPLIANCE = path.join(ASSET_DIR,"Ranges","Thermador","Thermador PRD304GHU.blend")
 
+class Range(pc_types.Assembly):
+    show_in_library = True
     obj = None
 
     def draw(self):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        # props = home_builder_utils.get_scene_props(bpy.context.scene)
 
         self.create_assembly("Range")
-        self.obj_bp["IS_RANGE_BP"] = True
+        self.obj_bp["IS_APPLIANCE_BP"] = True
+
+        assembly = pc_types.Assembly(self.add_assembly_from_file(APPLIANCE))
+        assembly.obj_bp["IS_RANGE_BP"] = True
+        
+        self.obj_x.location.x = assembly.obj_x.location.x
+        self.obj_y.location.y = assembly.obj_y.location.y
+        self.obj_z.location.z = assembly.obj_z.location.z
 
 
 class Refrigerator(pc_types.Assembly):
-
+    show_in_library = True
     obj = None
 
     def draw(self):
@@ -30,7 +41,7 @@ class Refrigerator(pc_types.Assembly):
 
 
 class Microwave(pc_types.Assembly):
-
+    show_in_library = True
     obj = None
 
     def draw(self):
@@ -41,7 +52,7 @@ class Microwave(pc_types.Assembly):
 
 
 class Range_Hood(pc_types.Assembly):
-
+    show_in_library = True
     obj = None
 
     def draw(self):
@@ -52,7 +63,7 @@ class Range_Hood(pc_types.Assembly):
 
 
 class Dishwasher(pc_types.Assembly):
-
+    show_in_library = True
     obj = None
 
     def draw(self):
@@ -63,7 +74,7 @@ class Dishwasher(pc_types.Assembly):
 
 
 class Sink(pc_types.Assembly):
-
+    show_in_library = True
     obj = None
 
     def draw(self):
@@ -74,7 +85,7 @@ class Sink(pc_types.Assembly):
 
 
 class Cook_Top(pc_types.Assembly):
-
+    show_in_library = True
     obj = None
 
     def draw(self):

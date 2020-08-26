@@ -1,6 +1,7 @@
 import bpy
 import os
 from . import home_builder_utils
+from . import home_builder_paths
 from .pc_lib import pc_utils
 
 class FILEBROWSER_PT_home_builder_headers(bpy.types.Panel):
@@ -39,7 +40,7 @@ class HOME_BUILDER_MT_category_menu(bpy.types.Menu):
 
     def draw(self, _context):
         layout = self.layout
-        library_path = home_builder_utils.get_library_path()
+        library_path = home_builder_paths.get_library_path()
         dirs = os.listdir(library_path)
         for d in dirs:
             path = os.path.join(library_path,d)

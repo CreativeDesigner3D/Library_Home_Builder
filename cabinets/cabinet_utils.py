@@ -114,3 +114,11 @@ def add_sink(cabinet,carcass,countertop,sink):
     sink.loc_x('(cabinet_width/2)-' + str(sink_width/2),[cabinet_width])
     sink.loc_y('(cabinet_depth/2)-' + str(sink_depth/2),[cabinet_depth])
     sink.loc_z('cabinet_height+countertop_height',[cabinet_height,countertop_height])
+
+def add_appliance(product,appliance):
+    app = product.add_assembly(appliance)
+    app.obj_bp.parent = product.obj_bp
+
+    product.dim_x(value = app.obj_x.location.x)
+    product.dim_y(value = app.obj_y.location.y)
+    product.dim_z(value = app.obj_z.location.z)  

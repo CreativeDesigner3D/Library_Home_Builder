@@ -1,7 +1,7 @@
 import bpy
 import os
 from .pc_lib import pc_types, pc_unit, pc_utils, pc_pointer_utils
-from . import home_builder_utils
+from . import home_builder_paths
 
 preview_collections = {}
 preview_collections["material_categories"] = pc_pointer_utils.create_image_preview_collection()
@@ -12,13 +12,17 @@ preview_collections["sink_categories"] = pc_pointer_utils.create_image_preview_c
 preview_collections["sink_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["faucet_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["faucet_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["range_categories"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["range_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["range_hood_categories"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["range_hood_items"] = pc_pointer_utils.create_image_preview_collection()
 
 #MATERIALS
 def enum_material_categories(self,context):
     if context is None:
         return []
     
-    icon_dir = home_builder_utils.get_material_path()
+    icon_dir = home_builder_paths.get_material_path()
     pcoll = preview_collections["material_categories"]
     return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
 
@@ -26,7 +30,7 @@ def enum_material_names(self,context):
     if context is None:
         return []
     
-    icon_dir = os.path.join(home_builder_utils.get_material_path(),self.material_category)
+    icon_dir = os.path.join(home_builder_paths.get_material_path(),self.material_category)
     pcoll = preview_collections["material_items"]
     return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
 
@@ -42,7 +46,7 @@ def enum_pull_categories(self,context):
     if context is None:
         return []
     
-    icon_dir = home_builder_utils.get_pull_path()
+    icon_dir = home_builder_paths.get_pull_path()
     pcoll = preview_collections["pull_categories"]
     return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
 
@@ -50,7 +54,7 @@ def enum_pull_names(self,context):
     if context is None:
         return []
     
-    icon_dir = os.path.join(home_builder_utils.get_pull_path(),self.pull_category)
+    icon_dir = os.path.join(home_builder_paths.get_pull_path(),self.pull_category)
     pcoll = preview_collections["pull_items"]
     return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
 
@@ -66,7 +70,7 @@ def enum_sink_categories(self,context):
     if context is None:
         return []
     
-    icon_dir = home_builder_utils.get_sink_path()
+    icon_dir = home_builder_paths.get_sink_path()
     pcoll = preview_collections["sink_categories"]
     return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
 
@@ -74,7 +78,7 @@ def enum_sink_names(self,context):
     if context is None:
         return []
     
-    icon_dir = os.path.join(home_builder_utils.get_sink_path(),self.sink_category)
+    icon_dir = os.path.join(home_builder_paths.get_sink_path(),self.sink_category)
     pcoll = preview_collections["sink_items"]
     return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
 
@@ -91,7 +95,7 @@ def enum_faucet_categories(self,context):
     if context is None:
         return []
     
-    icon_dir = home_builder_utils.get_faucet_path()
+    icon_dir = home_builder_paths.get_faucet_path()
     pcoll = preview_collections["faucet_categories"]
     return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
 
@@ -99,7 +103,7 @@ def enum_faucet_names(self,context):
     if context is None:
         return []
     
-    icon_dir = os.path.join(home_builder_utils.get_faucet_path(),self.faucet_category)
+    icon_dir = os.path.join(home_builder_paths.get_faucet_path(),self.faucet_category)
     pcoll = preview_collections["faucet_items"]
     return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
 
@@ -109,3 +113,51 @@ def update_faucet_category(self,context):
         preview_collections["faucet_items"] = pc_pointer_utils.create_image_preview_collection()     
         
     enum_faucet_names(self,context)        
+
+#RANGES   
+def enum_range_categories(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = home_builder_paths.get_range_path()
+    pcoll = preview_collections["range_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
+def enum_range_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(home_builder_paths.get_range_path(),self.range_category)
+    pcoll = preview_collections["range_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_range_category(self,context):
+    if preview_collections["range_items"]:
+        bpy.utils.previews.remove(preview_collections["range_items"])
+        preview_collections["range_items"] = pc_pointer_utils.create_image_preview_collection()     
+        
+    enum_range_names(self,context)      
+
+#RANGE HOODS  
+def enum_range_hood_categories(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = home_builder_paths.get_range_hood_path()
+    pcoll = preview_collections["range_hood_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
+def enum_range_hood_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(home_builder_paths.get_range_hood_path(),self.range_hood_category)
+    pcoll = preview_collections["range_hood_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_range_hood_category(self,context):
+    if preview_collections["range_hood_items"]:
+        bpy.utils.previews.remove(preview_collections["range_hood_items"])
+        preview_collections["range_hood_items"] = pc_pointer_utils.create_image_preview_collection()     
+        
+    enum_range_hood_names(self,context)          

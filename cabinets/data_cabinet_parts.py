@@ -1,8 +1,9 @@
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from .. import home_builder_utils
+from .. import home_builder_paths
 from os import path
 
-ASSET_DIR = home_builder_utils.get_asset_folder_path()
+ASSET_DIR = home_builder_paths.get_asset_folder_path()
 PART = path.join(ASSET_DIR,"Cutparts","Part.blend")
 
 class Cutpart(pc_types.Assembly):

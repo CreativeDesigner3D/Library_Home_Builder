@@ -2,12 +2,10 @@ import bpy
 import os
 import math
 from .pc_lib import pc_types, pc_unit, pc_utils, pc_pointer_utils
+from . import home_builder_paths
 
 def get_scene_props(scene):
     return scene.home_builder
-
-def get_library_path():
-    return os.path.join(os.path.dirname(__file__),'library')   
 
 def get_wall_bp(obj):
     if not obj:
@@ -33,6 +31,22 @@ def get_cabinet_bp(obj):
     elif obj.parent:
         return get_cabinet_bp(obj.parent)
 
+def get_appliance_bp(obj):
+    if not obj:
+        return None    
+    if "IS_APPLIANCE_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_appliance_bp(obj.parent)
+
+def get_range_bp(obj):
+    if not obj:
+        return None    
+    if "IS_RANGE_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_range_bp(obj.parent)
+
 def get_door_bp(obj):
     if not obj:
         return None    
@@ -49,26 +63,11 @@ def get_window_bp(obj):
     elif obj.parent:
         return get_window_bp(obj.parent)
 
-def get_asset_folder_path():
-    return os.path.join(os.path.dirname(__file__),'assets')
-
-def get_material_path():
-    return os.path.join(get_asset_folder_path(),'Materials') 
-
-def get_pull_path():
-    return os.path.join(get_asset_folder_path(),'Cabinet Pulls') 
-
-def get_sink_path():
-    return os.path.join(get_asset_folder_path(),'Sinks') 
-
-def get_faucet_path():
-    return os.path.join(get_asset_folder_path(),'Faucets') 
-
 def get_material(category,material_name):
     if material_name in bpy.data.materials:
         return bpy.data.materials[material_name]
 
-    material_path = os.path.join(get_material_path(),category,material_name + ".blend")
+    material_path = os.path.join(home_builder_paths.get_material_path(),category,material_name + ".blend")
     
     if os.path.exists(material_path):
 
@@ -82,7 +81,7 @@ def get_material(category,material_name):
             return mat
             
 def get_pull(category,pull_name):
-    pull_path = os.path.join(get_pull_path(),category,pull_name + ".blend")
+    pull_path = os.path.join(home_builder_paths.get_pull_path(),category,pull_name + ".blend")
     if os.path.exists(pull_path):
 
         with bpy.data.libraries.load(pull_path, False, False) as (data_from, data_to):
@@ -132,6 +131,7 @@ def add_bevel(assembly):
 #POINTERS            
 def get_default_material_pointers():
     pointers = []
+    #CABINETS
     pointers.append(("Wood Core Surfaces","Wood","PB Small"))
     pointers.append(("Wood Core Edges","Wood","PB Small"))
     pointers.append(("Exposed Cabinet Surfaces","Wood","Autumn Leaves"))
@@ -145,12 +145,22 @@ def get_default_material_pointers():
     pointers.append(("Drawer Box Surface","Wood","Autumn Leaves"))
     pointers.append(("Drawer Box Edge","Wood","Autumn Leaves"))
     pointers.append(("Pull Finish","Metal","Polished Chrome"))
-    pointers.append(("Glass","Misc","Glass"))
     pointers.append(("Molding","Wood","Autumn Leaves"))
+
+    #MISC
+    pointers.append(("Glass","Misc","Glass"))
+
+    #WALLS FLOOR
     pointers.append(("Walls","Wall Paint","Textured Paint Cream"))
+    pointers.append(("Lumber","Wood","Wooden Fine Light 2"))
+    pointers.append(("Bricks","Stone","Red Brick"))
+    pointers.append(("Morter","Concrete","Concrete Plain Ground 2"))
     pointers.append(("Floor","Wood Flooring","Provincial Oak Hardwood"))
+
+    #DOORS
     pointers.append(("Entry Doors","Wood","Painted Wood White"))
     pointers.append(("Entry Door Frame","Wood","Painted Wood White"))
+
     return pointers
 
 def get_default_pull_pointers():
@@ -181,6 +191,15 @@ def update_pointer_properties():
                                                 props.material_pointers)
     pc_pointer_utils.update_props_from_xml_file(get_pull_pointer_xml_path(),
                                                 props.pull_pointers)    
+
+def assign_pointer_to_assembly(assembly,pointer_name):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            if len(child.pyclone.pointers) == 0:
+                bpy.ops.pc_material.add_material_slot(object_name=child.name)
+            for index, pointer in enumerate(child.pyclone.pointers):  
+                pointer.name = pointer_name
+            assign_materials_to_object(child)       
 
 def assign_wall_pointers(assembly):
     for child in assembly.obj_bp.children:
