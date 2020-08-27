@@ -4,6 +4,10 @@ import math
 from .pc_lib import pc_types, pc_unit, pc_utils, pc_pointer_utils
 from . import home_builder_paths
 
+def get_preferences(context):
+    preferences = context.preferences
+    return preferences.addons[__name__].preferences
+
 def get_scene_props(scene):
     return scene.home_builder
 

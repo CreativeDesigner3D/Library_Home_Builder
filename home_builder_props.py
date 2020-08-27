@@ -5,6 +5,7 @@ from bpy.types import (
         Panel,
         PropertyGroup,
         UIList,
+        AddonPreferences,
         )
 from bpy.props import (
         BoolProperty,
@@ -24,6 +25,17 @@ class Pointer(PropertyGroup):
     category: bpy.props.StringProperty(name="Category")
     item_name: bpy.props.StringProperty(name="Item Name")
 
+class Home_Builder_AddonPreferences(AddonPreferences):
+    bl_idname = __package__
+
+    assets_filepath: StringProperty(
+        name="Assets Filepath",
+        subtype='FILE_PATH',
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "assets_filepath")
 
 class Home_Builder_Scene_Props(PropertyGroup):
     ui_tabs: EnumProperty(name="UI Tabs",
@@ -36,7 +48,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                  ('TOOLS',"Tools","Show the Tools")],
                           default='SIZES')
 
-    active_category: StringProperty(name="Active Category",default="")
+    active_category: StringProperty(name="Active Category")
 
     wall_height: FloatProperty(name="Wall Height",default=pc_unit.inch(96),subtype='DISTANCE')
     wall_thickness: FloatProperty(name="Wall Thickness",default=pc_unit.inch(6),subtype='DISTANCE')
@@ -408,6 +420,7 @@ class Home_Builder_Object_Props(PropertyGroup):
 
 classes = (
     Pointer,
+    Home_Builder_AddonPreferences,
     Home_Builder_Object_Props,
     Home_Builder_Scene_Props,
 )

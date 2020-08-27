@@ -1,10 +1,23 @@
+import bpy
 import os
+
+def get_addon_preferences():
+    preferences = bpy.context.preferences
+    return preferences.addons[__package__].preferences
 
 def get_library_path():
     return os.path.join(os.path.dirname(__file__),'library')   
     
 def get_asset_folder_path():
-    return os.path.join(os.path.dirname(__file__),'assets')
+    prefs = get_addon_preferences()
+
+    if not prefs:
+        return os.path.join(os.path.dirname(__file__),'assets')
+    
+    if os.path.exists(prefs.assets_filepath):
+        return prefs.assets_filepath
+    else:
+        return os.path.join(os.path.dirname(__file__),'assets')
 
 def get_material_path():
     return os.path.join(get_asset_folder_path(),'Materials') 

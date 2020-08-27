@@ -38,9 +38,9 @@ def load_pointers(scene=None):
     home_builder_utils.update_pointer_properties()
 
 def register():
+    home_builder_props.register()
     home_builder_ui.register()
     home_builder_ops.register()
-    home_builder_props.register()
     wall_ops.register()
     cabinet_ops.register()
     door_ops.register()
@@ -51,9 +51,9 @@ def register():
     bpy.app.handlers.load_post.append(load_pointers)
 
 def unregister():
+    home_builder_props.unregister()
     home_builder_ui.unregister()
     home_builder_ops.unregister()
-    home_builder_props.unregister()
     wall_ops.unregister()
     cabinet_ops.unregister()
     door_ops.unregister()
