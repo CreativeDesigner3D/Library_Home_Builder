@@ -23,6 +23,7 @@ from .doors import door_library
 from .cabinets import cabinet_library
 from .cabinets import data_appliances
 from .windows import window_library
+from . import home_builder_pointers
 from . import home_builder_utils
 from . import home_builder_paths
 
@@ -187,7 +188,7 @@ class home_builder_OT_draw_floor_plane(bpy.types.Operator):
         context.view_layer.active_layer_collection.collection.objects.link(obj_plane)
         obj_plane.location = loc
         home_builder_utils.unwrap_obj(context,obj_plane)
-        home_builder_utils.assign_floor_pointers(obj_plane)
+        home_builder_pointers.assign_pointer_to_object(obj_plane,"Floor")
         bpy.ops.object.editmode_toggle()
         bpy.ops.mesh.flip_normals()
         bpy.ops.object.editmode_toggle()
@@ -284,6 +285,9 @@ class home_builder_OT_update_scene_materials(bpy.types.Operator):
     bl_label = "Update Scene Materials"
     
     def execute(self, context):
+        for obj in context.visible_objects:
+            if obj.type == 'MESH':
+                home_builder_pointers.assign_materials_to_object(obj)
         return {'FINISHED'}
 
 
@@ -294,6 +298,11 @@ class home_builder_OT_update_material_pointer(bpy.types.Operator):
     pointer_name: bpy.props.StringProperty(name="Pointer Name")
 
     def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        for pointer in props.material_pointers:
+            if pointer.name == self.pointer_name:
+                pointer.category = props.pull_category
+                pointer.item_name = props.pull_name  
         return {'FINISHED'}
 
 
@@ -302,6 +311,34 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
     bl_label = "Update Scene Pulls"
     
     def execute(self, context):
+        pull_objs = []
+        pull_pointers = home_builder_utils.get_scene_props(context.scene).pull_pointers
+
+        for obj in context.visible_objects:
+            if "IS_CABINET_PULL" in obj and obj["IS_CABINET_PULL"]:
+                pull_objs.append(obj)
+
+        for pull in pull_objs:
+            props = home_builder_utils.get_object_props(pull)
+            exterior_bp = home_builder_utils.get_exterior_bp(pull)
+            for pointer in pull_pointers:
+                if pointer.name == props.pointer_name:
+                    new_pull = home_builder_utils.get_pull(pointer.category,pointer.item_name)
+                    new_pull_props = home_builder_utils.get_object_props(new_pull)
+                    new_pull_props.pointer_name = pointer.name
+                    new_pull.parent = pull.parent
+                    new_pull["IS_CABINET_PULL"] = True
+                    context.view_layer.active_layer_collection.collection.objects.link(new_pull)
+                    home_builder_pointers.assign_pointer_to_object(new_pull,"Pull Finish")
+                    home_builder_pointers.assign_materials_to_object(new_pull)  
+                    if exterior_bp:
+                        exterior = pc_types.Assembly(exterior_bp)
+                        pull_length = exterior.get_prompt("Pull Length")    
+                        if pull_length:
+                            pull_length.set_value(round(new_pull.dimensions.x,2))  
+                        exterior_bp.location = exterior_bp.location 
+
+        pc_utils.delete_obj_list(pull_objs)
         return {'FINISHED'}
 
 
@@ -312,6 +349,11 @@ class home_builder_OT_update_pull_pointer(bpy.types.Operator):
     pointer_name: bpy.props.StringProperty(name="Pointer Name")
 
     def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        for pointer in props.pull_pointers:
+            if pointer.name == self.pointer_name:
+                pointer.category = props.pull_category
+                pointer.item_name = props.pull_name      
         return {'FINISHED'}
 
 

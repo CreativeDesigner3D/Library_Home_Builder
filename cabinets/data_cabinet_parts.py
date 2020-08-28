@@ -1,5 +1,6 @@
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from .. import home_builder_utils
+from .. import home_builder_pointers
 from .. import home_builder_paths
 from os import path
 
@@ -137,8 +138,8 @@ def add_countertop_part(assembly):
     part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
     assembly.add_assembly(part)
     home_builder_utils.add_bevel(part)
-    home_builder_utils.assign_countertop_pointers(part)
-    home_builder_utils.assign_materials_to_assembly(part)
+    home_builder_pointers.assign_pointer_to_assembly(part,"Countertop Surface")
+    home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
 def add_door_part(assembly):
@@ -150,8 +151,8 @@ def add_door_part(assembly):
     part.obj_z.empty_display_size = .001
     part.obj_prompts.empty_display_size = .001
     home_builder_utils.add_bevel(part)
-    home_builder_utils.assign_door_pointers(part)
-    home_builder_utils.assign_materials_to_assembly(part)
+    home_builder_pointers.assign_pointer_to_assembly(part,"Door Surface")
+    home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
 def add_carcass_part(assembly):
@@ -163,8 +164,8 @@ def add_carcass_part(assembly):
     part.obj_z.empty_display_size = .001
     part.obj_prompts.empty_display_size = .001    
     home_builder_utils.add_bevel(part)
-    home_builder_utils.assign_material_pointers(part)
-    home_builder_utils.assign_materials_to_assembly(part)
+    home_builder_pointers.assign_material_pointers(part)
+    home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
 def add_rectangular_part(assembly):
@@ -176,15 +177,15 @@ def add_rectangular_part(assembly):
     part.obj_z.empty_display_size = .001
     part.obj_prompts.empty_display_size = .001    
     home_builder_utils.add_bevel(part)
-    home_builder_utils.assign_material_pointers(part)
-    home_builder_utils.assign_materials_to_assembly(part)
+    home_builder_pointers.assign_material_pointers(part)
+    home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
 def add_lighting_strip_part(assembly):
     part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
     assembly.add_assembly(part)
-    home_builder_utils.assign_cabinet_lighting_pointers(part)
-    home_builder_utils.assign_materials_to_assembly(part)
+    home_builder_pointers.assign_pointer_to_assembly(part,"Cabinet Lighting")
+    home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
 def add_square_cutout(assembly):

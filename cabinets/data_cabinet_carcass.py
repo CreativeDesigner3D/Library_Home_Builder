@@ -3,6 +3,7 @@ import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinet_parts
 from .. import home_builder_utils
+from .. import home_builder_pointers
 from . import common_prompts
 
 from os import path
@@ -115,6 +116,8 @@ def add_cabinet_sides(assembly,add_toe_kick_notch):
     depth = assembly.obj_y.pyclone.get_var('location.y','depth')
     height = assembly.obj_z.pyclone.get_var('location.z','height')
     material_thickness = assembly.get_prompt("Material Thickness").get_var("material_thickness")
+    left_finished_end = assembly.get_prompt("Left Finished End")
+    right_finished_end = assembly.get_prompt("Right Finished End")
 
     left_side = data_cabinet_parts.add_carcass_part(assembly)
     left_side.obj_bp["IS_LEFT_SIDE_BP"] = True
@@ -138,6 +141,8 @@ def add_cabinet_sides(assembly,add_toe_kick_notch):
     right_side.dim_y('depth',[depth])
     right_side.dim_z('material_thickness',[material_thickness])
     home_builder_utils.flip_normals(right_side)
+    home_builder_pointers.update_side_material(left_side,left_finished_end.get_value())
+    home_builder_pointers.update_side_material(right_side,right_finished_end.get_value())
 
     if add_toe_kick_notch:
         toe_kick_height = assembly.get_prompt("Toe Kick Height").get_var("toe_kick_height")

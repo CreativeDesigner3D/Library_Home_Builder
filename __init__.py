@@ -5,7 +5,7 @@ from .pc_lib import pc_utils
 from . import home_builder_ui
 from . import home_builder_ops
 from . import home_builder_props
-from . import home_builder_utils
+from . import home_builder_pointers
 from .walls import wall_ops
 from .cabinets import cabinet_ops
 from .doors import door_ops
@@ -34,8 +34,8 @@ def load_library_on_file_load(scene=None):
 
 @persistent
 def load_pointers(scene=None):
-    home_builder_utils.write_pointer_files()
-    home_builder_utils.update_pointer_properties()
+    home_builder_pointers.write_pointer_files()
+    home_builder_pointers.update_pointer_properties()
 
 def register():
     home_builder_props.register()

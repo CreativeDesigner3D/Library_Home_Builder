@@ -10,6 +10,7 @@ from . import data_cabinet_doors
 from .. import home_builder_utils
 from .. import home_builder_paths
 from .. import home_builder_enums
+from .. import home_builder_pointers
 
 def update_cabinet_id_props(obj):
     obj["PROMPT_ID"] = "home_builder.cabinet_prompts"   
@@ -465,8 +466,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     def update_materials(self,context):
         left_finished_end = self.carcass.get_prompt("Left Finished End")
         right_finished_end = self.carcass.get_prompt("Right Finished End")
-        home_builder_utils.update_side_material(self.left_side,left_finished_end.get_value())
-        home_builder_utils.update_side_material(self.right_side,right_finished_end.get_value())
+        home_builder_pointers.update_side_material(self.left_side,left_finished_end.get_value())
+        home_builder_pointers.update_side_material(self.right_side,right_finished_end.get_value())
 
     def check(self, context):
         self.update_product_size()

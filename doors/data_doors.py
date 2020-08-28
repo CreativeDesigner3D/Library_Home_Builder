@@ -4,6 +4,7 @@ import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 import time
 from .. import home_builder_utils
+from .. import home_builder_pointers
 from .. import home_builder_paths
 from .. import home_builder_parts
 
@@ -52,7 +53,7 @@ class Standard_Door(pc_types.Assembly):
         door_frame.dim_x('width',[width])
         door_frame.dim_y('depth',[depth])
         door_frame.dim_z('height',[height])  
-        home_builder_utils.assign_door_frame_pointers(door_frame)
+        home_builder_pointers.assign_pointer_to_assembly(door_frame,"Entry Door Frame")
 
         Door_Frame_Width = door_frame.get_prompt("Door Frame Width")
 
@@ -69,5 +70,5 @@ class Standard_Door(pc_types.Assembly):
         # door.rot_z(value=math.radians(0))
         # door.dim_x('width-(door_frame_width*2)-(door_reveal*2)',[width,door_frame_width,door_reveal])
         # door.dim_y('door_thickness',[door_thickness])
-        # door.dim_z('height-door_frame_width-door_reveal',[height,door_frame_width,door_reveal])        
-        # home_builder_utils.assign_door_panel_pointers(door)
+        # door.dim_z('height-door_frame_width-door_reveal',[height,door_frame_width,door_reveal])      
+        # home_builder_pointers.assign_pointer_to_assembly(door_frame,"Entry Door Panels")  

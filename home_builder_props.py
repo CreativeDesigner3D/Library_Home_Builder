@@ -39,14 +39,21 @@ class Home_Builder_AddonPreferences(AddonPreferences):
 
 class Home_Builder_Scene_Props(PropertyGroup):
     ui_tabs: EnumProperty(name="UI Tabs",
-                          items=[('SIZES',"Sizes","Default Room and Cabinet Sizes"),
+                          items=[('DEFAULTS',"Defaults","Default Library Settings"),
                                  ('CONSTRUCTION',"Construction","Show the Cabinet Construction Options"),
                                  ('MATERIALS',"Materials","Show the Material Options"),
                                  ('MOLDINGS',"Moldings","Show the Molding Options"),
                                  ('FRONTS',"Fronts","Show the Door and Drawer Front Options"),
                                  ('HARDWARE',"Hardware","Show the Hardware Options"),
-                                 ('TOOLS',"Tools","Show the Tools")],
-                          default='SIZES')
+                                 ('LIBRARY',"Library","Show the Library Options")],
+                          default='DEFAULTS')
+
+    size_tabs: EnumProperty(name="Size Tabs",
+                          items=[('CABINETS',"Cabinets","Show the Cabinet Size Options"),
+                                 ('DOORS',"Doors","Show the Door Options"),
+                                 ('WINDOWS',"Windows","Show the Window Options"),
+                                 ('WALLS',"Walls","Show the Wall Options")],
+                          default='CABINETS')
 
     active_category: StringProperty(name="Active Category")
 
@@ -193,96 +200,110 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
     def draw_sizes(self,layout):
         box = layout.box()
-        box.label(text="Default Wall Size",icon='MOD_BUILD')
 
-        row = box.row()
-        row.label(text="Default Wall Height")
-        row.prop(self,'wall_height',text="")
+        split = box.split(factor=.25)
+        tab_col = split.column()
+        tab_col.prop(self,'size_tabs',expand=True)
 
-        row = box.row()
-        row.label(text="Default Wall Thickness")
-        row.prop(self,'wall_thickness',text="")
+        prop_col = split.column()
+        if self.size_tabs == 'CABINETS':
+            col = layout.column(align=True)
+            split = col.split(factor=.7,align=True)
 
-        col = layout.column(align=True)
-        split = col.split(factor=.7,align=True)
+            box = prop_col.box()
+            box.label(text="Standard Cabinet Sizes:")
+            
+            row = box.row(align=True)
+            row.label(text="Base:")
+            row.prop(self,"base_cabinet_height",text="Height")
+            row.prop(self,"base_cabinet_depth",text="Depth")
+            
+            row = box.row(align=True)
+            row.label(text="Tall:")
+            row.prop(self,"tall_cabinet_height",text="Height")
+            row.prop(self,"tall_cabinet_depth",text="Depth")
+            
+            row = box.row(align=True)
+            row.label(text="Upper:")
+            row.prop(self,"upper_cabinet_height",text="Height")
+            row.prop(self,"upper_cabinet_depth",text="Depth")
 
-        box = col.box()
-        box.label(text="Standard Cabinet Sizes:")
-        
-        row = box.row(align=True)
-        row.label(text="Base:")
-        row.prop(self,"base_cabinet_height",text="Height")
-        row.prop(self,"base_cabinet_depth",text="Depth")
-        
-        row = box.row(align=True)
-        row.label(text="Tall:")
-        row.prop(self,"tall_cabinet_height",text="Height")
-        row.prop(self,"tall_cabinet_depth",text="Depth")
-        
-        row = box.row(align=True)
-        row.label(text="Upper:")
-        row.prop(self,"upper_cabinet_height",text="Height")
-        row.prop(self,"upper_cabinet_depth",text="Depth")
+            row = box.row(align=True)
+            row.label(text="Sink:")
+            row.prop(self,"sink_cabinet_height",text="Height")
+            row.prop(self,"sink_cabinet_depth",text="Depth")
+            
+            row = box.row(align=True)
+            row.label(text="Suspended:")
+            row.prop(self,"suspended_cabinet_height",text="Height")
+            row.prop(self,"suspended_cabinet_depth",text="Depth")
+            
+            row = box.row(align=True)
+            row.label(text="1 Door Wide:")
+            row.prop(self,"width_1_door",text="Width")
+            
+            row = box.row(align=True)
+            row.label(text="2 Door Wide:")
+            row.prop(self,"width_2_door",text="Width")
+            
+            row = box.row(align=True)
+            row.label(text="Drawer Stack Width:")
+            row.prop(self,"width_drawer",text="Width")
+            
+            box = box.box()
+            box.label(text="Blind Cabinet Widths:")
+            
+            row = box.row(align=True)
+            row.label(text='Base:')
+            row.prop(self,"base_width_blind",text="Width")
+            
+            row = box.row(align=True)
+            row.label(text='Tall:')
+            row.prop(self,"tall_width_blind",text="Width")
+            
+            row = box.row(align=True)
+            row.label(text='Upper:')
+            row.prop(self,"upper_width_blind",text="Width")
+            
+            box = col.box()
+            box.label(text="Inside Corner Cabinet Sizes:")
+            row = box.row(align=True)
+            row.label(text="Base:")
+            row.prop(self,"base_inside_corner_size",text="")
+            
+            row = box.row(align=True)
+            row.label(text="Upper:")
+            row.prop(self,"upper_inside_corner_size",text="")
+            
+            box = col.box()
+            box.label(text="Placement:")
+            row = box.row(align=True)
+            row.label(text="Height Above Floor:")
+            row.prop(self,"height_above_floor",text="")
+            
+            box = col.box()
+            box.label(text="Drawer Heights:")
+            row = box.row(align=True)
+            row.prop(self,"equal_drawer_stack_heights")
+            if not self.equal_drawer_stack_heights:
+                row.prop(self,"top_drawer_front_height")
 
-        row = box.row(align=True)
-        row.label(text="Sink:")
-        row.prop(self,"sink_cabinet_height",text="Height")
-        row.prop(self,"sink_cabinet_depth",text="Depth")
-        
-        row = box.row(align=True)
-        row.label(text="Suspended:")
-        row.prop(self,"suspended_cabinet_height",text="Height")
-        row.prop(self,"suspended_cabinet_depth",text="Depth")
-        
-        row = box.row(align=True)
-        row.label(text="1 Door Wide:")
-        row.prop(self,"width_1_door",text="Width")
-        
-        row = box.row(align=True)
-        row.label(text="2 Door Wide:")
-        row.prop(self,"width_2_door",text="Width")
-        
-        row = box.row(align=True)
-        row.label(text="Drawer Stack Width:")
-        row.prop(self,"width_drawer",text="Width")
-        
-        box = col.box()
-        box.label(text="Blind Cabinet Widths:")
-        
-        row = box.row(align=True)
-        row.label(text='Base:')
-        row.prop(self,"base_width_blind",text="Width")
-        
-        row = box.row(align=True)
-        row.label(text='Tall:')
-        row.prop(self,"tall_width_blind",text="Width")
-        
-        row = box.row(align=True)
-        row.label(text='Upper:')
-        row.prop(self,"upper_width_blind",text="Width")
-        
-        box = col.box()
-        box.label(text="Inside Corner Cabinet Sizes:")
-        row = box.row(align=True)
-        row.label(text="Base:")
-        row.prop(self,"base_inside_corner_size",text="")
-        
-        row = box.row(align=True)
-        row.label(text="Upper:")
-        row.prop(self,"upper_inside_corner_size",text="")
-        
-        box = col.box()
-        box.label(text="Placement:")
-        row = box.row(align=True)
-        row.label(text="Height Above Floor:")
-        row.prop(self,"height_above_floor",text="")
-        
-        box = col.box()
-        box.label(text="Drawer Heights:")
-        row = box.row(align=True)
-        row.prop(self,"equal_drawer_stack_heights")
-        if not self.equal_drawer_stack_heights:
-            row.prop(self,"top_drawer_front_height")
+        if self.size_tabs == 'DOORS':
+            pass
+        if self.size_tabs == 'WINDOWS':
+            pass
+        if self.size_tabs == 'WALLS':
+            box = prop_col.box()
+            box.label(text="Default Wall Size",icon='MOD_BUILD')
+
+            # box = prop_col.box()                      
+            row = box.row()
+            row.label(text="Default Wall Height")
+            row.prop(self,'wall_height',text="")
+
+            row = box.row()
+            row.label(text="Default Wall Thickness")
+            row.prop(self,'wall_thickness',text="")
 
     def draw_materials(self,layout):
         split = layout.split(factor=.25)
@@ -357,21 +378,21 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
         row = col.row(align=True)
         row.scale_y = 1.3
-        row.prop_enum(self, "ui_tabs", 'SIZES', icon='CON_SAMEVOL', text="Sizes") 
+        row.prop_enum(self, "ui_tabs", 'DEFAULTS', icon='CON_SAMEVOL', text="Defaults") 
         row.prop_enum(self, "ui_tabs", 'CONSTRUCTION', icon='MOD_BUILD', text="Construction") 
         row.prop_enum(self, "ui_tabs", 'MATERIALS', icon='COLOR', text="Materials") 
         row.prop_enum(self, "ui_tabs", 'MOLDINGS', icon='MOD_SMOOTH', text="Moldings") 
         row.prop_enum(self, "ui_tabs", 'FRONTS', icon='FACESEL', text="Fronts") 
         row.prop_enum(self, "ui_tabs", 'HARDWARE', icon='MODIFIER_ON', text="Hardware") 
-        row.prop_enum(self, "ui_tabs", 'TOOLS', icon='TOOL_SETTINGS', text="Tools") 
+        row.prop_enum(self, "ui_tabs", 'LIBRARY', icon='TOOL_SETTINGS', text="Library") 
 
         box = col.box()
 
-        if self.ui_tabs == 'SIZES':
+        if self.ui_tabs == 'DEFAULTS':
             self.draw_sizes(box)
 
         if self.ui_tabs == 'CONSTRUCTION':
-            self.draw_room_sizes(box)
+            pass
 
         if self.ui_tabs == 'MATERIALS':
             self.draw_materials(box)
@@ -405,6 +426,8 @@ class Home_Builder_Object_Props(PropertyGroup):
     connected_object: bpy.props.PointerProperty(name="Connected Object",
                                                 type=bpy.types.Object,
                                                 description="This is the used to store objects that are connected together.")
+
+    pointer_name: bpy.props.StringProperty(name="Pointer Name")
 
     @classmethod
     def register(cls):

@@ -3,6 +3,7 @@ import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 import time
 from .. import home_builder_utils
+from .. import home_builder_pointers
 from .. import home_builder_parts
 from . import data_parts
 
@@ -123,7 +124,7 @@ class Wall_Framed(pc_types.Assembly):
         bottom_plate.dim_x('length',[length])
         bottom_plate.dim_y('wall_thickness',[wall_thickness])
         bottom_plate.dim_z('material_thickness',[material_thickness])
-        home_builder_utils.assign_pointer_to_assembly(bottom_plate,"Lumber")
+        home_builder_pointers.assign_pointer_to_assembly(bottom_plate,"Lumber")
 
         top_plate = self.add_assembly(data_parts.Stud())
         top_plate.set_name('Top Plate')
@@ -133,7 +134,7 @@ class Wall_Framed(pc_types.Assembly):
         top_plate.dim_x('length',[length])
         top_plate.dim_y('wall_thickness',[wall_thickness])
         top_plate.dim_z('-material_thickness',[material_thickness])
-        home_builder_utils.assign_pointer_to_assembly(top_plate,"Lumber")
+        home_builder_pointers.assign_pointer_to_assembly(top_plate,"Lumber")
 
         first_stud = self.add_assembly(data_parts.Stud())
         first_stud.set_name('First Stud')
@@ -144,7 +145,7 @@ class Wall_Framed(pc_types.Assembly):
         first_stud.dim_x('height-(material_thickness*2)',[height,material_thickness])
         first_stud.dim_y('wall_thickness',[wall_thickness])
         first_stud.dim_z('-material_thickness',[material_thickness])
-        home_builder_utils.assign_pointer_to_assembly(first_stud,"Lumber")
+        home_builder_pointers.assign_pointer_to_assembly(first_stud,"Lumber")
 
         last_stud = self.add_assembly(data_parts.Stud())
         last_stud.set_name('Last Stud')
@@ -155,7 +156,7 @@ class Wall_Framed(pc_types.Assembly):
         last_stud.dim_x('height-(material_thickness*2)',[height,material_thickness])
         last_stud.dim_y('wall_thickness',[wall_thickness])
         last_stud.dim_z('material_thickness',[material_thickness])
-        home_builder_utils.assign_pointer_to_assembly(last_stud,"Lumber")
+        home_builder_pointers.assign_pointer_to_assembly(last_stud,"Lumber")
 
         center_stud = self.add_assembly(data_parts.Stud())
         center_stud.set_name('Center Stud')
@@ -166,7 +167,7 @@ class Wall_Framed(pc_types.Assembly):
         center_stud.dim_x('height-(material_thickness*2)',[height,material_thickness])
         center_stud.dim_y('wall_thickness',[wall_thickness])
         center_stud.dim_z('material_thickness',[material_thickness])
-        home_builder_utils.assign_pointer_to_assembly(center_stud,"Lumber")
+        home_builder_pointers.assign_pointer_to_assembly(center_stud,"Lumber")
 
         qty = center_stud.get_prompt('Quantity')
         offset = center_stud.get_prompt('Array Offset')
@@ -295,9 +296,9 @@ class Wall_Brick(pc_types.Assembly):
         morter.dim_y('wall_thickness-mortar_inset*2',[wall_thickness,mortar_inset])
         morter.dim_z('height-mortar_inset*2',[height,mortar_inset])
 
-        home_builder_utils.assign_pointer_to_assembly(morter,"Morter")
-        home_builder_utils.assign_pointer_to_assembly(brick1,"Bricks")
-        home_builder_utils.assign_pointer_to_assembly(brick2,"Bricks")
+        home_builder_pointers.assign_pointer_to_assembly(morter,"Morter")
+        home_builder_pointers.assign_pointer_to_assembly(brick1,"Bricks")
+        home_builder_pointers.assign_pointer_to_assembly(brick2,"Bricks")
 
 class Room(pc_types.Assembly):
     show_in_library = True

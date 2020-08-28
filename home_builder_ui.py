@@ -45,7 +45,7 @@ class HOME_BUILDER_MT_category_menu(bpy.types.Menu):
         for d in dirs:
             path = os.path.join(library_path,d)
             if os.path.isdir(path):
-                layout.operator('home_builder.change_library_category',text=d,icon='SCRIPTPLUGINS').category = d
+                layout.operator('home_builder.change_library_category',text=d,icon='FILEBROWSER').category = d
 
 
 class HOME_BUILDER_PT_library_settings(bpy.types.Panel):

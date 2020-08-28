@@ -4,6 +4,7 @@ import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 import time
 from .. import home_builder_utils
+from .. import home_builder_pointers
 from .. import home_builder_paths
 
 ASSET_DIR = home_builder_paths.get_asset_folder_path()
@@ -91,7 +92,7 @@ class Standard_Window(pc_types.Assembly):
         window_frame.dim_x('width',[width])
         window_frame.dim_y('depth',[depth])
         window_frame.dim_z('height',[height])  
-        home_builder_utils.assign_door_frame_pointers(window_frame)
+        home_builder_pointers.assign_pointer_to_assembly(window_frame,"Entry Door Frame")
 
         Door_Frame_Width = window_frame.get_prompt("Window Frame Width")
 

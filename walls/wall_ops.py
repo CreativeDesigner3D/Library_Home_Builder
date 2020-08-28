@@ -5,6 +5,7 @@ import time
 import inspect
 from ..pc_lib import pc_utils, pc_types, pc_unit
 from .. import home_builder_utils
+from .. import home_builder_pointers
 from . import wall_library
 
 class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
@@ -66,7 +67,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             wall = wall_library.Wall()
         wall.draw_wall()
         wall.set_name("Wall")
-        home_builder_utils.assign_wall_pointers(wall)
+        home_builder_pointers.assign_pointer_to_assembly(wall,"Walls")
         if self.current_wall:
             self.previous_wall = self.current_wall
         self.current_wall = wall
@@ -83,7 +84,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         constraint.use_y = True
         constraint.use_z = True
         #Used to get connected wall for prompts
-        constraint_obj.home_builder.connected_object = self.current_wall.obj_bp
+        home_builder_utils.get_object_props(constraint_obj).connected_object = self.current_wall.obj_bp
 
     def set_child_properties(self,obj):
         obj["PROMPT_ID"] = "home_builder.wall_prompts"   

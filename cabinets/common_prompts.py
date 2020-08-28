@@ -31,6 +31,7 @@ def add_pull_prompts(assembly):
     assembly.add_prompt("Tall Pull Vertical Location",'DISTANCE',pc_unit.inch(45))
     assembly.add_prompt("Upper Pull Vertical Location",'DISTANCE',pc_unit.inch(1.5))
     assembly.add_prompt("Pull Horizontal Location",'DISTANCE',pc_unit.inch(2))
+    assembly.add_prompt("Pull Length",'DISTANCE',pc_unit.inch(0))
 
 def add_drawer_pull_prompts(assembly):
     assembly.add_prompt("Center Pull On Front",'CHECKBOX',False)
@@ -53,8 +54,8 @@ def add_base_assembly_prompts(assembly):
     assembly.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))  
 
 def add_carcass_prompts(assembly):
-    assembly.add_prompt("Left Finished End",'CHECKBOX',False)
-    assembly.add_prompt("Right Finished End",'CHECKBOX',False)
+    assembly.add_prompt("Left Finished End",'CHECKBOX',True)
+    assembly.add_prompt("Right Finished End",'CHECKBOX',True)
     assembly.add_prompt("Run Sides to Floor",'CHECKBOX',True)
     assembly.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(.75))    
     

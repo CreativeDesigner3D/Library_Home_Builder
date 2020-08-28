@@ -3,12 +3,25 @@ import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinet_parts
 from .. import home_builder_utils
+from .. import home_builder_pointers
 from . import common_prompts
 from os import path
 
 class Door(pc_types.Assembly):
 
     door_swing = 0 # Left = 0, Right = 1, Double = 2
+
+    def set_pull_props(self,obj):
+        cabinet_type = self.get_prompt("Cabinet Type").get_value()
+        obj['IS_CABINET_PULL'] = True
+        home_builder_pointers.assign_pointer_to_object(obj,"Pull Finish")
+        home_builder_pointers.assign_materials_to_object(obj)        
+        if cabinet_type == 0:
+            home_builder_utils.get_object_props(obj).pointer_name = "Base Cabinet Pulls"
+        if cabinet_type == 1:
+            home_builder_utils.get_object_props(obj).pointer_name = "Tall Cabinet Pulls"
+        if cabinet_type == 2:
+            home_builder_utils.get_object_props(obj).pointer_name = "Upper Cabinet Pulls"
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
@@ -28,7 +41,9 @@ class Door(pc_types.Assembly):
 
         #VARS
         x = self.obj_x.pyclone.get_var('location.x','x')
-        z = self.obj_z.pyclone.get_var('location.z','z')          
+        z = self.obj_z.pyclone.get_var('location.z','z')        
+        pull_length = self.get_prompt("Pull Length")  
+        pull_length_var = self.get_prompt("Pull Length").get_var('pull_length_var')
         left_overlay = self.get_prompt("Left Overlay").get_var('left_overlay')
         right_overlay = self.get_prompt("Right Overlay").get_var('right_overlay')
         vertical_gap = self.get_prompt("Vertical Gap").get_var('vertical_gap')
@@ -70,19 +85,24 @@ class Door(pc_types.Assembly):
         hide_left_door = hide.get_var('hide_left_door')
 
         #LEFT DOOR PULL
+        l_pull_empty = l_door.add_empty('Left Pull Empty')
+        l_pull_empty.empty_display_size = .01
         pull_obj = home_builder_utils.get_pull(props.pull_category,props.pull_name)
         l_door.add_object(pull_obj)
-        pull_obj.pyclone.loc_y('door_width+pull_horizontal_location',[door_width,pull_horizontal_location])
-        pull_obj.pyclone.loc_z('front_thickness',[front_thickness])
-        pull_length = str(round(pull_obj.dimensions.x/2,2))
-        base = 'door_length-base_pull_vertical_location-' + pull_length
-        tall = 'tall_pull_vertical_location-' + pull_length
-        upper = 'upper_pull_vertical_location+' + pull_length
-        pull_obj.pyclone.loc_x('IF(cabinet_type==0,' + base + ',IF(cabinet_type==1,' + tall + ',' +upper + '))',
-        [cabinet_type,door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location])       
-        pull_obj.rotation_euler.x = math.radians(-90)
+        pull_obj.parent = l_pull_empty
+        
+        l_pull_empty.pyclone.loc_y('door_width+pull_horizontal_location',[door_width,pull_horizontal_location])
+        l_pull_empty.pyclone.loc_z('front_thickness',[front_thickness])
+
+        pull_length.set_value(round(pull_obj.dimensions.x,2))
+        base = 'door_length-base_pull_vertical_location-(pull_length_var/2)'
+        tall = 'tall_pull_vertical_location-(pull_length_var/2)'
+        upper = 'upper_pull_vertical_location+(pull_length_var/2)'
+        l_pull_empty.pyclone.loc_x('IF(cabinet_type==0,' + base + ',IF(cabinet_type==1,' + tall + ',' +upper + '))',
+        [cabinet_type,door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])       
+        l_pull_empty.rotation_euler.x = math.radians(-90)
         pull_obj.pyclone.hide('hide_left_door',[hide_left_door])
-        home_builder_utils.assign_materials_to_object(pull_obj)
+        self.set_pull_props(pull_obj)
 
         #RIGHT DOOR
         r_door = data_cabinet_parts.add_door_part(self)
@@ -105,19 +125,23 @@ class Door(pc_types.Assembly):
         hide_right_door = hide.get_var('hide_right_door')
 
         #RIGHT DOOR PULL
+        r_pull_empty = r_door.add_empty('Right Pull Empty')
+        r_pull_empty.empty_display_size = .01
         pull_obj = home_builder_utils.get_pull(props.pull_category,props.pull_name)
         r_door.add_object(pull_obj)
-        pull_obj.pyclone.loc_y('door_width-pull_horizontal_location',[door_width,pull_horizontal_location])
-        pull_obj.pyclone.loc_z('front_thickness',[front_thickness])
-        pull_length = str(round(pull_obj.dimensions.x/2,2))
-        base = 'door_length-base_pull_vertical_location-' + pull_length
-        tall = 'tall_pull_vertical_location-' + pull_length
-        upper = 'upper_pull_vertical_location+' + pull_length
-        pull_obj.pyclone.loc_x('IF(cabinet_type==0,' + base + ',IF(cabinet_type==1,' + tall + ',' +upper + '))',
-        [cabinet_type,door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location])       
-        pull_obj.rotation_euler.x = math.radians(-90)
+        pull_obj.parent = r_pull_empty
+
+        r_pull_empty.pyclone.loc_y('door_width-pull_horizontal_location',[door_width,pull_horizontal_location])
+        r_pull_empty.pyclone.loc_z('front_thickness',[front_thickness])
+        pull_length.set_value(round(pull_obj.dimensions.x,2))
+        base = 'door_length-base_pull_vertical_location-(pull_length_var/2)'
+        tall = 'tall_pull_vertical_location-(pull_length_var/2)'
+        upper = 'upper_pull_vertical_location+(pull_length_var/2)'
+        r_pull_empty.pyclone.loc_x('IF(cabinet_type==0,' + base + ',IF(cabinet_type==1,' + tall + ',' +upper + '))',
+        [cabinet_type,door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])       
+        r_pull_empty.rotation_euler.x = math.radians(-90)
         pull_obj.pyclone.hide('hide_right_door',[hide_right_door])
-        home_builder_utils.assign_materials_to_object(pull_obj)
+        self.set_pull_props(pull_obj)
 
 
 class Drawers(pc_types.Assembly):
@@ -165,13 +189,20 @@ class Drawers(pc_types.Assembly):
         drawer_front.dim_z('front_thickness',[front_thickness])
         home_builder_utils.flip_normals(drawer_front)
 
+        pull_empty = self.add_empty('Pull Empty')
+        pull_empty.empty_display_size = .01
+
         pull_obj = home_builder_utils.get_pull(props.pull_category,props.pull_name)
+        pull_obj['IS_CABINET_PULL'] = True
+        home_builder_utils.get_object_props(pull_obj).pointer_name = "Drawer Pulls"
         self.add_object(pull_obj)
-        pull_obj.pyclone.loc_y('-front_thickness',[front_thickness])
-        pull_obj.pyclone.loc_z('drawer_z_loc+(drawer_front_height/2)',[drawer_z_loc,drawer_front_height])
-        pull_obj.pyclone.loc_x('x/2',[x])
-        pull_obj.rotation_euler.y = math.radians(180)
-        home_builder_utils.assign_materials_to_object(pull_obj)
+        pull_obj.parent = pull_empty
+        pull_empty.pyclone.loc_y('-front_thickness',[front_thickness])
+        pull_empty.pyclone.loc_z('drawer_z_loc+(drawer_front_height/2)',[drawer_z_loc,drawer_front_height])
+        pull_empty.pyclone.loc_x('x/2',[x])
+        pull_empty.rotation_euler.y = math.radians(180)
+        home_builder_pointers.assign_pointer_to_object(pull_obj,"Pull Finish")
+        home_builder_pointers.assign_materials_to_object(pull_obj)
 
         return front_empty
 
