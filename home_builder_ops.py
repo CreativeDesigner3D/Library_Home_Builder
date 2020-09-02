@@ -382,27 +382,11 @@ class home_builder_OT_toggle_dimensions(bpy.types.Operator):
         return {'FINISHED'}        
 
 
-class Asset(PropertyGroup):
-    is_selected: BoolProperty(name="Is Selected",default=False)
-    preview_found: BoolProperty(name="Preivew Found",default=False)
-    asset_type: StringProperty(name="Type")
-    library_path: StringProperty(name="Library Path")
-    package_name: StringProperty(name="Package Name")
-    module_name: StringProperty(name="Module Name")
-    category_name: StringProperty(name="Category Name")
-    class_name: StringProperty(name="Class Name")
-
-
 class home_builder_OT_render_asset_thumbnails(Operator):
     bl_idname = "home_builder.render_asset_thumbnails"
     bl_label = "Render Asset Thumbnails"
     bl_description = "This will open a dialog and allow you to register assets found in the library"
     bl_options = {'UNDO'}
-    
-    assets: CollectionProperty(name='Assets',type=Asset)
-    
-    obj = None
-    assembly = None
     
     @classmethod
     def poll(cls, context):
@@ -476,115 +460,13 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.close()
         return os.path.join(bpy.app.tempdir,'thumb_temp.py')
 
-    def get_assets(self):
-        library_path = home_builder_paths.get_library_path()
-        for name, obj in inspect.getmembers(cabinet_library):
-            print('NAME',cabinet_library.__name__.split(".")[-1])
-            print('PAKAGE',cabinet_library.__name__.split(".")[-2])
-            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
-                asset = self.assets.add()
-                asset.name = name
-                asset.category_name = "Cabinets"
-                asset.library_path = os.path.join(library_path,asset.category_name)
-                asset.package_name = cabinet_library.__name__.split(".")[-2]
-                asset.module_name = cabinet_library.__name__.split(".")[-1]
-                asset.class_name = name
-                # asset.asset_type = 'Cabinet'
-
-        for name, obj in inspect.getmembers(data_walls):
-            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
-                asset = self.assets.add()
-                asset.name = name
-                asset.category_name = "Walls"
-                asset.library_path = os.path.join(library_path,'Walls')
-                asset.package_name = 'walls'
-                asset.module_name = 'data_walls'
-                asset.class_name = name
-                # asset.asset_type = 'Wall'
-
-        for name, obj in inspect.getmembers(door_library):
-            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
-                asset = self.assets.add()
-                asset.name = name
-                asset.category_name = "Doors"
-                asset.library_path = os.path.join(library_path,'Doors')
-                asset.package_name = 'doors'
-                asset.module_name = 'data_doors'
-                asset.class_name = name
-                # asset.asset_type = 'Door'
-
-        for name, obj in inspect.getmembers(window_library):
-            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
-                asset = self.assets.add()
-                asset.name = name
-                asset.category_name = "Windows"
-                asset.library_path = os.path.join(library_path,'Windows')
-                asset.package_name = 'windows'
-                asset.module_name = 'window_library'
-                asset.class_name = name
-                # asset.asset_type = 'Window'
-
-        for name, obj in inspect.getmembers(data_appliances):
-            if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
-                asset = self.assets.add()
-                asset.name = name
-                asset.category_name = "Appliances"
-                asset.library_path = os.path.join(library_path,'Appliances')
-                asset.package_name = 'cabinets'
-                asset.module_name = 'data_appliances'
-                asset.class_name = name
-                # asset.asset_type = 'Appliance'
-
-    def invoke(self,context,event):
-        wm = context.window_manager
-        
-        self.reset_variables()
-        self.get_assets()
-        
-        return wm.invoke_props_dialog(self, width=400)
-
     def execute(self, context):
-        for asset in self.assets:
+        wm_props = home_builder_utils.get_wm_props(context.window_manager)
+        for asset in wm_props.assets:
             if asset.is_selected:
                 script = self.create_item_thumbnail_script(asset)
                 subprocess.call(bpy.app.binary_path + ' -b --python "' + script + '"') 
         return {'FINISHED'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        cabinet_box = layout.box()
-        cabinet_box.label(text="Cabinets")
-        cabinet_col = cabinet_box.column(align=True)
-
-        wall_box = layout.box()
-        wall_box.label(text="Walls")
-        wall_col = wall_box.column(align=True)
-
-        door_box = layout.box()
-        door_box.label(text="Doors")
-        door_col = door_box.column(align=True)
-
-        window_box = layout.box()
-        window_box.label(text="Windows")
-        window_col = window_box.column(align=True)
-
-        appliance_box = layout.box()
-        appliance_box.label(text="Appliances")
-        appliance_col = appliance_box.column(align=True)
-
-        for asset in self.assets:
-            if asset.category_name == 'Appliances':
-                appliance_col.prop(asset,'is_selected',text=asset.name)            
-            if asset.category_name == 'Cabinets':
-                cabinet_col.prop(asset,'is_selected',text=asset.name)
-            if asset.category_name == 'Walls': 
-                wall_col.prop(asset,'is_selected',text=asset.name)
-            if asset.category_name == 'Doors':
-                door_col.prop(asset,'is_selected',text=asset.name)                
-            if asset.category_name == 'Windows':
-                window_col.prop(asset,'is_selected',text=asset.name)                
-
 
 class home_builder_OT_message(bpy.types.Operator):
     bl_idname = "home_builder.message"
@@ -655,7 +537,6 @@ classes = (
     home_builder_OT_auto_add_molding,
     home_builder_OT_generate_2d_views,
     home_builder_OT_toggle_dimensions,
-    Asset,
     home_builder_OT_render_asset_thumbnails,
     home_builder_OT_message,
     home_builder_OT_archipack_not_enabled,
