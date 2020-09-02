@@ -364,7 +364,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
     product_tabs: bpy.props.EnumProperty(name="Product Tabs",
-                                         items=[('CARCASS',"Carcass","Carcass Options"),
+                                         items=[('MAIN',"Main","Main Options"),
                                                 ('EXTERIOR',"Exterior","Exterior Options"),
                                                 ('INTERIOR',"Interior","Interior Options"),
                                                 ('SPLITTER',"Openings","Openings Options")])
@@ -422,7 +422,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
     def reset_variables(self):
         #BLENDER CRASHES IF TAB IS SET TO EXTERIOR
-        self.product_tabs = 'CARCASS'
+        self.product_tabs = 'MAIN'
 
         self.calculators = []
 
@@ -479,6 +479,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.exterior_assembly = None
         self.countertop = None
         self.drawers = None
+        self.calculators = []
         self.drawer_calculator = None
         self.doors = None
         self.left_side = None
@@ -584,50 +585,57 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         add_bottom_light = self.carcass.get_prompt("Add Bottom Light")
         add_top_light = self.carcass.get_prompt("Add Top Light")
         add_side_light = self.carcass.get_prompt("Add Side Light")
-        add_sink = self.carcass.get_prompt("Add Sink")
-
-        left_finished_end.draw(layout)
-        right_finished_end.draw(layout)
-        if toe_kick_height:
-            toe_kick_height.draw(layout)
-        if toe_kick_setback:
-            toe_kick_setback.draw(layout)
-        if add_bottom_light:
-            add_bottom_light.draw(layout)      
-        if add_top_light:
-            add_top_light.draw(layout)                   
-        if add_side_light:
-            add_side_light.draw(layout)    
-
-    def draw_sink_prompts(self,layout,context):
-        add_sink = self.cabinet.get_prompt("Add Sink")
-
-        if not add_sink:
-            return False
-
-        layout.operator_context = 'INVOKE_AREA'
-        layout.operator('home_builder.cabinet_sink_options',text="Sink Options")
-        # add_sink.draw(layout)
-
-        # if add_sink.get_value():
-        #     layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
-        #     if len(self.sink_name) > 0:
-        #         layout.template_icon_view(self,"sink_name",show_labels=True)  
-
-    def draw_countertop_prompts(self,layout,context):
         ctop_front = self.cabinet.get_prompt("Countertop Overhang Front")
         ctop_back = self.cabinet.get_prompt("Countertop Overhang Back")
         ctop_left = self.cabinet.get_prompt("Countertop Overhang Left")
         ctop_right = self.cabinet.get_prompt("Countertop Overhang Right")
+        col = layout.column(align=True)
 
-        if ctop_front:
-            ctop_front.draw(layout)
-        if ctop_back:
-            ctop_back.draw(layout)     
-        if ctop_left:  
-            ctop_left.draw(layout)  
-        if ctop_right:
-            ctop_right.draw(layout)         
+        if left_finished_end and right_finished_end:
+            box = col.box()
+            row = box.row()
+            row.label(text="Finished Ends:")
+            row.prop(left_finished_end,'checkbox_value',text="Left")
+            row.prop(right_finished_end,'checkbox_value',text="Right")
+        if toe_kick_height and toe_kick_setback:
+            box = col.box()
+            row = box.row()
+            row.label(text="Base Assembly:")   
+            row.prop(toe_kick_height,'distance_value',text="Height")
+            row.prop(toe_kick_setback,'distance_value',text="Setback")
+        if add_bottom_light and add_top_light and add_side_light:
+            box = col.box()
+            row = box.row()
+            row.label(text="Cabinet Lighting:")   
+            row = box.row()          
+            row.prop(add_bottom_light,'checkbox_value',text="Add Bottom Light")
+            row.prop(add_top_light,'checkbox_value',text="Add Top Light")
+            row.prop(add_side_light,'checkbox_value',text="Add Side Light")  
+        if ctop_front and ctop_back and ctop_left and ctop_right:
+            box = col.box()
+            row = box.row()
+            row.label(text="Counter Top Overhang:")   
+            row = box.row()       
+            row.prop(ctop_front,'distance_value',text="Front")      
+            row.prop(ctop_back,'distance_value',text="Rear")  
+            row.prop(ctop_left,'distance_value',text="Left")  
+            row.prop(ctop_right,'distance_value',text="Right")          
+
+    def draw_top_options(self,layout,context):
+        add_sink = self.cabinet.get_prompt("Add Sink")
+        add_cooktop = self.cabinet.get_prompt("Add Cooktop")
+        if not add_sink and not add_cooktop:
+            return
+
+        layout.operator_context = 'INVOKE_AREA'
+        box = layout.box()
+        row = box.row()
+        row.label(text="Cabinet Top Options:")  
+
+        if add_sink:
+            row.operator('home_builder.cabinet_sink_options',text="Sink Options")
+        if add_cooktop:
+            pass #TODO: Add CookTop Options
 
     def check_for_stale_data(self,context,assembly,prompt_name):
         '''
@@ -651,8 +659,10 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             door_swing.draw(layout,allow_edit=False)
 
     def draw_drawer_prompts(self,layout,context):
-        for prompt in self.drawer_calculator.prompts:
-            prompt.draw(layout)
+        for calculator in self.calculators:
+            if calculator.name == 'Front Height Calculator':
+                for prompt in calculator.prompts:
+                    prompt.draw(layout)
 
     def draw(self, context):
         layout = self.layout
@@ -661,20 +671,19 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         prompt_box = layout.box()
 
         row = prompt_box.row(align=True)
-        row.prop_enum(self, "product_tabs", 'CARCASS') 
+        row.prop_enum(self, "product_tabs", 'MAIN') 
         row.prop_enum(self, "product_tabs", 'EXTERIOR') 
         row.prop_enum(self, "product_tabs", 'INTERIOR') 
 
-        if self.product_tabs == 'CARCASS':
+        if self.product_tabs == 'MAIN':
             self.draw_carcass_prompts(prompt_box,context)
-            self.draw_countertop_prompts(prompt_box,context)
-            self.draw_sink_prompts(prompt_box,context)
+            self.draw_top_options(prompt_box,context)
 
         if self.product_tabs == 'EXTERIOR':
             prompt_box.prop(self,'exterior')
             if self.doors:
                 self.draw_door_prompts(prompt_box,context)
-            if self.drawer_calculator:
+            if self.drawers:
                 self.draw_drawer_prompts(prompt_box,context)
 
         if self.product_tabs == 'INTERIOR':
@@ -1080,6 +1089,16 @@ class home_builder_OT_hardlock_part_size(bpy.types.Operator):
                 home_builder_utils.apply_hook_modifiers(context,child)
         return {'FINISHED'}
 
+
+class home_builder_OT_update_cabinet_lighting(bpy.types.Operator):
+    bl_idname = "home_builder.update_cabinet_lighting"
+    bl_label = "Update Cabinet Lighting"
+
+    def execute(self, context):
+        for obj in context.visible_objects:
+            pass
+        return {'FINISHED'}
+
 def register():
     bpy.utils.register_class(home_builder_OT_place_cabinet)  
     bpy.utils.register_class(home_builder_OT_cabinet_prompts)  
@@ -1090,6 +1109,8 @@ def register():
     bpy.utils.register_class(home_builder_OT_delete_part)    
     bpy.utils.register_class(home_builder_OT_part_prompts)    
     bpy.utils.register_class(home_builder_OT_hardlock_part_size)  
+    bpy.utils.register_class(home_builder_OT_update_cabinet_lighting)  
+    
 
 def unregister():
     bpy.utils.unregister_class(home_builder_OT_place_cabinet)  
@@ -1100,4 +1121,5 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_delete_cabinet)        
     bpy.utils.unregister_class(home_builder_OT_delete_part)      
     bpy.utils.unregister_class(home_builder_OT_part_prompts) 
-    bpy.utils.unregister_class(home_builder_OT_hardlock_part_size)    
+    bpy.utils.unregister_class(home_builder_OT_hardlock_part_size)   
+    bpy.utils.unregister_class(home_builder_OT_update_cabinet_lighting)  

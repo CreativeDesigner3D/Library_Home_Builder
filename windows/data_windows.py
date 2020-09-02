@@ -62,7 +62,7 @@ class Standard_Window(pc_types.Assembly):
         self.obj_bp["IS_WINDOW_BP"] = True
 
         Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
-        Door_Frame_Width = self.add_prompt("Window Frame Width",'DISTANCE',pc_unit.inch(3))
+        Window_Frame_Width = self.add_prompt("Window Frame Width",'DISTANCE',pc_unit.inch(3))
 
         self.obj_x.location.x = pc_unit.inch(36) #Length
         self.obj_y.location.y = pc_unit.inch(6)  #Depth
@@ -85,7 +85,7 @@ class Standard_Window(pc_types.Assembly):
 
         window_frame = pc_types.Assembly(self.add_assembly_from_file(WINDOW_FRAME))
         self.add_assembly(window_frame)
-        window_frame.set_name("Door Frame")
+        window_frame.set_name("Window Frame")
         window_frame.loc_x(value=0)
         window_frame.loc_y(value=0)
         window_frame.loc_z(value=0)
@@ -94,9 +94,11 @@ class Standard_Window(pc_types.Assembly):
         window_frame.dim_z('height',[height])  
         home_builder_pointers.assign_pointer_to_assembly(window_frame,"Entry Door Frame")
 
-        Door_Frame_Width = window_frame.get_prompt("Window Frame Width")
+        Window_Frame_Width = window_frame.get_prompt("Window Frame Width")
 
-        if Door_Frame_Width:
-            door_frame_width = window_frame.get_prompt("Window Frame Width").get_var('window_frame_width')
+        if Window_Frame_Width:
+            window_frame_width = window_frame.get_prompt("Window Frame Width").get_var('window_frame_width')
         else:
-            door_frame_width = self.get_prompt("Window Frame Width").get_var('window_frame_width')
+            window_frame_width = self.get_prompt("Window Frame Width").get_var('window_frame_width')
+
+        

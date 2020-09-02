@@ -102,21 +102,21 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
 
 class Home_Builder_Scene_Props(PropertyGroup):
     ui_tabs: EnumProperty(name="UI Tabs",
-                          items=[('DEFAULTS',"Defaults","Default Library Settings"),
-                                 ('CONSTRUCTION',"Construction","Show the Cabinet Construction Options"),
+                          items=[('DEFAULTS',"Library","Default Library Settings"),
                                  ('MATERIALS',"Materials","Show the Material Options"),
                                  ('MOLDINGS',"Moldings","Show the Molding Options"),
                                  ('FRONTS',"Fronts","Show the Door and Drawer Front Options"),
                                  ('HARDWARE',"Hardware","Show the Hardware Options"),
-                                 ('LIBRARY',"Library","Show the Library Options")],
+                                 ('LIBRARY',"Thumbnails","Show the Library Options")],
                           default='DEFAULTS')
 
-    size_tabs: EnumProperty(name="Size Tabs",
-                          items=[('CABINETS',"Cabinets","Show the Cabinet Size Options"),
-                                 ('DOORS',"Doors","Show the Door Options"),
-                                 ('WINDOWS',"Windows","Show the Window Options"),
+    default_tabs: EnumProperty(name="Default Tabs",
+                          items=[('CABINETS_SIZES',"Cabinet Sizes","Show the Cabinet Size Options"),
+                                 ('CABINET_CONSTRUCTION',"Cabinet Construction","Show the Cabinet Construction Options"),
+                                 ('DOOR_SIZES',"Entry Door Sizes","Show the Door Options"),
+                                 ('WINDOW_SIZES',"Window Sizes","Show the Window Options"),
                                  ('WALLS',"Walls","Show the Wall Options")],
-                          default='CABINETS')
+                          default='CABINETS_SIZES')
 
     active_category: StringProperty(name="Active Category")
 
@@ -246,6 +246,109 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                       default=pc_unit.inch(40.0),
                                                       unit='LENGTH')
 
+    #CABINET TOE KICK
+    base_assembly_type: EnumProperty(name="Base Assembly Type",
+                          items=[('NOTCH_SIDES',"Notch Sides","Notch the sides of the cabinet"),
+                                 ('SIDES_TO_FLOOR',"Sides to Floor","Run the side of the cabinet to the floor without notch"),
+                                 ('LEG_LEVELERS',"Leg Levelers","Use Leg Levelers"),
+                                 ('SEPARATE_BOX',"Separate Box","Use separate box"),
+                                 ('NO_ASSEMBLY',"No Assembly","Do not include a base assembly")],
+                          default='NOTCH_SIDES')
+
+    toe_kick_height: bpy.props.FloatProperty(name="Toe Kick Height",
+                                             description="This is the default height of the toe kick.",
+                                             default=pc_unit.inch(4.0),
+                                             unit='LENGTH')
+
+    toe_kick_setback: bpy.props.FloatProperty(name="Toe Kick Setback",
+                                             description="This is the default setback of the toe kick.",
+                                             default=pc_unit.inch(4.0),
+                                             unit='LENGTH')
+
+    #CABINET COUNTERTOPS
+    add_backsplash: bpy.props.BoolProperty(name="Add Backsplash",
+                                           description="Check this to include a countertop backsplash",
+                                           default=True)
+
+    countertop_backsplash_height: bpy.props.FloatProperty(name="Coutnertop Backsplash Height",
+                                                          description="Enter the Height for the Countertop Backsplash",
+                                                          default=pc_unit.inch(4.0))
+
+    countertop_front_overhang: bpy.props.FloatProperty(name="Countertop Front Overhang",
+                                                       description="This front overhang of the countertop.",
+                                                       default=pc_unit.inch(1.0),
+                                                       unit='LENGTH')
+
+    countertop_side_overhang: bpy.props.FloatProperty(name="Countertop Side Overhang",
+                                                       description="This is the side overhang of countertops with Finished Ends",
+                                                       default=pc_unit.inch(1.0),
+                                                       unit='LENGTH')
+
+    countertop_rear_overhang: bpy.props.FloatProperty(name="Countertop Rear Overhang",
+                                                       description="This is the rear overhang of countertops.",
+                                                       default=pc_unit.inch(1.0),
+                                                       unit='LENGTH')     
+
+    #CABINET LIGHTING
+    add_toe_kick_lighting: bpy.props.BoolProperty(name="Add Toe Kick Lighting",
+                                                   description="This will add toe kick lighting to cabinets",
+                                                   default=False)
+
+    add_under_cabinet_lighting: bpy.props.BoolProperty(name="Add Under Cabinet Lighting",
+                                                        description="This will add lighting under upper cabinets",
+                                                        default=False)
+
+    add_top_inside_lighting: bpy.props.BoolProperty(name="Add Top Inside Lighting",
+                                                    description="This will add lighting to the top interior of cabinets",
+                                                    default=False)                                                   
+
+    add_side_inside_lighting: bpy.props.BoolProperty(name="Add Side Inside Lighting",
+                                                      description="This will add lighting to the side interior of cabinets",
+                                                      default=False)     
+
+    lighting_dim_from_front: bpy.props.FloatProperty(name="Lighting Dim From Front",
+                                                       description="This is the dim from the front of the cabinet to the light.",
+                                                       default=pc_unit.inch(1.5),
+                                                       unit='LENGTH')     
+
+    lighting_dim_from_sides: bpy.props.FloatProperty(name="Lighting Dim From Sides",
+                                                       description="This is the inset amount for lights from the side of the cabinet",
+                                                       default=pc_unit.inch(.75),
+                                                       unit='LENGTH')   
+
+    cabinet_lighting_width: bpy.props.FloatProperty(name="Cabinet Lighting Width",
+                                                       description="This is the width of the cabinet lighting strip",
+                                                       default=pc_unit.inch(.75),
+                                                       unit='LENGTH')   
+
+    #ENTRY DOORS
+    single_door_width: bpy.props.FloatProperty(name="Single Door Width",
+                                               description="Is the width of single entry doors",
+                                               default=pc_unit.inch(36),
+                                               unit='LENGTH')
+
+    double_door_width: bpy.props.FloatProperty(name="Double Door Width",
+                                               description="Is the width of double entry doors",
+                                               default=pc_unit.inch(72),
+                                               unit='LENGTH')
+
+    door_height: bpy.props.FloatProperty(name="Double Door Width",
+                                         description="Is the width of double entry doors",
+                                         default=pc_unit.inch(70),
+                                         unit='LENGTH')     
+
+    #WINDOWS
+    window_height_from_floor: bpy.props.FloatProperty(name="Window Height from Floor",
+                                                      description="This is the height off the window from the floor",
+                                                      default=pc_unit.inch(40),
+                                                      unit='LENGTH')
+
+    window_height: bpy.props.FloatProperty(name="Window Height",
+                                           description="This is the height of windows",
+                                           default=pc_unit.inch(40),
+                                           unit='LENGTH')
+
+    #POINTERS                                                   
     material_pointers: bpy.props.CollectionProperty(name="Material Pointers",type=Pointer)
     pull_pointers: bpy.props.CollectionProperty(name="Pull Pointers",type=Pointer)
 
@@ -266,12 +369,12 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
         split = box.split(factor=.25)
         tab_col = split.column()
-        tab_col.prop(self,'size_tabs',expand=True)
+        tab_col.prop(self,'default_tabs',expand=True)
 
         prop_col = split.column()
-        if self.size_tabs == 'CABINETS':
-            col = layout.column(align=True)
-            split = col.split(factor=.7,align=True)
+        if self.default_tabs == 'CABINETS_SIZES':
+            # col = layout.column(align=True)
+            # split = col.split(factor=.7,align=True)
 
             box = prop_col.box()
             box.label(text="Standard Cabinet Sizes:")
@@ -313,7 +416,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.label(text="Drawer Stack Width:")
             row.prop(self,"width_drawer",text="Width")
             
-            box = box.box()
+            box = prop_col.box()
             box.label(text="Blind Cabinet Widths:")
             
             row = box.row(align=True)
@@ -328,7 +431,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.label(text='Upper:')
             row.prop(self,"upper_width_blind",text="Width")
             
-            box = col.box()
+            box = prop_col.box()
             box.label(text="Inside Corner Cabinet Sizes:")
             row = box.row(align=True)
             row.label(text="Base:")
@@ -338,28 +441,87 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.label(text="Upper:")
             row.prop(self,"upper_inside_corner_size",text="")
             
-            box = col.box()
-            box.label(text="Placement:")
+            box = prop_col.box()
+            box.label(text="Upper Placement:")
             row = box.row(align=True)
             row.label(text="Height Above Floor:")
             row.prop(self,"height_above_floor",text="")
             
-            box = col.box()
+            box = prop_col.box()
             box.label(text="Drawer Heights:")
             row = box.row(align=True)
             row.prop(self,"equal_drawer_stack_heights")
             if not self.equal_drawer_stack_heights:
                 row.prop(self,"top_drawer_front_height")
 
-        if self.size_tabs == 'DOORS':
-            pass
-        if self.size_tabs == 'WINDOWS':
-            pass
-        if self.size_tabs == 'WALLS':
+        if self.default_tabs == 'CABINET_CONSTRUCTION':
+            box = prop_col.box()
+            box.label(text="Cabinet Base Assembly:")
+            
+            row = box.row(align=True)
+            row.label(text="Base Assembly Type")
+            row.prop(self,"base_assembly_type",text="")
+
+            row = box.row(align=True)
+            row.label(text="Base Assembly Size")
+            row.prop(self,"toe_kick_height",text="Height")
+            row.prop(self,"toe_kick_height",text="Setback")
+
+            box = prop_col.box()
+            box.label(text="Cabinet Countertop:")
+            
+            row = box.row(align=True)
+            row.label(text="Backsplash")
+            row.prop(self,"add_backsplash",text="")
+            row.prop(self,"countertop_backsplash_height",text="Height")
+
+            row = box.row(align=True)
+            row.label(text="Overhang")
+            row.prop(self,"countertop_front_overhang",text="Front")
+            row.prop(self,"countertop_rear_overhang",text="Rear")
+            row.prop(self,"countertop_side_overhang",text="Side")
+
+            box = prop_col.box()
+            row = box.row(align=True)
+            row.label(text="Cabinet Lighting:")
+            row.operator('home_builder.update_cabinet_lighting',text="",icon='FILE_REFRESH',emboss=False)
+            row = box.row(align=True)
+            row.prop(self,"add_toe_kick_lighting",text="Toe Kick")
+            row.prop(self,"add_under_cabinet_lighting",text="Under Cabinet")
+            row.prop(self,"add_under_cabinet_lighting",text="Inside Top")
+            row.prop(self,"add_under_cabinet_lighting",text="Inside Sides")
+            row = box.row(align=True)
+            row.label(text="Cabinet Lighting Location:")            
+            row.prop(self,"lighting_dim_from_front",text="Dim From Front")
+            row.prop(self,"lighting_dim_from_sides",text="Dim From Sides")
+            row = box.row(align=True)
+            row.label(text="Cabinet Lighting Size:")              
+            row.prop(self,"cabinet_lighting_width",text="Width")
+
+        if self.default_tabs == 'DOOR_SIZES':
+            box = prop_col.box()
+            row = box.row(align=True)
+            row.label(text="Door Width:")
+            row.prop(self,"single_door_width",text="Single")
+            row.prop(self,"single_door_width",text="Double")
+            row = box.row(align=True)
+            row.label(text="Door Height:")
+            row.prop(self,"door_height",text="Height")            
+
+        if self.default_tabs == 'WINDOW_SIZES':
+            box = prop_col.box()
+            row = box.row(align=True)
+            row.label(text="Window Height:")
+            row.prop(self,"window_height",text="Height")
+
+            row = box.row(align=True)
+            row.label(text="Window Placement:")
+            row.prop(self,"window_height_from_floor",text="Height From Floor")   
+
+        if self.default_tabs == 'WALLS':
             box = prop_col.box()
             box.label(text="Default Wall Size",icon='MOD_BUILD')
 
-            # box = prop_col.box()                      
             row = box.row()
             row.label(text="Default Wall Height")
             row.prop(self,'wall_height',text="")
@@ -478,27 +640,23 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
         row = col.row(align=True)
         row.scale_y = 1.3
-        row.prop_enum(self, "ui_tabs", 'DEFAULTS', icon='CON_SAMEVOL', text="Defaults") 
-        row.prop_enum(self, "ui_tabs", 'CONSTRUCTION', icon='MOD_BUILD', text="Construction") 
+        row.prop_enum(self, "ui_tabs", 'DEFAULTS', icon='HOME', text="Library") 
         row.prop_enum(self, "ui_tabs", 'MATERIALS', icon='COLOR', text="Materials") 
         row.prop_enum(self, "ui_tabs", 'MOLDINGS', icon='MOD_SMOOTH', text="Moldings") 
         row.prop_enum(self, "ui_tabs", 'FRONTS', icon='FACESEL', text="Fronts") 
         row.prop_enum(self, "ui_tabs", 'HARDWARE', icon='MODIFIER_ON', text="Hardware") 
-        row.prop_enum(self, "ui_tabs", 'LIBRARY', icon='TOOL_SETTINGS', text="Library") 
+        row.prop_enum(self, "ui_tabs", 'LIBRARY', icon='FILE_IMAGE', text="Thumbnails") 
 
         box = col.box()
 
         if self.ui_tabs == 'DEFAULTS':
             self.draw_sizes(box)
 
-        if self.ui_tabs == 'CONSTRUCTION':
-            pass
-
         if self.ui_tabs == 'MATERIALS':
             self.draw_materials(box)
 
         if self.ui_tabs == 'MOLDINGS':
-            pass          
+            pass
 
         if self.ui_tabs == 'FRONTS':
             pass
