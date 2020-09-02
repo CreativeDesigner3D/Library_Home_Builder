@@ -9,6 +9,7 @@ from . import data_parts
 
 class Mesh_Wall(pc_types.Assembly):
     show_in_library = True
+    category_name = "Walls"
     
     def render(self):
         self.draw_wall()
@@ -81,6 +82,7 @@ class Mesh_Wall(pc_types.Assembly):
 
 class Wall_Framed(pc_types.Assembly):
     show_in_library = True
+    category_name = "Walls"
 
     def render(self):
         self.draw_wall()
@@ -180,6 +182,7 @@ class Wall_Framed(pc_types.Assembly):
 
 class Wall_Brick(pc_types.Assembly):
     show_in_library = True
+    category_name = "Walls"
 
     def render(self):
         self.draw_wall()
@@ -302,6 +305,7 @@ class Wall_Brick(pc_types.Assembly):
 
 class Room(pc_types.Assembly):
     show_in_library = True
+    category_name = "Walls"
 
     def draw(self):
         start_time = time.time()

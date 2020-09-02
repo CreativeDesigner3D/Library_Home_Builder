@@ -6,6 +6,7 @@ from . import home_builder_ui
 from . import home_builder_ops
 from . import home_builder_props
 from . import home_builder_pointers
+from . import home_builder_utils
 from .walls import wall_ops
 from .cabinets import cabinet_ops
 from .doors import door_ops
@@ -31,7 +32,9 @@ def load_library_on_file_load(scene=None):
                               activate_id='room_builder.activate',
                               drop_id='room_builder.drop',
                               icon='HOME')
-
+    wm_props = home_builder_utils.get_wm_props(bpy.context.window_manager)
+    wm_props.get_assets()
+    
 @persistent
 def load_pointers(scene=None):
     home_builder_pointers.write_pointer_files()

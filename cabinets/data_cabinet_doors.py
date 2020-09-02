@@ -14,8 +14,7 @@ class Door(pc_types.Assembly):
     def set_pull_props(self,obj):
         cabinet_type = self.get_prompt("Cabinet Type").get_value()
         obj['IS_CABINET_PULL'] = True
-        home_builder_pointers.assign_pointer_to_object(obj,"Pull Finish")
-        home_builder_pointers.assign_materials_to_object(obj)        
+        home_builder_pointers.assign_pointer_to_object(obj,"Pull Finish")  
         if cabinet_type == 0:
             home_builder_utils.get_object_props(obj).pointer_name = "Base Cabinet Pulls"
         if cabinet_type == 1:
@@ -202,7 +201,6 @@ class Drawers(pc_types.Assembly):
         pull_empty.pyclone.loc_x('x/2',[x])
         pull_empty.rotation_euler.y = math.radians(180)
         home_builder_pointers.assign_pointer_to_object(pull_obj,"Pull Finish")
-        home_builder_pointers.assign_materials_to_object(pull_obj)
 
         return front_empty
 

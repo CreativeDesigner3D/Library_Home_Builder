@@ -12,6 +12,7 @@ import math
 
 class Standard_Cabinet(pc_types.Assembly):
     show_in_library = True
+    category_name = "Cabinets"
     
     width = pc_unit.inch(18)
 

@@ -13,6 +13,7 @@ APPLIANCE = path.join(ASSET_DIR,"Ranges","Thermador","Thermador PRD304GHU.blend"
 
 class Range(pc_types.Assembly):
     show_in_library = True
+    category_name = 'Appliances'
     obj = None
 
     def draw(self):
@@ -31,6 +32,7 @@ class Range(pc_types.Assembly):
 
 class Refrigerator(pc_types.Assembly):
     show_in_library = True
+    category_name = 'Appliances'
     obj = None
 
     def draw(self):
@@ -42,6 +44,7 @@ class Refrigerator(pc_types.Assembly):
 
 class Microwave(pc_types.Assembly):
     show_in_library = True
+    category_name = 'Appliances'
     obj = None
 
     def draw(self):
@@ -53,6 +56,7 @@ class Microwave(pc_types.Assembly):
 
 class Range_Hood(pc_types.Assembly):
     show_in_library = True
+    category_name = 'Appliances'
     obj = None
 
     def draw(self):
@@ -64,6 +68,7 @@ class Range_Hood(pc_types.Assembly):
 
 class Dishwasher(pc_types.Assembly):
     show_in_library = True
+    category_name = 'Appliances'
     obj = None
 
     def draw(self):
@@ -74,7 +79,8 @@ class Dishwasher(pc_types.Assembly):
 
 
 class Sink(pc_types.Assembly):
-    show_in_library = True
+    # show_in_library = True
+    category_name = 'Appliances'
     obj = None
 
     def draw(self):
@@ -85,7 +91,8 @@ class Sink(pc_types.Assembly):
 
 
 class Cook_Top(pc_types.Assembly):
-    show_in_library = True
+    # show_in_library = True
+    category_name = 'Appliances'
     obj = None
 
     def draw(self):

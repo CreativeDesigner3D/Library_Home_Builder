@@ -301,8 +301,8 @@ class home_builder_OT_update_material_pointer(bpy.types.Operator):
         props = home_builder_utils.get_scene_props(context.scene)
         for pointer in props.material_pointers:
             if pointer.name == self.pointer_name:
-                pointer.category = props.pull_category
-                pointer.item_name = props.pull_name  
+                pointer.category = props.material_category
+                pointer.item_name = props.material_name  
         return {'FINISHED'}
 
 
@@ -330,7 +330,6 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
                     new_pull["IS_CABINET_PULL"] = True
                     context.view_layer.active_layer_collection.collection.objects.link(new_pull)
                     home_builder_pointers.assign_pointer_to_object(new_pull,"Pull Finish")
-                    home_builder_pointers.assign_materials_to_object(new_pull)  
                     if exterior_bp:
                         exterior = pc_types.Assembly(exterior_bp)
                         pull_length = exterior.get_prompt("Pull Length")    
@@ -480,15 +479,17 @@ class home_builder_OT_render_asset_thumbnails(Operator):
     def get_assets(self):
         library_path = home_builder_paths.get_library_path()
         for name, obj in inspect.getmembers(cabinet_library):
+            print('NAME',cabinet_library.__name__.split(".")[-1])
+            print('PAKAGE',cabinet_library.__name__.split(".")[-2])
             if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
                 asset = self.assets.add()
                 asset.name = name
                 asset.category_name = "Cabinets"
-                asset.library_path = os.path.join(library_path,'Cabinets')
-                asset.package_name = 'cabinets'
-                asset.module_name = 'cabinet_library'
+                asset.library_path = os.path.join(library_path,asset.category_name)
+                asset.package_name = cabinet_library.__name__.split(".")[-2]
+                asset.module_name = cabinet_library.__name__.split(".")[-1]
                 asset.class_name = name
-                asset.asset_type = 'Cabinet'
+                # asset.asset_type = 'Cabinet'
 
         for name, obj in inspect.getmembers(data_walls):
             if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
@@ -499,7 +500,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset.package_name = 'walls'
                 asset.module_name = 'data_walls'
                 asset.class_name = name
-                asset.asset_type = 'Wall'
+                # asset.asset_type = 'Wall'
 
         for name, obj in inspect.getmembers(door_library):
             if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
@@ -510,7 +511,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset.package_name = 'doors'
                 asset.module_name = 'data_doors'
                 asset.class_name = name
-                asset.asset_type = 'Door'
+                # asset.asset_type = 'Door'
 
         for name, obj in inspect.getmembers(window_library):
             if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
@@ -521,7 +522,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset.package_name = 'windows'
                 asset.module_name = 'window_library'
                 asset.class_name = name
-                asset.asset_type = 'Window'
+                # asset.asset_type = 'Window'
 
         for name, obj in inspect.getmembers(data_appliances):
             if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
@@ -532,12 +533,14 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 asset.package_name = 'cabinets'
                 asset.module_name = 'data_appliances'
                 asset.class_name = name
-                asset.asset_type = 'Appliance'
+                # asset.asset_type = 'Appliance'
 
     def invoke(self,context,event):
+        wm = context.window_manager
+        
         self.reset_variables()
         self.get_assets()
-        wm = context.window_manager
+        
         return wm.invoke_props_dialog(self, width=400)
 
     def execute(self, context):
@@ -571,15 +574,15 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         appliance_col = appliance_box.column(align=True)
 
         for asset in self.assets:
-            if asset.asset_type == 'Appliance':
+            if asset.category_name == 'Appliances':
                 appliance_col.prop(asset,'is_selected',text=asset.name)            
-            if asset.asset_type == 'Cabinet':
+            if asset.category_name == 'Cabinets':
                 cabinet_col.prop(asset,'is_selected',text=asset.name)
-            if asset.asset_type == 'Wall': 
+            if asset.category_name == 'Walls': 
                 wall_col.prop(asset,'is_selected',text=asset.name)
-            if asset.asset_type == 'Door':
+            if asset.category_name == 'Doors':
                 door_col.prop(asset,'is_selected',text=asset.name)                
-            if asset.asset_type == 'Window':
+            if asset.category_name == 'Windows':
                 window_col.prop(asset,'is_selected',text=asset.name)                
 
 

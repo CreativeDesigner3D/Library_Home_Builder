@@ -16,14 +16,35 @@ from bpy.props import (
         CollectionProperty,
         EnumProperty,
         )
+import inspect
 from .pc_lib import pc_types, pc_unit, pc_utils, pc_pointer_utils
 from . import home_builder_utils
 from . import home_builder_enums
+from . import home_builder_paths
+from .walls import data_walls
+from .doors import door_library
+from .cabinets import cabinet_library
+from .cabinets import data_appliances
+from .windows import window_library
 
+library_modules = [cabinet_library,
+                   data_walls,
+                   door_library,
+                   window_library,
+                   data_appliances]
 
 class Pointer(PropertyGroup):
     category: bpy.props.StringProperty(name="Category")
     item_name: bpy.props.StringProperty(name="Item Name")
+
+class Asset(PropertyGroup):
+    is_selected: BoolProperty(name="Is Selected",default=False)
+    preview_found: BoolProperty(name="Preivew Found",default=False)
+    library_path: StringProperty(name="Library Path")
+    package_name: StringProperty(name="Package Name")
+    module_name: StringProperty(name="Module Name")
+    category_name: StringProperty(name="Category Name")
+    class_name: StringProperty(name="Class Name")
 
 class Home_Builder_AddonPreferences(AddonPreferences):
     bl_idname = __package__
@@ -36,6 +57,48 @@ class Home_Builder_AddonPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "assets_filepath")
+
+class Home_Builder_Window_Manager_Props(PropertyGroup):
+    assets: CollectionProperty(name='Assets',type=Asset)
+
+    def get_assets(self):
+        for asset in self.assets:
+            self.assets.remove(0)
+
+        library_path = home_builder_paths.get_library_path()
+        for module in library_modules:
+            for name, obj in inspect.getmembers(module):
+                if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
+                    asset = self.assets.add()
+                    asset.name = name.replace("_"," ")
+                    asset.category_name = obj.category_name
+                    asset.library_path = os.path.join(library_path,asset.category_name)
+                    asset.package_name = module.__name__.split(".")[-2]
+                    asset.module_name = module.__name__.split(".")[-1]
+                    asset.class_name = name
+
+    def get_asset(self,filepath):
+        directory, file = os.path.split(filepath)
+        filename, ext = os.path.splitext(file)   
+                
+        #TODO:GET RIGHT CLASS
+        for asset in self.assets:
+            if asset.library_path in filepath and filename == asset.name:
+                obj = eval(asset.module_name + "." + asset.class_name + "()")
+                # obj.set_name(asset.name)
+                return obj
+
+    @classmethod
+    def register(cls):
+        bpy.types.WindowManager.home_builder = PointerProperty(
+            name="Home Builder Props",
+            description="Home Builder Props",
+            type=cls,
+        )
+        
+    @classmethod
+    def unregister(cls):
+        del bpy.types.WindowManager.home_builder
 
 class Home_Builder_Scene_Props(PropertyGroup):
     ui_tabs: EnumProperty(name="UI Tabs",
@@ -373,6 +436,43 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.operator('home_builder.update_pull_pointer',text=pull.name,icon='FORWARD').pointer_name = pull.name
             row.label(text=pull.category + " - " + pull.item_name,icon='MODIFIER_ON')
 
+    def draw_library(self,layout):
+        layout = layout
+
+        layout.operator('home_builder.render_asset_thumbnails')
+        split = layout.split()
+
+        left_col = split.column()
+        right_col = split.column()
+
+        cabinet_box = left_col.box()
+        cabinet_box.label(text="Cabinets")
+        cabinet_col = cabinet_box.column(align=True)
+
+        wall_box = left_col.box()
+        wall_box.label(text="Walls")
+        wall_col = wall_box.column(align=True)
+
+        appliance_box = right_col.box()
+        appliance_box.label(text="Appliances")
+        appliance_col = appliance_box.column(align=True)
+        wm_props = home_builder_utils.get_wm_props(bpy.context.window_manager)
+
+        door_window_box = right_col.box()
+        door_window_box.label(text="Doors and Windows")
+        door_window_col = door_window_box.column(align=True)
+
+        for asset in wm_props.assets:
+            text = asset.name
+            if asset.category_name == 'Appliances':
+                appliance_col.prop(asset,'is_selected',text=text)            
+            if asset.category_name == 'Cabinets':
+                cabinet_col.prop(asset,'is_selected',text=text)
+            if asset.category_name == 'Walls': 
+                wall_col.prop(asset,'is_selected',text=text)
+            if asset.category_name == 'Doors and Windows':
+                door_window_col.prop(asset,'is_selected',text=text)                
+
     def draw(self,layout):
         col = layout.column(align=True)
 
@@ -406,8 +506,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
         if self.ui_tabs == 'HARDWARE':
             self.draw_hardware(box)            
 
-        if self.ui_tabs == 'TOOLS':
-            self.draw_tools(box)
+        if self.ui_tabs == 'LIBRARY':
+            self.draw_library(box)
 
     @classmethod
     def register(cls):
@@ -443,7 +543,9 @@ class Home_Builder_Object_Props(PropertyGroup):
 
 classes = (
     Pointer,
+    Asset,
     Home_Builder_AddonPreferences,
+    Home_Builder_Window_Manager_Props,
     Home_Builder_Object_Props,
     Home_Builder_Scene_Props,
 )

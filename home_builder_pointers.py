@@ -71,12 +71,12 @@ def assign_pointer_to_object(obj,pointer_name):
         bpy.ops.pc_material.add_material_slot(object_name=obj.name)    
     for index, pointer in enumerate(obj.pyclone.pointers):  
         pointer.name = pointer_name  
+    assign_materials_to_object(obj)  
 
 def assign_pointer_to_assembly(assembly,pointer_name):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
             assign_pointer_to_object(child,pointer_name)
-            assign_materials_to_object(child)       
 
 def assign_materials_to_object(obj):
     props = home_builder_utils.get_scene_props(bpy.context.scene)

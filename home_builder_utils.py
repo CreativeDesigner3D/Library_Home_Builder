@@ -14,6 +14,9 @@ def get_object_props(obj):
 def get_scene_props(scene):
     return scene.home_builder
 
+def get_wm_props(wm):
+    return wm.home_builder
+
 def get_wall_bp(obj):
     if not obj:
         return None
@@ -119,7 +122,7 @@ def apply_hook_modifiers(context,obj):
     context.view_layer.objects.active = obj
     for mod in obj.modifiers:
         if mod.type == 'HOOK':
-            bpy.ops.object.modifier_apply(apply_as='DATA',modifier=mod.name)            
+            bpy.ops.object.modifier_apply(modifier=mod.name)            
 
 def unwrap_obj(context,obj):
     context.view_layer.objects.active = obj

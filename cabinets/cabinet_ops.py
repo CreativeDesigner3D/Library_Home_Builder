@@ -44,6 +44,13 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
     class_name = ""
 
+    def reset_selection(self):
+        self.current_wall = None
+        self.selected_cabinet = None    
+        self.next_wall = None
+        self.previous_wall = None  
+        self.placement = ''  
+
     def reset_properties(self):
         self.cabinet = None
         self.selected_cabinet = None
@@ -126,31 +133,14 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
     def get_cabinet(self,context):
         directory, file = os.path.split(self.filepath)
-        filename, ext = os.path.splitext(file)        
-        for name, obj in inspect.getmembers(cabinet_library):
-            if name == filename.replace(" ","_"):
-                self.cabinet = obj()
-                self.cabinet.draw()
-                self.cabinet.set_name(filename.replace("_"," "))
-                self.set_child_properties(self.cabinet.obj_bp)
-                self.refresh_data(False)  
+        filename, ext = os.path.splitext(file)   
 
-        if not self.cabinet:
-            directory, file = os.path.split(self.filepath)
-            filename, ext = os.path.splitext(file)        
-            for name, obj in inspect.getmembers(data_appliances):
-                if name == filename.replace(" ","_"):
-                    self.cabinet = obj()
-                    self.cabinet.draw()
-                    self.cabinet.set_name(filename.replace("_"," "))
-                    self.set_child_properties(self.cabinet.obj_bp)
-                    self.refresh_data(False)  
-
-        # self.cabinet.obj_bp.hide_viewport = False
-        # self.cabinet.obj_bp.location = self.cabinet.obj_bp.location
-        # for calculator in self.calculators:
-        #     print('CALC')
-        #     calculator.calculate()
+        wm_props = home_builder_utils.get_wm_props(context.window_manager)
+        self.cabinet = wm_props.get_asset(self.filepath)
+        self.cabinet.draw()
+        self.cabinet.set_name(filename)
+        self.set_child_properties(self.cabinet.obj_bp)
+        self.refresh_data(False)  
 
     def set_child_properties(self,obj):
         if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
@@ -227,6 +217,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
         self.mouse_x = event.mouse_x
         self.mouse_y = event.mouse_y
+        self.reset_selection()
 
         selected_point, selected_obj = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
 
