@@ -867,7 +867,7 @@ def update_range(self,context):
 
     for child in appliance.obj_bp.children:
         if "IS_RANGE_BP" in child and child["IS_RANGE_BP"]:
-            range_assembly = pc_types.Assembly(child)               
+            range_assembly = pc_types.Assembly(child)
 
     root_path = home_builder_paths.get_range_path()
     range_path = os.path.join(root_path,self.range_category,self.range_name + ".blend")
@@ -875,6 +875,12 @@ def update_range(self,context):
 
     new_range_assembly = pc_types.Assembly(range_bp)
     new_range_assembly.obj_bp["IS_RANGE_BP"] = True
+    new_range_assembly.obj_x.empty_display_size = pc_unit.inch(.5)
+    new_range_assembly.obj_y.empty_display_size = pc_unit.inch(.5)
+    new_range_assembly.obj_z.empty_display_size = pc_unit.inch(.5)
+    new_range_assembly.obj_x.hide_viewport = True
+    new_range_assembly.obj_y.hide_viewport = True
+    new_range_assembly.obj_z.hide_viewport = True
 
     appliance.dim_x(value=new_range_assembly.obj_x.location.x)
     appliance.dim_y(value=new_range_assembly.obj_y.location.y)
@@ -904,13 +910,17 @@ def update_range_hood(self,context):
 
         new_range_hood_assembly = pc_types.Assembly(range_bp)
         new_range_hood_assembly.obj_bp["IS_RANGE_HOOD_BP"] = True
-        
+        new_range_hood_assembly.obj_x.empty_display_size = pc_unit.inch(.5)
+        new_range_hood_assembly.obj_y.empty_display_size = pc_unit.inch(.5)
+        new_range_hood_assembly.obj_z.empty_display_size = pc_unit.inch(.5)
+        new_range_hood_assembly.obj_x.hide_viewport = True
+        new_range_hood_assembly.obj_y.hide_viewport = True
+        new_range_hood_assembly.obj_z.hide_viewport = True
 
         a_width = appliance.obj_x.location.x
         a_height = appliance.obj_z.location.z
 
         rh_width = new_range_hood_assembly.obj_x.location.x
-        print('HOOD',(a_width/2)-(rh_width/2))
         new_range_hood_assembly.loc_x(value = (a_width/2)-(rh_width/2))
         new_range_hood_assembly.loc_z(value = a_height+pc_unit.inch(36))
 
