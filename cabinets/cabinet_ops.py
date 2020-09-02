@@ -1095,8 +1095,26 @@ class home_builder_OT_update_cabinet_lighting(bpy.types.Operator):
     bl_label = "Update Cabinet Lighting"
 
     def execute(self, context):
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        carcass_bp_list = []
         for obj in context.visible_objects:
-            pass
+            bp = home_builder_utils.get_carcass_bp(obj)
+            if bp and bp not in carcass_bp_list:
+                carcass_bp_list.append(bp)
+        
+        for carcass_bp in carcass_bp_list:
+            carcass = pc_types.Assembly(carcass_bp)
+            add_top_lighting = carcass.get_prompt("Add Top Light")
+            add_side_lighting = carcass.get_prompt("Add Side Light")
+            add_bottom_lighting = carcass.get_prompt("Add Bottom Light")
+
+            if add_bottom_lighting:
+                add_bottom_lighting.set_value(scene_props.add_toe_kick_lighting)
+            if add_side_lighting:
+                add_side_lighting.set_value(scene_props.add_side_inside_lighting)
+            if add_top_lighting:
+                add_top_lighting.set_value(scene_props.add_top_inside_lighting)
+
         return {'FINISHED'}
 
 def register():
