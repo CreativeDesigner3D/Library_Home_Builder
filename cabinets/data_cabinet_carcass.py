@@ -100,7 +100,7 @@ def add_toe_kick(assembly):
     toe_kick_height = assembly.get_prompt("Toe Kick Height").get_var("toe_kick_height")
     toe_kick_setback = assembly.get_prompt("Toe Kick Setback").get_var("toe_kick_setback")
 
-    toe_kick = data_cabinet_parts.add_carcass_part(assembly)
+    toe_kick = data_cabinet_parts.add_double_sided_part(assembly)
     toe_kick.set_name('Toe Kick')
     toe_kick.loc_x('material_thickness',[material_thickness])
     toe_kick.loc_y('depth+toe_kick_setback+material_thickness',[depth,toe_kick_setback,material_thickness])

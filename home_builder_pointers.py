@@ -155,3 +155,20 @@ def assign_cabinet_shelf_pointers(assembly):
                     pointer.name = "Interior Cabinet Edges"
                 if pointer.name == 'W2':
                     pointer.name = "Interior Cabinet Edges"         
+
+def assign_double_sided_pointers(assembly):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for index, pointer in enumerate(child.pyclone.pointers):
+                if pointer.name == 'Top':
+                    pointer.name = "Exposed Cabinet Surfaces"
+                if pointer.name == 'Bottom':
+                    pointer.name = "Exposed Cabinet Surfaces"
+                if pointer.name == 'L1':
+                    pointer.name = "Exposed Cabinet Edges"
+                if pointer.name == 'L2':
+                    pointer.name = "Exposed Cabinet Edges"
+                if pointer.name == 'W1':
+                    pointer.name = "Exposed Cabinet Edges"
+                if pointer.name == 'W2':
+                    pointer.name = "Exposed Cabinet Edges"                          
