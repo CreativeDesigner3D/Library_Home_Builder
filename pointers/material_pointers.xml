@@ -76,6 +76,11 @@
 		<Asset>Glass</Asset>
 	</Pointer>
 	<Pointer>
+		<Name>Shelf Holes</Name>
+		<Category>Misc</Category>
+		<Asset>Machining</Asset>
+	</Pointer>
+	<Pointer>
 		<Name>Walls</Name>
 		<Category>Wall Paint</Category>
 		<Asset>Textured Paint Cream</Asset>

@@ -4,8 +4,10 @@ from .. import home_builder_pointers
 from .. import home_builder_paths
 from os import path
 
-ASSET_DIR = home_builder_paths.get_asset_folder_path()
-PART = path.join(ASSET_DIR,"Cutparts","Part.blend")
+# ASSET_DIR = home_builder_paths.get_asset_folder_path()
+# PART = path.join(ASSET_DIR,"Cutparts","Part.blend")
+# Z_ARRAY_PART = ("Cutparts","Z Array Part.blend")
+# SHELF_HOLES = path.join(ASSET_DIR,"Machining","Shelf Holes.blend")
 
 class Cutpart(pc_types.Assembly):
     category_name = "Parts"
@@ -135,15 +137,29 @@ class Extruded_Part(pc_types.Assembly):
 
 
 def add_countertop_part(assembly):
-    part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
+    part_path = path.join(home_builder_paths.get_asset_folder_path(),"Cutparts","Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
     home_builder_utils.add_bevel(part)
     home_builder_pointers.assign_pointer_to_assembly(part,"Countertop Surface")
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
+def add_shelf_holes(assembly):
+    part_path = path.join(home_builder_paths.get_asset_folder_path(),"Machining","Shelf Holes.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001   
+    home_builder_pointers.assign_pointer_to_assembly(part,"Shelf Holes")
+    return part
+
 def add_door_part(assembly):
-    part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
+    part_path = path.join(home_builder_paths.get_asset_folder_path(),"Cutparts","Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
@@ -151,12 +167,13 @@ def add_door_part(assembly):
     part.obj_z.empty_display_size = .001
     part.obj_prompts.empty_display_size = .001
     home_builder_utils.add_bevel(part)
-    home_builder_pointers.assign_pointer_to_assembly(part,"Door Surface")
+    home_builder_pointers.assign_door_pointers(part)
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
 def add_carcass_part(assembly):
-    part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
+    part_path = path.join(home_builder_paths.get_asset_folder_path(),"Cutparts","Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
@@ -164,12 +181,13 @@ def add_carcass_part(assembly):
     part.obj_z.empty_display_size = .001
     part.obj_prompts.empty_display_size = .001    
     home_builder_utils.add_bevel(part)
-    home_builder_pointers.assign_material_pointers(part)
+    home_builder_pointers.assign_carcass_pointers(part)
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
-def add_rectangular_part(assembly):
-    part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
+def add_cabinet_shelf(assembly):
+    part_path = path.join(home_builder_paths.get_asset_folder_path(),"Cutparts","Z Array Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
@@ -177,18 +195,20 @@ def add_rectangular_part(assembly):
     part.obj_z.empty_display_size = .001
     part.obj_prompts.empty_display_size = .001    
     home_builder_utils.add_bevel(part)
-    home_builder_pointers.assign_material_pointers(part)
+    home_builder_pointers.assign_cabinet_shelf_pointers(part)
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
 def add_lighting_strip_part(assembly):
-    part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
+    part_path = path.join(home_builder_paths.get_asset_folder_path(),"Cutparts","Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
     home_builder_pointers.assign_pointer_to_assembly(part,"Cabinet Lighting")
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
 def add_square_cutout(assembly):
-    part = pc_types.Assembly(assembly.add_assembly_from_file(PART))
+    part_path = path.join(home_builder_paths.get_asset_folder_path(),"Cutparts","Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
-    return part    
+    return part

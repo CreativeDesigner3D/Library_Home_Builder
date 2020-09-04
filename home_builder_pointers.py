@@ -23,6 +23,7 @@ def get_default_material_pointers():
 
     #MISC
     pointers.append(("Glass","Misc","Glass"))
+    pointers.append(("Shelf Holes","Misc","Machining"))
 
     #WALLS FLOOR
     pointers.append(("Walls","Wall Paint","Textured Paint Cream"))
@@ -104,6 +105,23 @@ def update_side_material(assembly,is_finished_end):
                     break
     assign_materials_to_assembly(assembly)
 
+def assign_carcass_pointers(assembly):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for index, pointer in enumerate(child.pyclone.pointers):
+                if pointer.name == 'Top':
+                    pointer.name = "Interior Cabinet Surfaces"
+                if pointer.name == 'Bottom':
+                    pointer.name = "Wood Core Surfaces"
+                if pointer.name == 'L1':
+                    pointer.name = "Wood Core Edges"
+                if pointer.name == 'L2':
+                    pointer.name = "Exposed Cabinet Edges"
+                if pointer.name == 'W1':
+                    pointer.name = "Wood Core Edges"
+                if pointer.name == 'W2':
+                    pointer.name = "Wood Core Edges"     
+
 def assign_door_pointers(assembly):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
@@ -119,21 +137,21 @@ def assign_door_pointers(assembly):
                 if pointer.name == 'W1':
                     pointer.name = "Door Edge"
                 if pointer.name == 'W2':
-                    pointer.name = "Door Edge"        
+                    pointer.name = "Door Edge"
 
-def assign_material_pointers(assembly):
+def assign_cabinet_shelf_pointers(assembly):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
             for index, pointer in enumerate(child.pyclone.pointers):
                 if pointer.name == 'Top':
                     pointer.name = "Interior Cabinet Surfaces"
                 if pointer.name == 'Bottom':
-                    pointer.name = "Wood Core Surfaces"
+                    pointer.name = "Interior Cabinet Surfaces"
                 if pointer.name == 'L1':
-                    pointer.name = "Wood Core Edges"
+                    pointer.name = "Interior Cabinet Edges"
                 if pointer.name == 'L2':
-                    pointer.name = "Exposed Cabinet Edges"
+                    pointer.name = "Interior Cabinet Edges"
                 if pointer.name == 'W1':
-                    pointer.name = "Wood Core Edges"
+                    pointer.name = "Interior Cabinet Edges"
                 if pointer.name == 'W2':
-                    pointer.name = "Wood Core Edges"                        
+                    pointer.name = "Interior Cabinet Edges"         

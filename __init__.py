@@ -2,9 +2,9 @@ import bpy
 import os
 import inspect
 from .pc_lib import pc_utils
+from . import home_builder_props
 from . import home_builder_ui
 from . import home_builder_ops
-from . import home_builder_props
 from . import home_builder_pointers
 from . import home_builder_utils
 from .walls import wall_ops

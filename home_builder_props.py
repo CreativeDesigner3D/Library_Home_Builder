@@ -37,6 +37,7 @@ class Pointer(PropertyGroup):
     category: bpy.props.StringProperty(name="Category")
     item_name: bpy.props.StringProperty(name="Item Name")
 
+
 class Asset(PropertyGroup):
     is_selected: BoolProperty(name="Is Selected",default=False)
     preview_found: BoolProperty(name="Preivew Found",default=False)
@@ -45,6 +46,7 @@ class Asset(PropertyGroup):
     module_name: StringProperty(name="Module Name")
     category_name: StringProperty(name="Category Name")
     class_name: StringProperty(name="Class Name")
+
 
 class Home_Builder_AddonPreferences(AddonPreferences):
     bl_idname = __package__
@@ -57,6 +59,7 @@ class Home_Builder_AddonPreferences(AddonPreferences):
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "assets_filepath")
+
 
 class Home_Builder_Window_Manager_Props(PropertyGroup):
     assets: CollectionProperty(name='Assets',type=Asset)

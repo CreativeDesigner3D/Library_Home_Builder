@@ -1,6 +1,7 @@
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinets
 from . import data_cabinet_doors
+from . import data_cabinet_interiors
 from . import data_cabinet_carcass
 from . import data_appliances
 from . import data_cabinet_splitter
@@ -9,7 +10,7 @@ class Base_Door_Cabinet(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
         self.carcass = data_cabinet_carcass.Base_Advanced()
-        self.interior = None
+        self.interior = data_cabinet_interiors.Shelves()
         self.exterior = data_cabinet_doors.Door()
         self.splitter = None
         

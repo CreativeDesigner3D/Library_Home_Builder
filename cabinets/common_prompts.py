@@ -75,3 +75,9 @@ def add_splitter_prompts(assembly):
     assembly.add_prompt("Bottom Thickness",'DISTANCE',pc_unit.inch(.75))
     assembly.add_prompt("Extend Top Amount",'DISTANCE',pc_unit.inch(0))
     assembly.add_prompt("Extend Bottom Amount",'DISTANCE',pc_unit.inch(0))
+
+def add_interior_shelf_prompts(assembly):
+    assembly.add_prompt("Shelf Quantity",'QUANTITY',1) 
+    assembly.add_prompt("Shelf Setback",'DISTANCE',pc_unit.inch(.25))  
+    assembly.add_prompt("Shelf Clip Gap",'DISTANCE',pc_unit.inch(.125))  
+    assembly.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(.75))    

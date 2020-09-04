@@ -63,7 +63,7 @@ def add_interior_to_cabinet(cabinet,carcass,interior,cabinet_type):
         interior.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
     
     interior.dim_x('width-(material_thickness*2)',[width,material_thickness])
-    interior.dim_y('fabs(depth)',[depth])
+    interior.dim_y('fabs(depth)-material_thickness',[depth,material_thickness])
     interior.obj_x.empty_display_size = .001
     interior.obj_y.empty_display_size = .001
     interior.obj_z.empty_display_size = .001
