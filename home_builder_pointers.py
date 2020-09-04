@@ -71,7 +71,7 @@ def assign_pointer_to_object(obj,pointer_name):
     if len(obj.pyclone.pointers) == 0:
         bpy.ops.pc_material.add_material_slot(object_name=obj.name)    
     for index, pointer in enumerate(obj.pyclone.pointers):  
-        pointer.name = pointer_name  
+        pointer.pointer_name = pointer_name  
     assign_materials_to_object(obj)  
 
 def assign_pointer_to_assembly(assembly,pointer_name):
@@ -82,10 +82,9 @@ def assign_pointer_to_assembly(assembly,pointer_name):
 def assign_materials_to_object(obj):
     props = home_builder_utils.get_scene_props(bpy.context.scene)
     for index, pointer in enumerate(obj.pyclone.pointers):
-        if index <= len(obj.material_slots) and pointer.name in props.material_pointers:
-            p = props.material_pointers[pointer.name]
+        if index <= len(obj.material_slots) and pointer.pointer_name in props.material_pointers:
+            p = props.material_pointers[pointer.pointer_name]
             slot = obj.material_slots[index]
-            material = home_builder_utils.get_material(p.category,p.item_name)
             slot.material = home_builder_utils.get_material(p.category,p.item_name)
             
 def assign_materials_to_assembly(assembly):
@@ -96,79 +95,79 @@ def assign_materials_to_assembly(assembly):
 def update_side_material(assembly,is_finished_end):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
-            for index, pointer in enumerate(child.pyclone.pointers):
-                if index == 1:
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Bottom':
                     if is_finished_end:
-                        pointer.name = "Exposed Cabinet Surfaces" 
+                        pointer.pointer_name = "Exposed Cabinet Surfaces" 
                     else:
-                        pointer.name = "Wood Core Surfaces"
+                        pointer.pointer_name = "Wood Core Surfaces"
                     break
     assign_materials_to_assembly(assembly)
 
 def assign_carcass_pointers(assembly):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
-            for index, pointer in enumerate(child.pyclone.pointers):
+            for pointer in child.pyclone.pointers:
                 if pointer.name == 'Top':
-                    pointer.name = "Interior Cabinet Surfaces"
+                    pointer.pointer_name = "Interior Cabinet Surfaces"
                 if pointer.name == 'Bottom':
-                    pointer.name = "Wood Core Surfaces"
+                    pointer.pointer_name = "Wood Core Surfaces"
                 if pointer.name == 'L1':
-                    pointer.name = "Wood Core Edges"
+                    pointer.pointer_name = "Wood Core Edges"
                 if pointer.name == 'L2':
-                    pointer.name = "Exposed Cabinet Edges"
+                    pointer.pointer_name = "Exposed Cabinet Edges"
                 if pointer.name == 'W1':
-                    pointer.name = "Wood Core Edges"
+                    pointer.pointer_name = "Wood Core Edges"
                 if pointer.name == 'W2':
-                    pointer.name = "Wood Core Edges"     
+                    pointer.pointer_name = "Wood Core Edges"     
 
 def assign_door_pointers(assembly):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
-            for index, pointer in enumerate(child.pyclone.pointers):
+            for pointer in child.pyclone.pointers:
                 if pointer.name == 'Top':
-                    pointer.name = "Door Surface"
+                    pointer.pointer_name = "Door Surface"
                 if pointer.name == 'Bottom':
-                    pointer.name = "Door Surface"
+                    pointer.pointer_name = "Door Surface"
                 if pointer.name == 'L1':
-                    pointer.name = "Door Edge"
+                    pointer.pointer_name = "Door Edge"
                 if pointer.name == 'L2':
-                    pointer.name = "Door Edge"
+                    pointer.pointer_name = "Door Edge"
                 if pointer.name == 'W1':
-                    pointer.name = "Door Edge"
+                    pointer.pointer_name = "Door Edge"
                 if pointer.name == 'W2':
-                    pointer.name = "Door Edge"
+                    pointer.pointer_name = "Door Edge"
 
 def assign_cabinet_shelf_pointers(assembly):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
-            for index, pointer in enumerate(child.pyclone.pointers):
+            for pointer in child.pyclone.pointers:
                 if pointer.name == 'Top':
-                    pointer.name = "Interior Cabinet Surfaces"
+                    pointer.pointer_name = "Interior Cabinet Surfaces"
                 if pointer.name == 'Bottom':
-                    pointer.name = "Interior Cabinet Surfaces"
+                    pointer.pointer_name = "Interior Cabinet Surfaces"
                 if pointer.name == 'L1':
-                    pointer.name = "Interior Cabinet Edges"
+                    pointer.pointer_name = "Interior Cabinet Edges"
                 if pointer.name == 'L2':
-                    pointer.name = "Interior Cabinet Edges"
+                    pointer.pointer_name = "Interior Cabinet Edges"
                 if pointer.name == 'W1':
-                    pointer.name = "Interior Cabinet Edges"
+                    pointer.pointer_name = "Interior Cabinet Edges"
                 if pointer.name == 'W2':
-                    pointer.name = "Interior Cabinet Edges"         
+                    pointer.pointer_name = "Interior Cabinet Edges"         
 
 def assign_double_sided_pointers(assembly):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
-            for index, pointer in enumerate(child.pyclone.pointers):
+            for pointer in child.pyclone.pointers:
                 if pointer.name == 'Top':
-                    pointer.name = "Exposed Cabinet Surfaces"
+                    pointer.pointer_name = "Exposed Cabinet Surfaces"
                 if pointer.name == 'Bottom':
-                    pointer.name = "Exposed Cabinet Surfaces"
+                    pointer.pointer_name = "Exposed Cabinet Surfaces"
                 if pointer.name == 'L1':
-                    pointer.name = "Exposed Cabinet Edges"
+                    pointer.pointer_name = "Exposed Cabinet Edges"
                 if pointer.name == 'L2':
-                    pointer.name = "Exposed Cabinet Edges"
+                    pointer.pointer_name = "Exposed Cabinet Edges"
                 if pointer.name == 'W1':
-                    pointer.name = "Exposed Cabinet Edges"
+                    pointer.pointer_name = "Exposed Cabinet Edges"
                 if pointer.name == 'W2':
-                    pointer.name = "Exposed Cabinet Edges"                          
+                    pointer.pointer_name = "Exposed Cabinet Edges"
