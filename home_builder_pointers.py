@@ -92,12 +92,28 @@ def assign_materials_to_assembly(assembly):
         if child.type == 'MESH':
             assign_materials_to_object(child)
 
-def update_side_material(assembly,is_finished_end):
+def update_side_material(assembly,is_finished_end,is_finished_back):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
             for pointer in child.pyclone.pointers:
                 if pointer.name == 'Bottom':
                     if is_finished_end:
+                        pointer.pointer_name = "Exposed Cabinet Surfaces" 
+                    else:
+                        pointer.pointer_name = "Wood Core Surfaces"
+                if pointer.name == 'L1':
+                    if is_finished_back:
+                        pointer.pointer_name = "Exposed Cabinet Edges" 
+                    else:
+                        pointer.pointer_name = "Wood Core Edges"              
+    assign_materials_to_assembly(assembly)
+
+def update_cabinet_back_material(assembly,is_finished_back):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Bottom':
+                    if is_finished_back:
                         pointer.pointer_name = "Exposed Cabinet Surfaces" 
                     else:
                         pointer.pointer_name = "Wood Core Surfaces"

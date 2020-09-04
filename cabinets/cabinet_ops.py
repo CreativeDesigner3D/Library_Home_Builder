@@ -410,6 +410,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
     left_side = None
     right_side = None
+    back = None
 
     cabinet = None
     carcass = None
@@ -428,6 +429,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
         self.left_side = None
         self.right_side = None
+        self.back = None
 
         self.cabinet = None
         self.carcass = None
@@ -457,8 +459,10 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     def update_materials(self,context):
         left_finished_end = self.carcass.get_prompt("Left Finished End")
         right_finished_end = self.carcass.get_prompt("Right Finished End")
-        home_builder_pointers.update_side_material(self.left_side,left_finished_end.get_value())
-        home_builder_pointers.update_side_material(self.right_side,right_finished_end.get_value())
+        finished_back = self.carcass.get_prompt("Finished Back")
+        home_builder_pointers.update_side_material(self.left_side,left_finished_end.get_value(),finished_back.get_value())
+        home_builder_pointers.update_side_material(self.right_side,right_finished_end.get_value(),finished_back.get_value())
+        home_builder_pointers.update_cabinet_back_material(self.back,finished_back.get_value())
 
     def check(self, context):
         self.update_product_size()
@@ -484,6 +488,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.doors = None
         self.left_side = None
         self.right_side = None
+        self.back = None
 
         for child in self.cabinet.obj_bp.children:
             if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
@@ -508,6 +513,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 self.left_side = pc_types.Assembly(child)
             if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
                 self.right_side = pc_types.Assembly(child)  
+            if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
+                self.back = pc_types.Assembly(child)  
 
     def invoke(self,context,event):
         self.reset_variables()
@@ -580,6 +587,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     def draw_carcass_prompts(self,layout,context):
         left_finished_end = self.carcass.get_prompt("Left Finished End")
         right_finished_end = self.carcass.get_prompt("Right Finished End")
+        finished_back = self.carcass.get_prompt("Finished Back")
         toe_kick_height = self.carcass.get_prompt("Toe Kick Height")
         toe_kick_setback = self.carcass.get_prompt("Toe Kick Setback")
         add_bottom_light = self.carcass.get_prompt("Add Bottom Light")
@@ -591,12 +599,13 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         ctop_right = self.cabinet.get_prompt("Countertop Overhang Right")
         col = layout.column(align=True)
 
-        if left_finished_end and right_finished_end:
+        if left_finished_end and right_finished_end and finished_back:
             box = col.box()
             row = box.row()
-            row.label(text="Finished Ends:")
+            row.label(text="Finished Sides:")
             row.prop(left_finished_end,'checkbox_value',text="Left")
             row.prop(right_finished_end,'checkbox_value',text="Right")
+            row.prop(finished_back,'checkbox_value',text="Back")
         if toe_kick_height and toe_kick_setback:
             box = col.box()
             row = box.row()

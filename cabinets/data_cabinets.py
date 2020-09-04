@@ -80,12 +80,15 @@ class Standard_Cabinet(pc_types.Assembly):
                 left_side = pc_types.Assembly(child)
             if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
                 right_side = pc_types.Assembly(child)
+            if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
+                back = pc_types.Assembly(child)
 
         left_finished_end = self.carcass.get_prompt('Left Finished End')
         right_finished_end = self.carcass.get_prompt('Right Finished End')
+        finished_back = self.carcass.get_prompt('Finished Back')
         if left_finished_end:
             left_finished_end.set_value(True)
         if right_finished_end:
             right_finished_end.set_value(True)            
-        home_builder_utils.update_side_material(left_side,left_finished_end.get_value())
-        home_builder_utils.update_side_material(right_side,right_finished_end.get_value())
+        home_builder_utils.update_side_material(left_side,left_finished_end.get_value(),finished_back.get_value())
+        home_builder_utils.update_side_material(right_side,right_finished_end.get_value(),finished_back.get_value())
