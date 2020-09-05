@@ -384,8 +384,104 @@ class Base_Simple(pc_types.Assembly):
         add_cabinet_back(self)
         add_toe_kick(self)
 
+class Carcass(pc_types.Assembly):
 
-class Base_Advanced(pc_types.Assembly):
+    left_side = None
+    right_side = None
+    left_filler = None
+    right_filler = None
+    back = None
+
+    def __init__(self,obj_bp=None):
+        super().__init__(obj_bp=obj_bp)  
+        if obj_bp:
+            for child in obj_bp.children:
+                if "IS_LEFT_FILLER_BP" in child:
+                    self.left_filler = pc_types.Assembly(child)
+                if "IS_RIGHT_FILLER_BP" in child:
+                    self.right_filler = pc_types.Assembly(child)       
+                if "IS_LEFT_SIDE_BP" in child:
+                    self.left_side = pc_types.Assembly(child)
+                if "IS_RIGHT_SIDE_BP" in child:
+                    self.right_side = pc_types.Assembly(child)    
+                if "IS_BACK_BP" in child:
+                    self.back = pc_types.Assembly(child)   
+
+    def add_insert(self,cabinet,insert):
+        x_loc_carcass = self.obj_bp.pyclone.get_var('location.x','x_loc_carcass')
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        material_thickness = self.get_prompt('Material Thickness').get_var('material_thickness')
+        cabinet_type = self.get_prompt("Cabinet Type")
+
+        insert = cabinet.add_assembly(insert)
+        insert.loc_x('x_loc_carcass+material_thickness',[material_thickness,x_loc_carcass])
+        insert.loc_y('depth',[depth])
+        if cabinet_type.get_value() == 2: #UPPER CABINET
+            insert.loc_z('material_thickness',[material_thickness])
+            insert.dim_z('height-(material_thickness*2)',[height,material_thickness])
+        else:
+            toe_kick_height = self.get_prompt('Toe Kick Height').get_var('toe_kick_height')
+            insert.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])
+            insert.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
+        
+        insert.dim_x('width-(material_thickness*2)',[width,material_thickness])
+        insert.dim_y('fabs(depth)',[depth])
+        insert.obj_x.empty_display_size = .001
+        insert.obj_y.empty_display_size = .001
+        insert.obj_z.empty_display_size = .001
+        insert.obj_bp.empty_display_size = .001
+        insert.obj_prompts.empty_display_size = .001
+
+        insert_cabinet_type = insert.get_prompt("Cabinet Type")
+        insert_cabinet_type.set_value(cabinet_type.get_value())
+
+        bpy.context.view_layer.update()
+
+        calculator = insert.get_calculator('Front Height Calculator')
+        if calculator:
+            calculator.calculate()    
+
+    def add_left_filler(self,cabinet):
+        depth = cabinet.obj_y.pyclone.get_var('location.y','depth')
+        height = cabinet.obj_z.pyclone.get_var('location.z','height')
+        left_adjustment_width = cabinet.get_prompt("Left Adjustment Width").get_var("left_adjustment_width")
+
+        self.left_filler = data_cabinet_parts.add_carcass_part(self)
+        self.left_filler.obj_bp["IS_LEFT_FILLER_BP"] = True
+        self.left_filler.set_name('Left Filler')
+        self.left_filler.loc_x('-left_adjustment_width',[left_adjustment_width])
+        self.left_filler.loc_y(value=0)
+        self.left_filler.loc_z(value=0)
+        self.left_filler.dim_x('left_adjustment_width',[left_adjustment_width])
+        self.left_filler.dim_y('depth',[depth])
+        self.left_filler.dim_z('height',[height])
+        home_builder_pointers.assign_pointer_to_assembly(self.left_filler,"Exposed Cabinet Surfaces")
+
+    def add_right_filler(self,cabinet):
+        carcass_width = self.obj_x.pyclone.get_var('location.x','carcass_width')
+        depth = cabinet.obj_y.pyclone.get_var('location.y','depth')
+        height = cabinet.obj_z.pyclone.get_var('location.z','height')
+        right_adjustment_width = cabinet.get_prompt("Right Adjustment Width").get_var("right_adjustment_width")
+
+        self.right_filler = data_cabinet_parts.add_carcass_part(self)
+        self.right_filler.obj_bp["IS_RIGHT_FILLER_BP"] = True
+        self.right_filler.set_name('Right Filler')
+        self.right_filler.loc_x('carcass_width',[carcass_width])
+        self.right_filler.loc_y(value=0)
+        self.right_filler.loc_z(value=0)
+        self.right_filler.dim_x('right_adjustment_width',[right_adjustment_width])
+        self.right_filler.dim_y('depth',[depth])
+        self.right_filler.dim_z('height',[height])
+        home_builder_utils.flip_normals(self.right_filler)
+        home_builder_pointers.assign_pointer_to_assembly(self.right_filler,"Exposed Cabinet Surfaces")
+
+
+class Base_Advanced(Carcass):
+
+    def __init__(self,obj_bp=None):
+        super().__init__(obj_bp=obj_bp)  
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
@@ -407,15 +503,18 @@ class Base_Advanced(pc_types.Assembly):
 
         add_cabinet_bottom(self)
         add_cabinet_top(self)
-        add_cabinet_sides(self,add_toe_kick_notch=True)
-        add_cabinet_back(self)
+        self.left_side, self.right_side = add_cabinet_sides(self,add_toe_kick_notch=True)
+        self.back = add_cabinet_back(self)
         add_toe_kick(self)
         add_top_lighting(self)
         add_kick_lighting(self)
         add_side_lighting(self)
 
 
-class Tall_Advanced(pc_types.Assembly):
+class Tall_Advanced(Carcass):
+
+    def __init__(self,obj_bp=None):
+        super().__init__(obj_bp=obj_bp)  
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
@@ -444,8 +543,10 @@ class Tall_Advanced(pc_types.Assembly):
         add_kick_lighting(self)
         add_side_lighting(self)
 
+class Upper_Advanced(Carcass):
 
-class Upper_Advanced(pc_types.Assembly):
+    def __init__(self,obj_bp=None):
+        super().__init__(obj_bp=obj_bp)  
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)

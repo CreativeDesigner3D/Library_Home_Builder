@@ -88,7 +88,6 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
         for asset in self.assets:
             if asset.library_path in filepath and filename == asset.name:
                 obj = eval(asset.module_name + "." + asset.class_name + "()")
-                # obj.set_name(asset.name)
                 return obj
 
     @classmethod

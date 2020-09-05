@@ -3,6 +3,10 @@ from ..pc_lib import pc_types, pc_unit, pc_utils
 def add_cabinet_prompts(assembly):
     assembly.add_prompt("Cabinet Type",'COMBOBOX',0,["Base","Tall","Upper","Suspended"])
 
+def add_filler_prompts(assembly):
+    assembly.add_prompt("Left Adjustment Width",'DISTANCE',pc_unit.inch(0))
+    assembly.add_prompt("Right Adjustment Width",'DISTANCE',pc_unit.inch(0))
+
 def add_front_prompts(assembly):
     assembly.add_prompt("Inset Front",'CHECKBOX',False)
     assembly.add_prompt("Door to Cabinet Gap",'DISTANCE',pc_unit.inch(.125))

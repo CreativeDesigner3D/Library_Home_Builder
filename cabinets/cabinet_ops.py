@@ -5,12 +5,17 @@ import inspect
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import cabinet_library
 from . import cabinet_utils
+from . import data_cabinet_carcass
 from . import data_appliances
 from . import data_cabinet_doors
 from .. import home_builder_utils
 from .. import home_builder_paths
 from .. import home_builder_enums
 from .. import home_builder_pointers
+
+def update_assembly_cabinet_id_props(assembly):
+    for child in assembly.obj_bp.children:
+        update_cabinet_id_props(child)
 
 def update_cabinet_id_props(obj):
     obj["PROMPT_ID"] = "home_builder.cabinet_prompts"   
@@ -408,8 +413,11 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
     calculators = []
 
-    left_side = None
-    right_side = None
+    # left_side = None
+    # right_side = None
+    # left_filler = None
+    # right_filler = None
+
     back = None
 
     cabinet = None
@@ -429,6 +437,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
         self.left_side = None
         self.right_side = None
+        self.left_filler = None
+        self.right_filler = None
         self.back = None
 
         self.cabinet = None
@@ -460,17 +470,34 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         left_finished_end = self.carcass.get_prompt("Left Finished End")
         right_finished_end = self.carcass.get_prompt("Right Finished End")
         finished_back = self.carcass.get_prompt("Finished Back")
-        home_builder_pointers.update_side_material(self.left_side,left_finished_end.get_value(),finished_back.get_value())
-        home_builder_pointers.update_side_material(self.right_side,right_finished_end.get_value(),finished_back.get_value())
-        home_builder_pointers.update_cabinet_back_material(self.back,finished_back.get_value())
+        home_builder_pointers.update_side_material(self.carcass.left_side,left_finished_end.get_value(),finished_back.get_value())
+        home_builder_pointers.update_side_material(self.carcass.right_side,right_finished_end.get_value(),finished_back.get_value())
+        home_builder_pointers.update_cabinet_back_material(self.carcass.back,finished_back.get_value())
+
+    def update_fillers(self,context):
+        left_adjustment_width = self.cabinet.get_prompt("Left Adjustment Width")
+        right_adjustment_width = self.cabinet.get_prompt("Right Adjustment Width")
+        if left_adjustment_width.get_value() > 0 and self.carcass.left_filler is None:
+            self.carcass.add_left_filler(self.cabinet)
+            update_assembly_cabinet_id_props(self.carcass.left_filler)
+        if right_adjustment_width.get_value() > 0 and self.carcass.right_filler is None:
+            self.carcass.add_right_filler(self.cabinet)   
+            update_assembly_cabinet_id_props(self.carcass.right_filler)          
+        if left_adjustment_width.get_value() == 0 and self.carcass.left_filler is not None:
+            pc_utils.delete_object_and_children(self.carcass.left_filler.obj_bp)
+            self.carcass.left_filler = None
+        if right_adjustment_width.get_value() == 0 and self.carcass.right_filler is not None:
+            pc_utils.delete_object_and_children(self.carcass.right_filler.obj_bp)
+            self.carcass.right_filler = None   
 
     def check(self, context):
         self.update_product_size()
-
+        
         for calculator in self.calculators:
             if calculator.distance_obj:
                 calculator.calculate()
 
+        self.update_fillers(context)
         self.update_materials(context)
         return True
 
@@ -486,13 +513,13 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.calculators = []
         self.drawer_calculator = None
         self.doors = None
-        self.left_side = None
-        self.right_side = None
+        # self.left_side = None
+        # self.right_side = None
         self.back = None
 
         for child in self.cabinet.obj_bp.children:
             if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
-                self.carcass = pc_types.Assembly(child)      
+                self.carcass = data_cabinet_carcass.Carcass(child)      
             if "IS_INTERIOR_BP" in child and child["IS_INTERIOR_BP"]:
                 self.interior_assembly = pc_types.Assembly(child)              
             if "IS_EXTERIOR_BP" in child and child["IS_EXTERIOR_BP"]:
@@ -508,13 +535,13 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 self.splitter = pc_types.Assembly(child)   
                 self.calculators.append(self.splitter.get_calculator('Opening Height Calculator'))
 
-        for child in self.carcass.obj_bp.children:
-            if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
-                self.left_side = pc_types.Assembly(child)
-            if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
-                self.right_side = pc_types.Assembly(child)  
-            if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
-                self.back = pc_types.Assembly(child)  
+        # for child in self.carcass.obj_bp.children:
+        #     if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
+        #         self.left_side = pc_types.Assembly(child)
+        #     if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
+        #         self.right_side = pc_types.Assembly(child)  
+        #     if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
+        #         self.back = pc_types.Assembly(child)  
 
     def invoke(self,context,event):
         self.reset_variables()
@@ -597,8 +624,17 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         ctop_back = self.cabinet.get_prompt("Countertop Overhang Back")
         ctop_left = self.cabinet.get_prompt("Countertop Overhang Left")
         ctop_right = self.cabinet.get_prompt("Countertop Overhang Right")
+        ctop_left = self.cabinet.get_prompt("Countertop Overhang Left")
+        left_adjustment_width = self.cabinet.get_prompt("Left Adjustment Width")       
+        right_adjustment_width = self.cabinet.get_prompt("Right Adjustment Width")    
         col = layout.column(align=True)
 
+        if left_adjustment_width and right_adjustment_width:
+            box = col.box()
+            row = box.row()
+            row.label(text="Filler Amount:")
+            row.prop(left_adjustment_width,'distance_value',text="Left")
+            row.prop(right_adjustment_width,'distance_value',text="Right")
         if left_finished_end and right_finished_end and finished_back:
             box = col.box()
             row = box.row()

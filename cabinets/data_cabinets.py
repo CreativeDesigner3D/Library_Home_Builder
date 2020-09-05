@@ -30,16 +30,19 @@ class Standard_Cabinet(pc_types.Assembly):
         self.obj_y['IS_MIRROR'] = True
 
         common_prompts.add_cabinet_prompts(self)
+        common_prompts.add_filler_prompts(self)
 
         carcass = self.add_assembly(self.carcass)
         cabinet_type = carcass.get_prompt("Cabinet Type")
         if self.exterior:
-            cabinet_utils.add_exterior_to_cabinet(self,carcass,self.exterior,cabinet_type.get_value())
+            carcass.add_insert(self,self.exterior)
         if self.splitter:
-            cabinet_utils.add_exterior_to_cabinet(self,carcass,self.splitter,cabinet_type.get_value())            
+            carcass.add_insert(self,self.splitter)            
         if self.interior:
-            cabinet_utils.add_interior_to_cabinet(self,carcass,self.interior,cabinet_type.get_value())
-        
+            carcass.add_insert(self,self.interior)
+
+        # carcass.add_fillers(self)
+
         #BASE CABINET
         if cabinet_type.get_value() == 0:
             cabinet_utils.add_countertop(self)
@@ -61,11 +64,14 @@ class Standard_Cabinet(pc_types.Assembly):
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
 
+        left_adjment_width = self.get_prompt("Left Adjustment Width").get_var('left_adjment_width')
+        right_adjment_width = self.get_prompt("Right Adjustment Width").get_var('right_adjment_width')
+
         carcass.set_name('Carcass')
-        carcass.loc_x(value=0)
+        carcass.loc_x('left_adjment_width',[left_adjment_width])
         carcass.loc_y(value=0)
         carcass.loc_z(value=0)
-        carcass.dim_x('width',[width])
+        carcass.dim_x('width-left_adjment_width-right_adjment_width',[width,left_adjment_width,right_adjment_width])
         carcass.dim_y('depth',[depth])
         carcass.dim_z('height',[height])
 
