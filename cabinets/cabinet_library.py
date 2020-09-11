@@ -12,6 +12,7 @@ class Base_Door_Cabinet(data_cabinets.Standard_Cabinet):
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.interior = data_cabinet_interiors.Shelves()
         self.exterior = data_cabinet_doors.Door()
+        self.exterior.cabinet_type = 'Base'
         self.splitter = None
         
 
@@ -23,6 +24,7 @@ class Base_2_Door_Cabinet(data_cabinets.Standard_Cabinet):
         self.interior = None
         self.exterior = data_cabinet_doors.Door()
         self.exterior.door_swing = 2
+        self.exterior.cabinet_type = 'Base'
         self.splitter = None
 
 
@@ -32,6 +34,7 @@ class Tall_Door_Cabinet(data_cabinets.Standard_Cabinet):
         self.carcass = data_cabinet_carcass.Tall_Advanced()
         self.interior = None
         self.exterior = data_cabinet_doors.Door()
+        self.exterior.cabinet_type = 'Tall'
         self.splitter = None
 
 
@@ -43,6 +46,7 @@ class Tall_2_Door_Cabinet(data_cabinets.Standard_Cabinet):
         self.interior = None
         self.exterior = data_cabinet_doors.Door()
         self.exterior.door_swing = 2
+        self.exterior.cabinet_type = 'Tall'
         self.splitter = None
 
 
@@ -52,6 +56,7 @@ class Upper_Door_Cabinet(data_cabinets.Standard_Cabinet):
         self.carcass = data_cabinet_carcass.Upper_Advanced()
         self.interior = None
         self.exterior = data_cabinet_doors.Door()
+        self.exterior.cabinet_type = 'Upper'
         self.splitter = None
 
 
@@ -63,6 +68,7 @@ class Upper_2_Door_Cabinet(data_cabinets.Standard_Cabinet):
         self.interior = None
         self.exterior = data_cabinet_doors.Door()
         self.exterior.door_swing = 2
+        self.exterior.cabinet_type = 'Upper'
         self.splitter = None
 
 
@@ -93,5 +99,7 @@ class Splitter_Cabinet(data_cabinets.Standard_Cabinet):
         self.exterior = None
         self.splitter = data_cabinet_splitter.Vertical_Splitter()
         self.splitter.vertical_openings = 2
-        self.splitter.exterior_1 = data_cabinet_doors.Drawers()
+        self.splitter.exterior_1 = data_cabinet_doors.Door()
+        self.splitter.exterior_1.door_swing = 2
+        self.splitter.exterior_1.cabinet_type = 'Upper'
         self.splitter.exterior_2 = data_cabinet_doors.Drawers()

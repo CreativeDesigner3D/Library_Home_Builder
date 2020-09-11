@@ -17,17 +17,21 @@ def add_sink_prompts(assembly):
     assembly.add_prompt("Add Faucet",'CHECKBOX',False)
 
 def add_door_prompts(assembly):
-    door_swing = assembly.add_prompt("Door Swing",'COMBOBOX',0,["Left","Right","Double"])
-    door_swing.combobox_columns = 3
+    door_swing = assembly.add_prompt("Door Swing",'COMBOBOX',0,["Left","Right"])
+    door_swing.combobox_columns = 2
     assembly.add_prompt("Door Rotation",'ANGLE',120)
     assembly.add_prompt("Open Door",'PERCENTAGE',0)
 
 def add_front_overlay_prompts(assembly):
+    assembly.add_prompt("Half Overlay Top",'CHECKBOX',False)
+    assembly.add_prompt("Half Overlay Bottom",'CHECKBOX',False)
+    assembly.add_prompt("Half Overlay Left",'CHECKBOX',False)
+    assembly.add_prompt("Half Overlay Right",'CHECKBOX',False)
     assembly.add_prompt("Inset Reveal",'DISTANCE',pc_unit.inch(.125))
-    assembly.add_prompt("Top Overlay",'DISTANCE',pc_unit.inch(.6875))
-    assembly.add_prompt("Bottom Overlay",'DISTANCE',pc_unit.inch(.6875))
-    assembly.add_prompt("Left Overlay",'DISTANCE',pc_unit.inch(.6875))
-    assembly.add_prompt("Right Overlay",'DISTANCE',pc_unit.inch(.6875))
+    # assembly.add_prompt("Top Overlay",'DISTANCE',pc_unit.inch(.6875))
+    # assembly.add_prompt("Bottom Overlay",'DISTANCE',pc_unit.inch(.6875))
+    # assembly.add_prompt("Left Overlay",'DISTANCE',pc_unit.inch(.6875))
+    # assembly.add_prompt("Right Overlay",'DISTANCE',pc_unit.inch(.6875))
     assembly.add_prompt("Vertical Gap",'DISTANCE',pc_unit.inch(.125))
 
 def add_pull_prompts(assembly):
@@ -62,7 +66,7 @@ def add_carcass_prompts(assembly):
     assembly.add_prompt("Right Finished End",'CHECKBOX',True)
     assembly.add_prompt("Finished Back",'CHECKBOX',True)
     assembly.add_prompt("Run Sides to Floor",'CHECKBOX',True)
-    assembly.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(.75))    
+    # assembly.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(.75))    
     
 def add_cabinet_lighting_prompts(assembly):
     assembly.add_prompt("Add Top Light",'CHECKBOX',False)    
@@ -85,4 +89,7 @@ def add_interior_shelf_prompts(assembly):
     assembly.add_prompt("Shelf Quantity",'QUANTITY',1) 
     assembly.add_prompt("Shelf Setback",'DISTANCE',pc_unit.inch(.25))  
     assembly.add_prompt("Shelf Clip Gap",'DISTANCE',pc_unit.inch(.125))  
-    assembly.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(.75))    
+    # assembly.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(.75)) 
+
+def add_thickness_prompts(assembly):
+    assembly.add_prompt("Material Thickness",'DISTANCE',pc_unit.inch(.75)) 

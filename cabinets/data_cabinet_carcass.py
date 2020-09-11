@@ -434,14 +434,16 @@ class Carcass(pc_types.Assembly):
         insert.obj_bp.empty_display_size = .001
         insert.obj_prompts.empty_display_size = .001
 
-        insert_cabinet_type = insert.get_prompt("Cabinet Type")
-        insert_cabinet_type.set_value(cabinet_type.get_value())
+        # insert_cabinet_type = insert.get_prompt("Cabinet Type")
+        # insert_cabinet_type.set_value(cabinet_type.get_value())
 
         bpy.context.view_layer.update()
 
         calculator = insert.get_calculator('Front Height Calculator')
         if calculator:
-            calculator.calculate()    
+            calculator.calculate()
+        
+        return insert
 
     def add_left_filler(self,cabinet):
         depth = cabinet.obj_y.pyclone.get_var('location.y','depth')
@@ -490,6 +492,7 @@ class Base_Advanced(Carcass):
         self.obj_bp["IS_CARCASS_BP"] = True
 
         common_prompts.add_cabinet_prompts(self)
+        common_prompts.add_thickness_prompts(self)
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_base_assembly_prompts(self)
         common_prompts.add_cabinet_lighting_prompts(self)
@@ -523,6 +526,7 @@ class Tall_Advanced(Carcass):
         self.obj_bp["IS_CARCASS_BP"] = True
 
         common_prompts.add_cabinet_prompts(self)
+        common_prompts.add_thickness_prompts(self)
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_base_assembly_prompts(self)
         common_prompts.add_cabinet_lighting_prompts(self)
@@ -555,6 +559,7 @@ class Upper_Advanced(Carcass):
         self.obj_bp["IS_CARCASS_BP"] = True
 
         common_prompts.add_cabinet_prompts(self)
+        common_prompts.add_thickness_prompts(self)
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_cabinet_lighting_prompts(self)
 

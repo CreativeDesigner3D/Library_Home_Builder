@@ -41,8 +41,6 @@ class Standard_Cabinet(pc_types.Assembly):
         if self.interior:
             carcass.add_insert(self,self.interior)
 
-        # carcass.add_fillers(self)
-
         #BASE CABINET
         if cabinet_type.get_value() == 0:
             cabinet_utils.add_countertop(self)

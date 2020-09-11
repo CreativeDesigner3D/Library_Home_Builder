@@ -213,19 +213,19 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             constraint.use_z = False
 
     def modal(self, context, event):
-        
+        print("IN MODAL 1")
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
-
+        print("IN MODAL 2")
         for calculator in self.calculators:
             calculator.calculate()
 
         self.mouse_x = event.mouse_x
         self.mouse_y = event.mouse_y
         self.reset_selection()
-
+        print("IN MODAL 3")
         selected_point, selected_obj = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
-
+        print("IN MODAL 4")
         self.position_cabinet(selected_point,selected_obj)
 
         if self.event_is_place_first_point(event):
@@ -311,6 +311,9 @@ def update_child_props(obj):
         update_child_props(child)
 
 def update_exterior(self,context):
+    self.exterior_changed = True
+
+def update_exterior_old(self,context):
     if self.cabinet_name not in bpy.data.objects:
         return
 
@@ -349,8 +352,9 @@ def update_exterior(self,context):
         elif self.exterior == 'DRAWERS':
             exterior = data_cabinet_doors.Drawers()
         if exterior:
-            cabinet_type = carcass.get_prompt("Cabinet Type")
-            cabinet_utils.add_exterior_to_cabinet(cabinet,carcass,exterior,cabinet_type.get_value())
+            # cabinet_type = carcass.get_prompt("Cabinet Type")
+            carcass.add_insert(exterior)
+            # cabinet_utils.add_exterior_to_cabinet(cabinet,carcass,exterior,cabinet_type.get_value())
             update_child_props(exterior.obj_bp)
 
 def update_interior(self,context):
@@ -367,6 +371,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
     height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
     depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
+    exterior_changed: bpy.props.BoolProperty(name="Exterior Changed")
 
     product_tabs: bpy.props.EnumProperty(name="Product Tabs",
                                          items=[('MAIN',"Main","Main Options"),
@@ -405,18 +410,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                                               ('5',"5","5"),
                                               ('6',"6","6")])
 
-    # sink_category: bpy.props.EnumProperty(name="Sink Category",
-    #     items=home_builder_enums.enum_sink_categories,
-    #     update=home_builder_enums.update_sink_category)
-    # sink_name: bpy.props.EnumProperty(name="Sink Name",
-    #     items=home_builder_enums.enum_sink_names)
-
     calculators = []
-
-    # left_side = None
-    # right_side = None
-    # left_filler = None
-    # right_filler = None
 
     back = None
 
@@ -490,7 +484,34 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             pc_utils.delete_object_and_children(self.carcass.right_filler.obj_bp)
             self.carcass.right_filler = None   
 
+    def update_exterior(self,context):
+        if self.exterior_changed:
+
+            if self.exterior_assembly:
+                pc_utils.delete_object_and_children(self.exterior_assembly.obj_bp)
+
+            exterior = None
+            if self.exterior == 'DOOR':
+                exterior = data_cabinet_doors.Door()
+            elif self.exterior == '2_DOOR_2_DRAWER':
+                exterior = data_cabinet_doors.Door()             
+            elif self.exterior == '1_DOOR_1_DRAWER':
+                exterior = data_cabinet_doors.Door()           
+            elif self.exterior == '2_DOOR_1_DRAWER':
+                exterior = data_cabinet_doors.Door()       
+            elif self.exterior == 'SLIDING_DOORS':
+                exterior = data_cabinet_doors.Door()                                                   
+            elif self.exterior == 'DRAWERS':
+                exterior = data_cabinet_doors.Drawers()
+            if exterior:
+                self.exterior_assembly = self.carcass.add_insert(self.cabinet,exterior)
+                update_child_props(self.exterior_assembly.obj_bp)
+
+            self.exterior_changed = False
+            self.get_assemblies(context)
+
     def check(self, context):
+        
         self.update_product_size()
         
         for calculator in self.calculators:
@@ -498,6 +519,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 calculator.calculate()
 
         self.update_fillers(context)
+        self.update_exterior(context)
         self.update_materials(context)
         return True
 
@@ -513,8 +535,6 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.calculators = []
         self.drawer_calculator = None
         self.doors = None
-        # self.left_side = None
-        # self.right_side = None
         self.back = None
 
         for child in self.cabinet.obj_bp.children:
@@ -535,17 +555,11 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 self.splitter = pc_types.Assembly(child)   
                 self.calculators.append(self.splitter.get_calculator('Opening Height Calculator'))
 
-        # for child in self.carcass.obj_bp.children:
-        #     if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
-        #         self.left_side = pc_types.Assembly(child)
-        #     if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
-        #         self.right_side = pc_types.Assembly(child)  
-        #     if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
-        #         self.back = pc_types.Assembly(child)  
-
     def invoke(self,context,event):
         self.reset_variables()
         bp = home_builder_utils.get_cabinet_bp(context.object)
+        if not bp:
+            bp = home_builder_utils.get_appliance_bp(context.object)
         self.cabinet = pc_types.Assembly(bp)
         self.cabinet_name = self.cabinet.obj_bp.name
         self.depth = math.fabs(self.cabinet.obj_y.location.y)
@@ -635,6 +649,12 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             row.label(text="Filler Amount:")
             row.prop(left_adjustment_width,'distance_value',text="Left")
             row.prop(right_adjustment_width,'distance_value',text="Right")
+        if toe_kick_height and toe_kick_setback:
+            box = col.box()
+            row = box.row()
+            row.label(text="Base Assembly:")   
+            row.prop(toe_kick_height,'distance_value',text="Height")
+            row.prop(toe_kick_setback,'distance_value',text="Setback")            
         if left_finished_end and right_finished_end and finished_back:
             box = col.box()
             row = box.row()
@@ -642,20 +662,13 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             row.prop(left_finished_end,'checkbox_value',text="Left")
             row.prop(right_finished_end,'checkbox_value',text="Right")
             row.prop(finished_back,'checkbox_value',text="Back")
-        if toe_kick_height and toe_kick_setback:
-            box = col.box()
-            row = box.row()
-            row.label(text="Base Assembly:")   
-            row.prop(toe_kick_height,'distance_value',text="Height")
-            row.prop(toe_kick_setback,'distance_value',text="Setback")
         if add_bottom_light and add_top_light and add_side_light:
             box = col.box()
             row = box.row()
             row.label(text="Cabinet Lighting:")   
-            row = box.row()          
-            row.prop(add_bottom_light,'checkbox_value',text="Add Bottom Light")
-            row.prop(add_top_light,'checkbox_value',text="Add Top Light")
-            row.prop(add_side_light,'checkbox_value',text="Add Side Light")  
+            row.prop(add_bottom_light,'checkbox_value',text="Bottom")
+            row.prop(add_top_light,'checkbox_value',text="Top")
+            row.prop(add_side_light,'checkbox_value',text="Side")  
         if ctop_front and ctop_back and ctop_left and ctop_right:
             box = col.box()
             row = box.row()
@@ -698,7 +711,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
         if self.doors:
             open_door = self.doors.get_prompt("Open Door")
-            open_door.draw(layout)
+            open_door.draw(layout,allow_edit=False)
 
             door_swing = self.doors.get_prompt("Door Swing")
             door_swing.draw(layout,allow_edit=False)
@@ -725,7 +738,9 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             self.draw_top_options(prompt_box,context)
 
         if self.product_tabs == 'EXTERIOR':
-            prompt_box.prop(self,'exterior')
+            row = prompt_box.row(align=True)
+            row.prop(self,'exterior')
+            row.operator('home_builder.update_prompts',text="",icon='FILE_REFRESH')
             if self.doors:
                 self.draw_door_prompts(prompt_box,context)
             if self.drawers:
@@ -1123,6 +1138,14 @@ class home_builder_OT_part_prompts(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_update_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.update_prompts"
+    bl_label = "Update Prompts"
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
 class home_builder_OT_hardlock_part_size(bpy.types.Operator):
     bl_idname = "home_builder.hardlock_part_size"
     bl_label = "Hardlock Part Size"
@@ -1183,6 +1206,7 @@ def register():
     bpy.utils.register_class(home_builder_OT_part_prompts)    
     bpy.utils.register_class(home_builder_OT_hardlock_part_size)  
     bpy.utils.register_class(home_builder_OT_update_cabinet_lighting)  
+    bpy.utils.register_class(home_builder_OT_update_prompts)  
     
 
 def unregister():
@@ -1196,3 +1220,4 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_part_prompts) 
     bpy.utils.unregister_class(home_builder_OT_hardlock_part_size)   
     bpy.utils.unregister_class(home_builder_OT_update_cabinet_lighting)  
+    bpy.utils.unregister_class(home_builder_OT_update_prompts)  
