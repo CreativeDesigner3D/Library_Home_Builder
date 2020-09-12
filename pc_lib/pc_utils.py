@@ -250,12 +250,10 @@ def get_selection_point(context, event, ray_max=10000.0,objects=None,floor=None,
     region = context.region
     rv3d = context.region_data
     coord = event.mouse_region_x, event.mouse_region_y
-    print("GETING SELECTION POINT 1")
     # get the ray from the viewport and mouse
     view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, coord)
     ray_origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
     ray_target = ray_origin + view_vector
-    print("GETING SELECTION POINT 2")
 
     def visible_objects_and_duplis():
         """Loop over (object, matrix) pairs (mesh only)"""
@@ -295,7 +293,6 @@ def get_selection_point(context, event, ray_max=10000.0,objects=None,floor=None,
      
             # cast the ray
             success, location, normal, face_index = obj.ray_cast(ray_origin_obj, ray_direction_obj)
-     
             if success:
                 return location, normal, face_index
             else:
@@ -310,9 +307,8 @@ def get_selection_point(context, event, ray_max=10000.0,objects=None,floor=None,
     for obj, matrix in visible_objects_and_duplis():
         if obj.type == 'MESH':
             if obj.data:
-                print("GETING SELECTION POINT 3",obj,matrix)
+                
                 hit, normal, face_index = obj_ray_cast(obj, matrix)
-                print("GETING SELECTION POINT 4",obj,matrix)
                 if hit is not None:
                     hit_world = matrix @ hit
                     length_squared = (hit_world - ray_origin).length_squared

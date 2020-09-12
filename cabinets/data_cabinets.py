@@ -23,29 +23,48 @@ class Standard_Cabinet(pc_types.Assembly):
 
     def draw(self):
         start_time = time.time()
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
-
-        self.create_assembly()
+        
         self.obj_bp["IS_CABINET_BP"] = True
         self.obj_y['IS_MIRROR'] = True
 
-        common_prompts.add_cabinet_prompts(self)
-        common_prompts.add_filler_prompts(self)
-
-        carcass = self.add_assembly(self.carcass)
-        cabinet_type = carcass.get_prompt("Cabinet Type")
+        cabinet_type = self.carcass.get_prompt("Cabinet Type")
         if self.exterior:
-            carcass.add_insert(self,self.exterior)
+            self.carcass.add_insert(self,self.exterior)
         if self.splitter:
-            carcass.add_insert(self,self.splitter)            
+            self.carcass.add_insert(self,self.splitter)            
         if self.interior:
-            carcass.add_insert(self,self.interior)
+            self.carcass.add_insert(self,self.interior)
 
         #BASE CABINET
         if cabinet_type.get_value() == 0:
             cabinet_utils.add_countertop(self)
             common_prompts.add_sink_prompts(self)
 
+        print("Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
+
+    def pre_draw(self):
+        self.create_assembly()
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+
+        common_prompts.add_cabinet_prompts(self)
+        common_prompts.add_filler_prompts(self)
+        
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        left_adjment_width = self.get_prompt("Left Adjustment Width").get_var('left_adjment_width')
+        right_adjment_width = self.get_prompt("Right Adjustment Width").get_var('right_adjment_width')
+
+        self.carcass = self.add_assembly(self.carcass)
+        self.carcass.set_name('Carcass')
+        self.carcass.loc_x('left_adjment_width',[left_adjment_width])
+        self.carcass.loc_y(value=0)
+        self.carcass.loc_z(value=0)
+        self.carcass.dim_x('width-left_adjment_width-right_adjment_width',[width,left_adjment_width,right_adjment_width])
+        self.carcass.dim_y('depth',[depth])
+        self.carcass.dim_z('height',[height])
+
+        cabinet_type = self.carcass.get_prompt("Cabinet Type")
         self.obj_x.location.x = self.width 
         if cabinet_type.get_value() == 0:
             self.obj_y.location.y = -props.base_cabinet_depth
@@ -57,23 +76,6 @@ class Standard_Cabinet(pc_types.Assembly):
             self.obj_y.location.y = -props.upper_cabinet_depth
             self.obj_z.location.z = props.upper_cabinet_height
             self.obj_bp.location.z = props.height_above_floor - props.upper_cabinet_height
-
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-
-        left_adjment_width = self.get_prompt("Left Adjustment Width").get_var('left_adjment_width')
-        right_adjment_width = self.get_prompt("Right Adjustment Width").get_var('right_adjment_width')
-
-        carcass.set_name('Carcass')
-        carcass.loc_x('left_adjment_width',[left_adjment_width])
-        carcass.loc_y(value=0)
-        carcass.loc_z(value=0)
-        carcass.dim_x('width-left_adjment_width-right_adjment_width',[width,left_adjment_width,right_adjment_width])
-        carcass.dim_y('depth',[depth])
-        carcass.dim_z('height',[height])
-
-        print("Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
 
     def render(self):
         left_side = None

@@ -142,23 +142,27 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
         wm_props = home_builder_utils.get_wm_props(context.window_manager)
         self.cabinet = wm_props.get_asset(self.filepath)
-        self.cabinet.draw()
+        if hasattr(self.cabinet,'pre_draw'):
+            self.cabinet.pre_draw()
+        else:
+            self.cabinet.draw()
         self.cabinet.set_name(filename)
         self.set_child_properties(self.cabinet.obj_bp)
-        self.refresh_data(False)  
 
     def set_child_properties(self,obj):
         if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
             assembly = pc_types.Assembly(obj)
             calculator = assembly.get_calculator('Front Height Calculator')
-            calculator.calculate()
-            self.calculators.append(calculator)
+            if calculator:
+                calculator.calculate()
+                self.calculators.append(calculator)
 
         if "IS_VERTICAL_SPLITTER_BP" in obj and obj["IS_VERTICAL_SPLITTER_BP"]:
             assembly = pc_types.Assembly(obj)
             calculator = assembly.get_calculator('Opening Height Calculator')
-            calculator.calculate()
-            self.calculators.append(calculator)
+            if calculator:
+                calculator.calculate()
+                self.calculators.append(calculator)
 
         update_cabinet_id_props(obj)
         if obj.type == 'EMPTY':
@@ -212,20 +216,25 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             constraint.use_y = True
             constraint.use_z = False
 
+        if hasattr(self.cabinet,'pre_draw'):
+            self.cabinet.draw()
+        self.set_child_properties(self.cabinet.obj_bp)
+        self.refresh_data(False)  
+
     def modal(self, context, event):
-        print("IN MODAL 1")
         bpy.ops.object.select_all(action='DESELECT')
+
         context.area.tag_redraw()
-        print("IN MODAL 2")
+
         for calculator in self.calculators:
             calculator.calculate()
 
         self.mouse_x = event.mouse_x
         self.mouse_y = event.mouse_y
         self.reset_selection()
-        print("IN MODAL 3")
+
         selected_point, selected_obj = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
-        print("IN MODAL 4")
+
         self.position_cabinet(selected_point,selected_obj)
 
         if self.event_is_place_first_point(event):

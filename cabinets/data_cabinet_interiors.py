@@ -51,6 +51,7 @@ class Shelves(pc_types.Assembly):
         self.obj_bp["IS_INTERIOR_BP"] = True        
 
         common_prompts.add_cabinet_prompts(self)
+        common_prompts.add_thickness_prompts(self)
         common_prompts.add_interior_shelf_prompts(self)
 
         add_cabinet_shelf(self)
