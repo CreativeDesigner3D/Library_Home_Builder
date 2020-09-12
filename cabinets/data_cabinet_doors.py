@@ -66,16 +66,8 @@ class Door(pc_types.Assembly):
         z = self.obj_z.pyclone.get_var('location.z','z')        
         pull_length = self.get_prompt("Pull Length")  
         pull_length_var = self.get_prompt("Pull Length").get_var('pull_length_var')
-        # left_overlay_prompt = self.get_prompt("Left Overlay")
-        # left_overlay = left_overlay_prompt.get_var('left_overlay')
-        # right_overlay_prompt = self.get_prompt("Right Overlay")
-        # right_overlay = right_overlay_prompt.get_var('right_overlay')
         vertical_gap = self.get_prompt("Vertical Gap").get_var('vertical_gap')
         door_swing = door_swing_prompt.get_var('door_swing')
-        # top_overlay_prompt = self.get_prompt("Top Overlay")
-        # bottom_overlay_prompt = self.get_prompt("Bottom Overlay")
-        # top_overlay = top_overlay_prompt.get_var('top_overlay')
-        # bottom_overlay = bottom_overlay_prompt.get_var('bottom_overlay')
         door_to_cabinet_gap = self.get_prompt("Door to Cabinet Gap").get_var('door_to_cabinet_gap')
         front_thickness = self.get_prompt("Front Thickness").get_var('front_thickness')
         door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
@@ -91,13 +83,6 @@ class Door(pc_types.Assembly):
         bo_var = bo.get_var("bo_var")
         lo_var = lo.get_var("lo_var")
         ro_var = ro.get_var("ro_var")
-
-        # overlay_prompt_obj = self.add_empty('Overlay Prompt Obj')
-        # bo_prompt = overlay_prompt_obj.pyclone.add_prompt('DISTANCE',"Bottom Overlay")
-        # bo_prompt.set_formula('IF(hob,(front_thickness-vertical_gap)/2,front_thickness)',[hob,front_thickness,vertical_gap])
-        # bo_var = bo_prompt.get_var('bo_var')
-
-        # bottom_overlay_prompt.set_formula('IF(hob,-(front_thickness-vertical_gap)/2,0)',[hob,front_thickness,vertical_gap])
 
         #LEFT DOOR
         l_door = data_cabinet_parts.add_door_part(self)
