@@ -219,6 +219,8 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         if hasattr(self.cabinet,'pre_draw'):
             self.cabinet.draw()
         self.set_child_properties(self.cabinet.obj_bp)
+        for cal in self.calculators:
+            cal.calculate()
         self.refresh_data(False)  
 
     def modal(self, context, event):
@@ -791,7 +793,6 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             self.get_assemblies(context)
 
     def check(self, context):
-        
         self.update_product_size()
         
         for calculator in self.calculators:
@@ -806,6 +807,12 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
     def execute(self, context):
         return {'FINISHED'}
 
+    def get_calculators(self,obj):
+        for cal in obj.pyclone.calculators:
+            self.calculators.append(cal)
+        for child in obj.children:
+            self.get_calculators(child)
+
     def get_assemblies(self,context):
         self.carcass = None
         self.interior_assembly = None
@@ -816,6 +823,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.drawer_calculator = None
         self.doors = None
         self.back = None
+        self.get_calculators(self.cabinet.obj_bp)
 
         for child in self.cabinet.obj_bp.children:
             if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
@@ -828,12 +836,12 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 self.countertop = pc_types.Assembly(child)   
             if "IS_DRAWERS_BP" in child and child["IS_DRAWERS_BP"]:
                 self.drawers = pc_types.Assembly(child)   
-                self.calculators.append(self.drawers.get_calculator('Front Height Calculator'))
+                # self.calculators.append(self.drawers.get_calculator('Front Height Calculator'))
             if "IS_DOORS_BP" in child and child["IS_DOORS_BP"]:
                 self.doors = pc_types.Assembly(child)
             if "IS_VERTICAL_SPLITTER_BP" in child and child["IS_VERTICAL_SPLITTER_BP"]:
                 self.splitter = pc_types.Assembly(child)   
-                self.calculators.append(self.splitter.get_calculator('Opening Height Calculator'))
+                # self.calculators.append(self.splitter.get_calculator('Opening Height Calculator'))
 
     def invoke(self,context,event):
         self.reset_variables()

@@ -102,4 +102,8 @@ class Splitter_Cabinet(data_cabinets.Standard_Cabinet):
         self.splitter.exterior_1 = data_cabinet_doors.Door()
         self.splitter.exterior_1.door_swing = 2
         self.splitter.exterior_1.cabinet_type = 'Upper'
-        self.splitter.exterior_2 = data_cabinet_doors.Drawers()
+        self.splitter.exterior_1.prompts = {"Half Overlay Bottom":True}
+        self.splitter.exterior_2 = data_cabinet_doors.Door()
+        self.splitter.exterior_2.door_swing = 2
+        self.splitter.exterior_2.cabinet_type = 'Base'    
+        self.splitter.exterior_2.prompts = {"Half Overlay Top":True}    

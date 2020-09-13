@@ -33,6 +33,7 @@ class Door(pc_types.Assembly):
 
     door_swing = 0 # Left = 0, Right = 1, Double = 2
     cabinet_type = '' #Base, Tall, Upper
+    prompts = {}
 
     def set_pull_props(self,obj):
         obj['IS_CABINET_PULL'] = True
@@ -43,6 +44,13 @@ class Door(pc_types.Assembly):
             home_builder_utils.get_object_props(obj).pointer_name = "Tall Cabinet Pulls"
         if self.cabinet_type == 'Upper':
             home_builder_utils.get_object_props(obj).pointer_name = "Upper Cabinet Pulls"
+
+    def set_prompts(self):
+        for key in self.prompts:
+            if key in self.obj_prompts.pyclone.prompts:
+                if key in self.obj_prompts.pyclone.prompts:
+                    prompt = self.obj_prompts.pyclone.prompts[key]
+                    prompt.set_value(self.prompts[key])
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
@@ -169,6 +177,8 @@ class Door(pc_types.Assembly):
         r_pull_empty.rotation_euler.x = math.radians(-90)
         pull_obj.pyclone.hide('hide_right_door',[hide_right_door])
         self.set_pull_props(pull_obj)
+
+        self.set_prompts()
 
 
 class Drawers(pc_types.Assembly):

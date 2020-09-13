@@ -78,6 +78,11 @@ class Vertical_Splitter(pc_types.Assembly):
             assembly.dim_x('width',[width])
             assembly.dim_y('depth',[depth])
             assembly.dim_z(z_dim_expression,[opening_height_var])
+
+            # calculator = assembly.get_calculator('Front Height Calculator')
+            # if calculator:
+            #     calculator.calculate()
+
             # if index == 1:
             #     # ALLOW DOOR TO EXTEND TO TOP OF VALANCE
             #     extend_top_amount = assembly.get_prompt("Extend Top Amount")

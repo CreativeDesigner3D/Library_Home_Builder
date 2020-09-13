@@ -439,9 +439,9 @@ class Carcass(pc_types.Assembly):
 
         bpy.context.view_layer.update()
 
-        calculator = insert.get_calculator('Front Height Calculator')
-        if calculator:
-            calculator.calculate()
+        # calculator = insert.get_calculator('Front Height Calculator')
+        # if calculator:
+        #     calculator.calculate()
         
         return insert
 
@@ -509,9 +509,9 @@ class Base_Advanced(Carcass):
         self.left_side, self.right_side = add_cabinet_sides(self,add_toe_kick_notch=True)
         self.back = add_cabinet_back(self)
         add_toe_kick(self)
-        add_top_lighting(self)
-        add_kick_lighting(self)
-        add_side_lighting(self)
+        # add_top_lighting(self)
+        # add_kick_lighting(self)
+        # add_side_lighting(self)
 
 
 class Tall_Advanced(Carcass):
@@ -543,9 +543,9 @@ class Tall_Advanced(Carcass):
         add_cabinet_sides(self,add_toe_kick_notch=True)
         add_cabinet_back(self)
         add_toe_kick(self)
-        add_top_lighting(self)
-        add_kick_lighting(self)
-        add_side_lighting(self)
+        # add_top_lighting(self)
+        # add_kick_lighting(self)
+        # add_side_lighting(self)
 
 class Upper_Advanced(Carcass):
 
@@ -574,9 +574,9 @@ class Upper_Advanced(Carcass):
         add_cabinet_top(self)
         add_cabinet_sides(self,add_toe_kick_notch=False)
         add_upper_cabinet_back(self)
-        add_top_lighting(self)
-        add_under_cabinet_lighting(self)
-        add_side_lighting(self)
+        # add_top_lighting(self)
+        # add_under_cabinet_lighting(self)
+        # add_side_lighting(self)
 
 
 class Refrigerator(pc_types.Assembly):
