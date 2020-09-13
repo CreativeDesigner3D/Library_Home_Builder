@@ -94,12 +94,7 @@ class Door(pc_types.Assembly):
         l_door.rot_y(value = math.radians(-90))
         l_door.rot_z('-door_rotation*open_door',[door_rotation,open_door])
         l_door.dim_x('z+to_var+bo_var',[z,to_var,bo_var])
-        if door_swing_prompt.get_value() == 2:
-            l_door.dim_y('(((x+lo_var+ro_var)-vertical_gap)/2)*-1',
-                        [x,lo_var,ro_var,vertical_gap])
-        else:
-            l_door.dim_y('(x+lo_var+ro_var)*-1',
-                        [x,lo_var,ro_var,vertical_gap])
+        l_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)*-1',[door_swing,x,lo_var,ro_var,vertical_gap])            
         l_door.dim_z('front_thickness',[front_thickness])
         hide = l_door.get_prompt("Hide")
         hide.set_formula('IF(door_swing==1,True,False)',[door_swing])
@@ -143,12 +138,7 @@ class Door(pc_types.Assembly):
         r_door.rot_y(value = math.radians(-90))     
         r_door.rot_z('door_rotation*open_door',[door_rotation,open_door])   
         r_door.dim_x('z+to_var+bo_var',[z,to_var,bo_var])
-        if door_swing_prompt.get_value() == 2:
-            r_door.dim_y('((x+lo_var+ro_var)-vertical_gap)/2',
-                        [x,lo_var,ro_var,vertical_gap])
-        else:
-            r_door.dim_y('x+lo_var+ro_var',
-                        [x,lo_var,ro_var,vertical_gap])
+        r_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)',[door_swing,x,lo_var,ro_var,vertical_gap])     
         r_door.dim_z('front_thickness',[front_thickness])
         hide = r_door.get_prompt("Hide")
         hide.set_formula('IF(door_swing==0,True,False)',[door_swing]) 
