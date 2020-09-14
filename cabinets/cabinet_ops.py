@@ -746,9 +746,10 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         left_finished_end = self.carcass.get_prompt("Left Finished End")
         right_finished_end = self.carcass.get_prompt("Right Finished End")
         finished_back = self.carcass.get_prompt("Finished Back")
-        home_builder_pointers.update_side_material(self.carcass.left_side,left_finished_end.get_value(),finished_back.get_value())
-        home_builder_pointers.update_side_material(self.carcass.right_side,right_finished_end.get_value(),finished_back.get_value())
-        home_builder_pointers.update_cabinet_back_material(self.carcass.back,finished_back.get_value())
+        if finished_back and left_finished_end and right_finished_end:
+            home_builder_pointers.update_side_material(self.carcass.left_side,left_finished_end.get_value(),finished_back.get_value())
+            home_builder_pointers.update_side_material(self.carcass.right_side,right_finished_end.get_value(),finished_back.get_value())
+            home_builder_pointers.update_cabinet_back_material(self.carcass.back,finished_back.get_value())
 
     def update_fillers(self,context):
         left_adjustment_width = self.cabinet.get_prompt("Left Adjustment Width")
