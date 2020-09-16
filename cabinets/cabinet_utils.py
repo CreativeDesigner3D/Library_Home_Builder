@@ -4,7 +4,7 @@ from os import path
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from .. import home_builder_utils
 from . import data_cabinet_parts
-from . import data_cabinet_doors
+from . import data_cabinet_exteriors
 from . import common_prompts
 from . import data_countertops
 
@@ -14,17 +14,17 @@ def update_id_properties(parent,assembly_to_update):
 def get_exterior_from_name(name):
     exterior = None
     if name == 'DOORS':
-        exterior = data_cabinet_doors.Doors()
+        exterior = data_cabinet_exteriors.Doors()
     elif name == '2_DOOR_2_DRAWER':
-        exterior = data_cabinet_doors.Doors()             
+        exterior = data_cabinet_exteriors.Doors()             
     elif name == '1_DOOR_1_DRAWER':
-        exterior = data_cabinet_doors.Doors()           
+        exterior = data_cabinet_exteriors.Doors()           
     elif name == '2_DOOR_1_DRAWER':
-        exterior = data_cabinet_doors.Doors()       
+        exterior = data_cabinet_exteriors.Doors()       
     elif name == 'SLIDING_DOORS':
-        exterior = data_cabinet_doors.Doors()                                                   
+        exterior = data_cabinet_exteriors.Doors()                                                   
     elif name == 'DRAWERS':
-        exterior = data_cabinet_doors.Drawers()
+        exterior = data_cabinet_exteriors.Drawers()
     return exterior
 
 def add_exterior_to_cabinet(cabinet,carcass,exterior,cabinet_type):

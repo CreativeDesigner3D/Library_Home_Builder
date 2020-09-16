@@ -7,7 +7,7 @@ from . import cabinet_library
 from . import cabinet_utils
 from . import data_cabinet_carcass
 from . import data_appliances
-from . import data_cabinet_doors
+from . import data_cabinet_exteriors
 from .. import home_builder_utils
 from .. import home_builder_paths
 from .. import home_builder_enums
@@ -729,19 +729,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             if self.exterior_assembly:
                 pc_utils.delete_object_and_children(self.exterior_assembly.obj_bp)
 
-            exterior = None
-            if self.exterior == 'DOOR':
-                exterior = data_cabinet_doors.Doors()
-            elif self.exterior == '2_DOOR_2_DRAWER':
-                exterior = data_cabinet_doors.Doors()             
-            elif self.exterior == '1_DOOR_1_DRAWER':
-                exterior = data_cabinet_doors.Doors()           
-            elif self.exterior == '2_DOOR_1_DRAWER':
-                exterior = data_cabinet_doors.Doors()       
-            elif self.exterior == 'SLIDING_DOORS':
-                exterior = data_cabinet_doors.Doors()                                                   
-            elif self.exterior == 'DRAWERS':
-                exterior = data_cabinet_doors.Drawers()
+            exterior = cabinet_utils.get_exterior_from_name(self.exterior)
             if exterior:
                 self.exterior_assembly = self.carcass.add_insert(self.cabinet,exterior)
                 update_child_props(self.exterior_assembly.obj_bp)

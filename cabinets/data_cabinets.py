@@ -4,7 +4,6 @@ from . import common_prompts
 from . import data_cabinet_parts
 from . import data_cabinet_carcass
 from . import data_countertops
-from . import data_cabinet_doors
 from . import cabinet_utils
 from .. import home_builder_utils
 import time
