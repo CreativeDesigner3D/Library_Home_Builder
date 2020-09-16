@@ -22,6 +22,8 @@ from .walls import data_walls
 from .doors import door_library
 from .cabinets import cabinet_library
 from .cabinets import data_appliances
+from .cabinets import data_cabinet_carcass
+from .cabinets import cabinet_utils
 from .windows import window_library
 from . import home_builder_pointers
 from . import home_builder_utils
@@ -341,6 +343,46 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_update_cabinet_doors(bpy.types.Operator):
+    bl_idname = "home_builder.update_cabinet_doors"
+    bl_label = "Update Cabinet Doors"
+    
+    def run_calculators(self,context,assembly):
+        for calculator in assembly.obj_prompts.pyclone.calculators:
+            calculator.calculate()
+
+    def execute(self, context):
+        exterior_bp_objs = []
+
+        for obj in bpy.data.objects:
+            if "IS_EXTERIOR_BP" in obj and obj["IS_EXTERIOR_BP"]:
+                exterior_bp_objs.append(obj)
+
+        for exterior_bp in exterior_bp_objs:
+            cabinet_bp = home_builder_utils.get_cabinet_bp(exterior_bp)
+            carcass = None
+            for child in cabinet_bp.children:
+                carcass_bp = home_builder_utils.get_carcass_bp(child)
+                if carcass_bp:
+                    carcass = data_cabinet_carcass.Carcass(child) 
+                    break
+
+            if carcass:
+                cabinet = pc_types.Assembly(cabinet_bp)
+                old_exterior = pc_types.Assembly(exterior_bp)
+
+                exterior_prompt_dict = old_exterior.get_prompt_dict()
+                exterior = cabinet_utils.get_exterior_from_name(exterior_bp["EXTERIOR_NAME"])
+                exterior.prompts = exterior_prompt_dict
+                new_exterior = carcass.add_insert(cabinet,exterior)
+                self.run_calculators(context,exterior)
+                
+
+            pc_utils.delete_object_and_children(exterior_bp)
+
+        return {'FINISHED'}
+
+
 class home_builder_OT_update_pull_pointer(bpy.types.Operator):
     bl_idname = "home_builder.update_pull_pointer"
     bl_label = "Update Pull Pointer"
@@ -353,6 +395,21 @@ class home_builder_OT_update_pull_pointer(bpy.types.Operator):
             if pointer.name == self.pointer_name:
                 pointer.category = props.pull_category
                 pointer.item_name = props.pull_name      
+        return {'FINISHED'}
+
+
+class home_builder_OT_update_cabinet_door_pointer(bpy.types.Operator):
+    bl_idname = "home_builder.update_cabinet_door_pointer"
+    bl_label = "Update Cabinet Door Pointer"
+    
+    pointer_name: bpy.props.StringProperty(name="Pointer Name")
+
+    def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        for pointer in props.cabinet_door_pointers:
+            if pointer.name == self.pointer_name:
+                pointer.category = props.cabinet_door_category
+                pointer.item_name = props.cabinet_door_name      
         return {'FINISHED'}
 
 
@@ -533,7 +590,9 @@ classes = (
     home_builder_OT_update_scene_materials,
     home_builder_OT_update_material_pointer,
     home_builder_OT_update_scene_pulls,
+    home_builder_OT_update_cabinet_doors,
     home_builder_OT_update_pull_pointer,
+    home_builder_OT_update_cabinet_door_pointer,
     home_builder_OT_auto_add_molding,
     home_builder_OT_generate_2d_views,
     home_builder_OT_toggle_dimensions,

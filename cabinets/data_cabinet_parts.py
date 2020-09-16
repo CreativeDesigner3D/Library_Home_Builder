@@ -157,10 +157,13 @@ def add_shelf_holes(assembly):
     home_builder_pointers.assign_pointer_to_assembly(part,"Shelf Holes")
     return part
 
-def add_door_part(assembly):
-    part_path = path.join(home_builder_paths.get_asset_folder_path(),"Cutparts","Part.blend")
+def add_door_part(assembly,pointer):
+    part_path = home_builder_paths.get_cabinet_door_panel_path(pointer)
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
+    part.obj_bp["IS_CABINET_DOOR_PANEL"] = True
+    props = home_builder_utils.get_object_props(part.obj_bp)
+    props.pointer_name = pointer.name
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
     part.obj_y.empty_display_size = .001

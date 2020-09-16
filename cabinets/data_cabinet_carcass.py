@@ -376,7 +376,7 @@ class Base_Simple(pc_types.Assembly):
         common_prompts.add_base_assembly_prompts(self)
 
         cabinet_type = self.get_prompt("Cabinet Type")
-        cabinet_type.set_value(0)
+        cabinet_type.set_value("Base")
 
         add_cabinet_bottom(self)
         add_cabinet_top(self)
@@ -415,10 +415,15 @@ class Carcass(pc_types.Assembly):
         material_thickness = self.get_prompt('Material Thickness').get_var('material_thickness')
         cabinet_type = self.get_prompt("Cabinet Type")
 
+        #CHANGE CABINET TYPE TO STRING
+        #ADD NAME OF EXTERIOR TO 
+        #PASS PROMPTS IN CORRECT
+        insert.cabinet_type = cabinet_type.get_value()
+
         insert = cabinet.add_assembly(insert)
         insert.loc_x('x_loc_carcass+material_thickness',[material_thickness,x_loc_carcass])
         insert.loc_y('depth',[depth])
-        if cabinet_type.get_value() == 2: #UPPER CABINET
+        if cabinet_type.get_value() == "Upper": #UPPER CABINET
             insert.loc_z('material_thickness',[material_thickness])
             insert.dim_z('height-(material_thickness*2)',[height,material_thickness])
         else:
@@ -433,9 +438,6 @@ class Carcass(pc_types.Assembly):
         insert.obj_z.empty_display_size = .001
         insert.obj_bp.empty_display_size = .001
         insert.obj_prompts.empty_display_size = .001
-
-        # insert_cabinet_type = insert.get_prompt("Cabinet Type")
-        # insert_cabinet_type.set_value(cabinet_type.get_value())
 
         bpy.context.view_layer.update()
 
@@ -498,7 +500,7 @@ class Base_Advanced(Carcass):
         common_prompts.add_cabinet_lighting_prompts(self)
         
         cabinet_type = self.get_prompt("Cabinet Type")
-        cabinet_type.set_value(0)
+        cabinet_type.set_value("Base")
 
         self.obj_x.location.x = pc_unit.inch(18) 
         self.obj_y.location.y = -props.base_cabinet_depth
@@ -532,7 +534,7 @@ class Tall_Advanced(Carcass):
         common_prompts.add_cabinet_lighting_prompts(self)
 
         cabinet_type = self.get_prompt("Cabinet Type")
-        cabinet_type.set_value(1)
+        cabinet_type.set_value("Tall")
 
         self.obj_x.location.x = pc_unit.inch(18) 
         self.obj_y.location.y = -props.tall_cabinet_depth
@@ -564,7 +566,7 @@ class Upper_Advanced(Carcass):
         common_prompts.add_cabinet_lighting_prompts(self)
 
         cabinet_type = self.get_prompt("Cabinet Type")
-        cabinet_type.set_value(2)
+        cabinet_type.set_value("Upper")
 
         self.obj_x.location.x = pc_unit.inch(18) 
         self.obj_y.location.y = -props.upper_cabinet_depth

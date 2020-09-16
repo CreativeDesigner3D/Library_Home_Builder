@@ -36,7 +36,7 @@ class Standard_Cabinet(pc_types.Assembly):
             self.carcass.add_insert(self,self.interior)
 
         #BASE CABINET
-        if cabinet_type.get_value() == 0:
+        if cabinet_type.get_value() == 'Base':
             cabinet_utils.add_countertop(self)
             common_prompts.add_sink_prompts(self)
 
@@ -66,13 +66,13 @@ class Standard_Cabinet(pc_types.Assembly):
 
         cabinet_type = self.carcass.get_prompt("Cabinet Type")
         self.obj_x.location.x = self.width 
-        if cabinet_type.get_value() == 0:
+        if cabinet_type.get_value() == 'Base':
             self.obj_y.location.y = -props.base_cabinet_depth
             self.obj_z.location.z = props.base_cabinet_height
-        if cabinet_type.get_value() == 1:
+        if cabinet_type.get_value() == 'Tall':
             self.obj_y.location.y = -props.tall_cabinet_depth
             self.obj_z.location.z = props.tall_cabinet_height
-        if cabinet_type.get_value() == 2:
+        if cabinet_type.get_value() == 'Upper':
             self.obj_y.location.y = -props.upper_cabinet_depth
             self.obj_z.location.z = props.upper_cabinet_height
             self.obj_bp.location.z = props.height_above_floor - props.upper_cabinet_height

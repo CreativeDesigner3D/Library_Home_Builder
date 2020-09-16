@@ -595,50 +595,6 @@ def update_child_props(obj):
 def update_exterior(self,context):
     self.exterior_changed = True
 
-def update_exterior_old(self,context):
-    if self.cabinet_name not in bpy.data.objects:
-        return
-
-    obj = bpy.data.objects[self.cabinet_name]
-    bp = home_builder_utils.get_cabinet_bp(obj)
-
-    cabinet = pc_types.Assembly(bp)    
-    carcass = None
-    exterior_assembly = None
-    # drawers = None
-    # doors = None
-
-    for child in cabinet.obj_bp.children:
-        if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
-            carcass = pc_types.Assembly(child)        
-        if "IS_EXTERIOR_BP" in child and child["IS_EXTERIOR_BP"]:
-            exterior_assembly = pc_types.Assembly(child)            
-        # if "IS_DRAWERS_BP" in child and child["IS_DRAWERS_BP"]:
-        #     drawers = pc_types.Assembly(child)   
-        # if "IS_DOORS_BP" in child and child["IS_DOORS_BP"]:
-        #     doors = pc_types.Assembly(child)          
-
-    if exterior_assembly:
-        pc_utils.delete_object_and_children(exterior_assembly.obj_bp)
-        exterior = None
-        if self.exterior == 'DOOR':
-            exterior = data_cabinet_doors.Door()
-        elif self.exterior == '2_DOOR_2_DRAWER':
-            exterior = data_cabinet_doors.Door()             
-        elif self.exterior == '1_DOOR_1_DRAWER':
-            exterior = data_cabinet_doors.Door()           
-        elif self.exterior == '2_DOOR_1_DRAWER':
-            exterior = data_cabinet_doors.Door()       
-        elif self.exterior == 'SLIDING_DOORS':
-            exterior = data_cabinet_doors.Door()                                                   
-        elif self.exterior == 'DRAWERS':
-            exterior = data_cabinet_doors.Drawers()
-        if exterior:
-            # cabinet_type = carcass.get_prompt("Cabinet Type")
-            carcass.add_insert(exterior)
-            # cabinet_utils.add_exterior_to_cabinet(cabinet,carcass,exterior,cabinet_type.get_value())
-            update_child_props(exterior.obj_bp)
-
 def update_interior(self,context):
     print(self.interior_assembly)
     if self.interior_assembly:
@@ -775,15 +731,15 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
             exterior = None
             if self.exterior == 'DOOR':
-                exterior = data_cabinet_doors.Door()
+                exterior = data_cabinet_doors.Doors()
             elif self.exterior == '2_DOOR_2_DRAWER':
-                exterior = data_cabinet_doors.Door()             
+                exterior = data_cabinet_doors.Doors()             
             elif self.exterior == '1_DOOR_1_DRAWER':
-                exterior = data_cabinet_doors.Door()           
+                exterior = data_cabinet_doors.Doors()           
             elif self.exterior == '2_DOOR_1_DRAWER':
-                exterior = data_cabinet_doors.Door()       
+                exterior = data_cabinet_doors.Doors()       
             elif self.exterior == 'SLIDING_DOORS':
-                exterior = data_cabinet_doors.Door()                                                   
+                exterior = data_cabinet_doors.Doors()                                                   
             elif self.exterior == 'DRAWERS':
                 exterior = data_cabinet_doors.Drawers()
             if exterior:

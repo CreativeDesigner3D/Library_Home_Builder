@@ -353,6 +353,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
     #POINTERS                                                   
     material_pointers: bpy.props.CollectionProperty(name="Material Pointers",type=Pointer)
     pull_pointers: bpy.props.CollectionProperty(name="Pull Pointers",type=Pointer)
+    cabinet_door_pointers: bpy.props.CollectionProperty(name="Cabinet Door Pointers",type=Pointer)
 
     material_category: bpy.props.EnumProperty(name="Material Category",
         items=home_builder_enums.enum_material_categories,
@@ -365,6 +366,12 @@ class Home_Builder_Scene_Props(PropertyGroup):
         update=home_builder_enums.update_pull_category)
     pull_name: bpy.props.EnumProperty(name="Pull Name",
         items=home_builder_enums.enum_pull_names)
+
+    cabinet_door_category: bpy.props.EnumProperty(name="Cabinet Door Category",
+        items=home_builder_enums.enum_cabinet_door_categories,
+        update=home_builder_enums.update_cabinet_door_category)
+    cabinet_door_name: bpy.props.EnumProperty(name="Cabinet Door Name",
+        items=home_builder_enums.enum_cabinet_door_names)
 
     def draw_sizes(self,layout):
         box = layout.box()
@@ -600,6 +607,30 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.operator('home_builder.update_pull_pointer',text=pull.name,icon='FORWARD').pointer_name = pull.name
             row.label(text=pull.category + " - " + pull.item_name,icon='MODIFIER_ON')
 
+    def draw_fronts(self,layout):
+        split = layout.split(factor=.25)
+        left_col = split.column()
+        right_col = split.column()
+
+        cabinet_door_box = left_col.box()
+        row = cabinet_door_box.row()
+        row.label(text="Door Selections:")
+
+        cabinet_door_box.prop(self,'cabinet_door_category',text="",icon='FILE_FOLDER')  
+        if len(self.cabinet_door_name) > 0:
+            cabinet_door_box.template_icon_view(self,"cabinet_door_name",show_labels=True)  
+
+        right_row = right_col.row()
+        right_row.scale_y = 1.3
+        right_row.operator('home_builder.update_cabinet_doors',text="Update Cabinet Fronts",icon='FILE_REFRESH')
+
+        box = right_col.box()
+        col = box.column(align=True)
+        for cabinet_door in self.cabinet_door_pointers:
+            row = col.row()
+            row.operator('home_builder.update_cabinet_door_pointer',text=cabinet_door.name,icon='FORWARD').pointer_name = cabinet_door.name
+            row.label(text=cabinet_door.category + " - " + cabinet_door.item_name,icon='MODIFIER_ON')
+
     def draw_library(self,layout):
         layout = layout
 
@@ -661,7 +692,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
             pass
 
         if self.ui_tabs == 'FRONTS':
-            pass
+            self.draw_fronts(box)
 
         if self.ui_tabs == 'HARDWARE':
             self.draw_hardware(box)            

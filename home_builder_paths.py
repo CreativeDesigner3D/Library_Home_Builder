@@ -36,3 +36,9 @@ def get_range_path():
 
 def get_range_hood_path():
     return os.path.join(get_asset_folder_path(),'Range Hoods')         
+
+def get_cabinet_door_path():
+    return os.path.join(get_asset_folder_path(),'Cabinet Doors')        
+
+def get_cabinet_door_panel_path(pointer):
+    return os.path.join(get_cabinet_door_path(),pointer.category,pointer.item_name + ".blend")

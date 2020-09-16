@@ -46,6 +46,14 @@ def get_default_pull_pointers():
     pointers.append(("Drawer Pulls","Decorative Pulls","Americana Handle"))
     return pointers
 
+def get_default_cabinet_door_pointers():
+    pointers = []
+    pointers.append(("Base Cabinet Doors","Generic","Slab"))
+    pointers.append(("Tall Cabinet Doors","Generic","Slab"))
+    pointers.append(("Upper Cabinet Doors","Generic","Slab"))
+    pointers.append(("Drawer Fronts","Generic","Slab"))
+    return pointers
+
 def get_material_pointer_xml_path():
     path = os.path.join(os.path.dirname(__file__),'pointers')
     return os.path.join(path,"material_pointers.xml")
@@ -54,11 +62,17 @@ def get_pull_pointer_xml_path():
     path = os.path.join(os.path.dirname(__file__),'pointers')
     return os.path.join(path,"pull_pointers.xml")
 
+def get_cabinet_door_pointer_xml_path():
+    path = os.path.join(os.path.dirname(__file__),'pointers')
+    return os.path.join(path,"cabinet_door_pointers.xml")
+
 def write_pointer_files():
     pc_pointer_utils.write_xml_file(get_material_pointer_xml_path(),
                                     get_default_material_pointers())
     pc_pointer_utils.write_xml_file(get_pull_pointer_xml_path(),
                                     get_default_pull_pointers())
+    pc_pointer_utils.write_xml_file(get_cabinet_door_pointer_xml_path(),
+                                    get_default_cabinet_door_pointers())
 
 def update_pointer_properties():
     props = home_builder_utils.get_scene_props(bpy.context.scene)
@@ -66,6 +80,8 @@ def update_pointer_properties():
                                                 props.material_pointers)
     pc_pointer_utils.update_props_from_xml_file(get_pull_pointer_xml_path(),
                                                 props.pull_pointers)    
+    pc_pointer_utils.update_props_from_xml_file(get_cabinet_door_pointer_xml_path(),
+                                                props.cabinet_door_pointers)                                                    
 
 def assign_pointer_to_object(obj,pointer_name):
     if len(obj.pyclone.pointers) == 0:

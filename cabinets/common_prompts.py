@@ -1,7 +1,7 @@
 from ..pc_lib import pc_types, pc_unit, pc_utils
 
 def add_cabinet_prompts(assembly):
-    assembly.add_prompt("Cabinet Type",'COMBOBOX',0,["Base","Tall","Upper","Suspended"])
+    assembly.add_prompt("Cabinet Type",'TEXT',"")
 
 def add_filler_prompts(assembly):
     assembly.add_prompt("Left Adjustment Width",'DISTANCE',pc_unit.inch(0))

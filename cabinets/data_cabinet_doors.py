@@ -16,6 +16,7 @@ def add_overlay_prompts(assembly):
     vertical_gap = assembly.get_prompt("Vertical Gap").get_var('vertical_gap')
 
     overlay_prompt_obj = assembly.add_empty('Overlay Prompt Obj')
+    overlay_prompt_obj.empty_display_size = .01
 
     to = overlay_prompt_obj.pyclone.add_prompt('DISTANCE',"Top Overlay")
     bo = overlay_prompt_obj.pyclone.add_prompt('DISTANCE',"Bottom Overlay")
@@ -29,11 +30,10 @@ def add_overlay_prompts(assembly):
 
     return to, bo, lo, ro
 
-class Door(pc_types.Assembly):
+class Doors(pc_types.Assembly):
 
     door_swing = 0 # Left = 0, Right = 1, Double = 2
     cabinet_type = '' #Base, Tall, Upper
-    prompts = {}
 
     def set_pull_props(self,obj):
         obj['IS_CABINET_PULL'] = True
@@ -45,19 +45,13 @@ class Door(pc_types.Assembly):
         if self.cabinet_type == 'Upper':
             home_builder_utils.get_object_props(obj).pointer_name = "Upper Cabinet Pulls"
 
-    def set_prompts(self):
-        for key in self.prompts:
-            if key in self.obj_prompts.pyclone.prompts:
-                if key in self.obj_prompts.pyclone.prompts:
-                    prompt = self.obj_prompts.pyclone.prompts[key]
-                    prompt.set_value(self.prompts[key])
-
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
         self.create_assembly("Double Door")
         self.obj_bp["IS_DOORS_BP"] = True
         self.obj_bp["IS_EXTERIOR_BP"] = True
+        self.obj_bp["EXTERIOR_NAME"] = "DOORS"
         
         common_prompts.add_cabinet_prompts(self)
         common_prompts.add_door_prompts(self)
@@ -92,8 +86,16 @@ class Door(pc_types.Assembly):
         lo_var = lo.get_var("lo_var")
         ro_var = ro.get_var("ro_var")
 
+        pointer = None
+        if self.cabinet_type == 'Base':
+            pointer = props.cabinet_door_pointers["Base Cabinet Doors"]
+        if self.cabinet_type == 'Tall':
+            pointer = props.cabinet_door_pointers["Tall Cabinet Doors"]
+        if self.cabinet_type == 'Upper':
+            pointer = props.cabinet_door_pointers["Upper Cabinet Doors"]
+
         #LEFT DOOR
-        l_door = data_cabinet_parts.add_door_part(self)
+        l_door = data_cabinet_parts.add_door_part(self,pointer)
         l_door.set_name('Left Door Panel')
         l_door.loc_x('-lo_var',[lo_var])
         l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -137,7 +139,7 @@ class Door(pc_types.Assembly):
         self.set_pull_props(pull_obj)
 
         #RIGHT DOOR
-        r_door = data_cabinet_parts.add_door_part(self)
+        r_door = data_cabinet_parts.add_door_part(self,pointer)
         r_door.set_name('Right Door Panel')
         r_door.loc_x('x+ro_var',[x,ro_var])
         r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -182,7 +184,7 @@ class Door(pc_types.Assembly):
 
 
 class Drawers(pc_types.Assembly):
-    category_name = "Doors"
+    category_name = "Cabinet Exteriors"
 
     drawer_qty = 3
 
@@ -212,7 +214,9 @@ class Drawers(pc_types.Assembly):
         
         drawer_z_loc = front_empty.pyclone.get_var('location.z',"drawer_z_loc")
 
-        drawer_front = data_cabinet_parts.add_door_part(self)
+        pointer = props.cabinet_door_pointers["Drawer Fronts"]
+
+        drawer_front = data_cabinet_parts.add_door_part(self,pointer)
         drawer_front.set_name('Drawer Front')
         drawer_front.loc_x('-left_overlay',[left_overlay])
         drawer_front.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -244,6 +248,7 @@ class Drawers(pc_types.Assembly):
         self.create_assembly("Drawers")
         self.obj_bp["IS_DRAWERS_BP"] = True
         self.obj_bp["IS_EXTERIOR_BP"] = True
+        self.obj_bp["EXTERIOR_NAME"] = "DRAWERS"
 
         common_prompts.add_cabinet_prompts(self)
         common_prompts.add_door_prompts(self)
@@ -269,3 +274,5 @@ class Drawers(pc_types.Assembly):
         vertical_gap = self.get_prompt("Vertical Gap").get_var('vertical_gap')
         
         front_height_calculator.set_total_distance('z+top_overlay+bottom_overlay-vertical_gap*' + str(self.drawer_qty-1),[z,top_overlay,bottom_overlay,vertical_gap])
+
+        self.set_prompts()
