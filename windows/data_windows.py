@@ -7,8 +7,13 @@ from .. import home_builder_utils
 from .. import home_builder_pointers
 from .. import home_builder_paths
 
-ASSET_DIR = home_builder_paths.get_asset_folder_path()
-WINDOW_FRAME = path.join(ASSET_DIR,"Window Frames","Window Frame.blend")
+def get_default_window_frame():
+    ASSET_DIR = home_builder_paths.get_asset_folder_path()
+    return path.join(ASSET_DIR,"Window Frames","Window Frame.blend")
+
+def get_default_window_insert():
+    ASSET_DIR = home_builder_paths.get_asset_folder_path()
+    return path.join(ASSET_DIR,"Window Inserts","Window Insert 1.blend")
 
 class Hole(pc_types.Assembly):
 
@@ -83,7 +88,7 @@ class Standard_Window(pc_types.Assembly):
         hole.dim_y('depth+(boolean_overhang_var*2)',[depth,boolean_overhang_var])
         hole.dim_z('height',[height])
 
-        window_frame = pc_types.Assembly(self.add_assembly_from_file(WINDOW_FRAME))
+        window_frame = pc_types.Assembly(self.add_assembly_from_file(get_default_window_frame()))
         self.add_assembly(window_frame)
         window_frame.set_name("Window Frame")
         window_frame.loc_x(value=0)
@@ -101,4 +106,28 @@ class Standard_Window(pc_types.Assembly):
         else:
             window_frame_width = self.get_prompt("Window Frame Width").get_var('window_frame_width')
 
-        
+        glass = pc_types.Assembly()
+        glass.create_assembly("Glass")
+        glass.create_cube("Glass")
+        self.add_assembly(glass)
+        glass.loc_x(value=0)
+        glass.loc_y('depth/2',[depth])
+        glass.loc_z(value=0)
+        glass.dim_x('width',[width])
+        glass.dim_y(value=pc_unit.inch(.25))
+        glass.dim_z('height',[height])  
+        home_builder_pointers.assign_pointer_to_assembly(glass,"Glass")
+
+        glass_thickness = glass.obj_y.pyclone.get_var('location.y','glass_thickness')
+        glass_setback = glass.obj_bp.pyclone.get_var('location.y','glass_setback')
+
+        window_insert = pc_types.Assembly(self.add_assembly_from_file(get_default_window_insert()))
+        self.add_assembly(window_frame)
+        window_insert.set_name("Window Insert")
+        window_insert.loc_x(value=0)
+        window_insert.loc_y('glass_setback-.01',[glass_setback])
+        window_insert.loc_z(value=0)
+        window_insert.dim_x('width',[width])
+        window_insert.dim_y('glass_thickness+.02',[glass_thickness])
+        window_insert.dim_z('height',[height])             
+        home_builder_pointers.assign_materials_to_assembly(window_insert)
