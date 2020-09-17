@@ -5,7 +5,7 @@ from . import data_cabinet_parts
 from .. import home_builder_utils
 from .. import home_builder_paths
 from . import common_prompts
-
+from . import cabinet_utils
 from os import path
 
 class Range(pc_types.Assembly):
@@ -96,6 +96,7 @@ class Dishwasher(pc_types.Assembly):
     obj = None
 
     def draw(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
         ASSET_DIR = home_builder_paths.get_asset_folder_path()
         assembly_path = path.join(ASSET_DIR,"Dishwashers","Generic","Generic Dishwasher.blend")
 
@@ -111,12 +112,14 @@ class Dishwasher(pc_types.Assembly):
         assembly.obj_bp["IS_DISHWASHER_BP"] = True
         
         self.obj_x.location.x = assembly.obj_x.location.x
-        self.obj_y.location.y = assembly.obj_y.location.y
-        self.obj_z.location.z = assembly.obj_z.location.z
+        self.obj_y.location.y = -props.base_cabinet_depth
+        self.obj_z.location.z = props.base_cabinet_height
 
         assembly.dim_x('width',[width])
         assembly.dim_y('depth',[depth])
-        assembly.dim_z('height',[height])           
+        assembly.dim_z('height',[height])     
+
+        cabinet_utils.add_countertop(self)      
 
 class Sink(pc_types.Assembly):
     # show_in_library = True
