@@ -198,8 +198,8 @@ class Assembly:
         if assembly.obj_bp is None:
             if hasattr(assembly,'draw'):
                 assembly.draw()
-            assembly.obj_bp.location = (0,0,0)
-            assembly.obj_bp.parent = self.obj_bp
+        assembly.obj_bp.location = (0,0,0)
+        assembly.obj_bp.parent = self.obj_bp
         return assembly
 
     def add_assembly_from_file(self,filepath):
