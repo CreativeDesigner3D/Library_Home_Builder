@@ -547,10 +547,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
         material_box = left_col.box()
         row = material_box.row()
         row.label(text="Material Selections:")
-
         material_box.prop(self,'material_category',text="",icon='FILE_FOLDER')  
-        if len(self.material_name) > 0:
-            material_box.template_icon_view(self,"material_name",show_labels=True)  
+        material_box.template_icon_view(self,"material_name",show_labels=True)  
 
         right_row = right_col.row()
         right_row.scale_y = 1.3
@@ -593,8 +591,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         row.label(text="Pull Selections:")
 
         hardware_box.prop(self,'pull_category',text="",icon='FILE_FOLDER')  
-        if len(self.pull_name) > 0:
-            hardware_box.template_icon_view(self,"pull_name",show_labels=True)  
+        hardware_box.template_icon_view(self,"pull_name",show_labels=True)  
 
         right_row = right_col.row()
         right_row.scale_y = 1.3
@@ -617,8 +614,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         row.label(text="Door Selections:")
 
         cabinet_door_box.prop(self,'cabinet_door_category',text="",icon='FILE_FOLDER')  
-        if len(self.cabinet_door_name) > 0:
-            cabinet_door_box.template_icon_view(self,"cabinet_door_name",show_labels=True)  
+        cabinet_door_box.template_icon_view(self,"cabinet_door_name",show_labels=True)  
 
         right_row = right_col.row()
         right_row.scale_y = 1.3
