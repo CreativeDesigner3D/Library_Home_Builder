@@ -1395,10 +1395,16 @@ class home_builder_OT_hardlock_part_size(bpy.types.Operator):
         return False
 
     def execute(self, context):
-        obj_bp = pc_utils.get_assembly_bp(context.object)
-        for child in obj_bp.children:
-            if child.type == 'MESH':
-                home_builder_utils.apply_hook_modifiers(context,child)
+        obj_bps = []
+        for obj in context.selected_objects:
+            obj_bp = pc_utils.get_assembly_bp(obj)
+            if obj_bp is not None and obj_bp not in obj_bps:
+                obj_bps.append(obj_bp)
+
+        for obj_bp in obj_bps:
+            for child in obj_bp.children:
+                if child.type == 'MESH':
+                    home_builder_utils.apply_hook_modifiers(context,child)
         return {'FINISHED'}
 
 
