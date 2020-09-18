@@ -22,15 +22,13 @@ from . import home_builder_utils
 from . import home_builder_enums
 from . import home_builder_paths
 from .walls import data_walls
-from .doors import door_library
+from .doors_windows import door_window_library
 from .cabinets import cabinet_library
 from .cabinets import data_appliances
-from .windows import window_library
 
 library_modules = [cabinet_library,
                    data_walls,
-                   door_library,
-                   window_library,
+                   door_window_library,
                    data_appliances]
 
 class Pointer(PropertyGroup):

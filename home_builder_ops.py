@@ -18,13 +18,8 @@ from bpy.props import (StringProperty,
                        CollectionProperty)
 
 from .pc_lib import pc_unit, pc_utils, pc_types
-from .walls import data_walls
-from .doors import door_library
-from .cabinets import cabinet_library
-from .cabinets import data_appliances
 from .cabinets import data_cabinet_carcass
 from .cabinets import cabinet_utils
-from .windows import window_library
 from . import home_builder_pointers
 from . import home_builder_utils
 from . import home_builder_paths
@@ -81,20 +76,17 @@ class room_builder_OT_drop(Operator):
             if 'Stairs' in filename:
                 bpy.ops.archipack.stair('INVOKE_DEFAULT')
 
-        if props.active_category == 'Walls':
-            bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
+        if props.active_category == 'Appliances':
+            bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
+
+        if props.active_category == 'Doors and Windows':
+            bpy.ops.home_builder.place_door_window(filepath=self.filepath)
 
         if props.active_category == 'Cabinets':
             bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
 
-        if props.active_category == 'Appliances':
-            bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
-
-        if props.active_category == 'Doors':
-            bpy.ops.home_builder.place_door(filepath=self.filepath)
-
-        if props.active_category == 'Windows':
-            bpy.ops.home_builder.place_window(filepath=self.filepath)
+        if props.active_category == 'Walls':
+            bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
 
         return {'FINISHED'}
 

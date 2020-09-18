@@ -9,8 +9,7 @@ from . import home_builder_pointers
 from . import home_builder_utils
 from .walls import wall_ops
 from .cabinets import cabinet_ops
-from .doors import door_ops
-from .windows import window_ops
+from .doors_windows import door_window_ops
 from bpy.app.handlers import persistent
 
 bl_info = {
@@ -46,8 +45,7 @@ def register():
     home_builder_ops.register()
     wall_ops.register()
     cabinet_ops.register()
-    door_ops.register()
-    window_ops.register()
+    door_window_ops.register()
 
     load_library_on_file_load()
     bpy.app.handlers.load_post.append(load_library_on_file_load)
@@ -59,8 +57,7 @@ def unregister():
     home_builder_ops.unregister()
     wall_ops.unregister()
     cabinet_ops.unregister()
-    door_ops.unregister()
-    window_ops.unregister()
+    door_window_ops.unregister()
 
     bpy.app.handlers.load_post.remove(load_library_on_file_load)  
     bpy.app.handlers.load_post.remove(load_pointers)
