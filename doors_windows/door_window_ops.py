@@ -35,7 +35,6 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
         self.set_child_properties(self.assembly.obj_bp)
 
     def set_child_properties(self,obj):
-        obj["PROMPT_ID"] = "home_builder.window_door_prompts"   
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':
@@ -46,13 +45,15 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
             self.set_child_properties(child)
 
     def set_placed_properties(self,obj):
+        obj["PROMPT_ID"] = "home_builder.window_door_prompts"   
         if obj.type == 'MESH':
             if 'IS_BOOLEAN' in obj:
                 obj.display_type = 'WIRE' 
                 obj.hide_viewport = True
             else:
                 obj.display_type = 'TEXTURED'  
-
+        if obj.type == 'EMPTY':
+            obj.hide_viewport = True
         for child in obj.children:
             self.set_placed_properties(child) 
 
@@ -106,9 +107,11 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
 
         if self.event_is_place_first_point(event):
             self.add_boolean_modifier(selected_obj)
-            self.set_placed_properties(self.assembly.obj_bp)
             if selected_obj.parent:
                 self.parent_window_to_wall(selected_obj.parent)
+            if hasattr(self.assembly,'add_doors'):
+                self.assembly.add_doors()
+            self.set_placed_properties(self.assembly.obj_bp)
             self.create_assembly(context)
             return {'RUNNING_MODAL'}
 

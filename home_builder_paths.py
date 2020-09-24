@@ -42,3 +42,9 @@ def get_cabinet_door_path():
 
 def get_cabinet_door_panel_path(pointer):
     return os.path.join(get_cabinet_door_path(),pointer.category,pointer.item_name + ".blend")
+
+def get_entry_door_handle_path():
+    return os.path.join(get_asset_folder_path(),'Entry Door Handles')       
+
+def get_entry_door_panel_path():
+    return os.path.join(get_asset_folder_path(),'Entry Door Panels')        

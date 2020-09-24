@@ -115,4 +115,14 @@
 		<Category>Wood</Category>
 		<Asset>Painted Wood White</Asset>
 	</Pointer>
+	<Pointer>
+		<Name>Entry Door Panels</Name>
+		<Category>Wood</Category>
+		<Asset>Painted Wood White</Asset>
+	</Pointer>
+	<Pointer>
+		<Name>Entry Door Handle</Name>
+		<Category>Metal</Category>
+		<Asset>Polished Chrome</Asset>
+	</Pointer>
 </Root>

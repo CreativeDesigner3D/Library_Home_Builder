@@ -4,6 +4,7 @@ from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinet_parts
 from .. import home_builder_utils
 from .. import home_builder_pointers
+from .. import home_builder_paths
 from . import common_prompts
 from os import path
 
@@ -117,7 +118,8 @@ class Doors(pc_types.Assembly):
         #LEFT DOOR PULL
         l_pull_empty = l_door.add_empty('Left Pull Empty')
         l_pull_empty.empty_display_size = .01
-        pull_obj = home_builder_utils.get_pull(props.pull_category,props.pull_name)
+        pull_path = path.join(home_builder_paths.get_pull_path(),props.pull_category,props.pull_name + ".blend")
+        pull_obj = home_builder_utils.get_object(pull_path) 
         l_door.add_object(pull_obj)
         pull_obj.parent = l_pull_empty
         
@@ -160,7 +162,8 @@ class Doors(pc_types.Assembly):
         #RIGHT DOOR PULL
         r_pull_empty = r_door.add_empty('Right Pull Empty')
         r_pull_empty.empty_display_size = .01
-        pull_obj = home_builder_utils.get_pull(props.pull_category,props.pull_name)
+        pull_path = path.join(home_builder_paths.get_pull_path(),props.pull_category,props.pull_name + ".blend")
+        pull_obj = home_builder_utils.get_object(pull_path)
         r_door.add_object(pull_obj)
         pull_obj.parent = r_pull_empty
 
@@ -231,7 +234,8 @@ class Drawers(pc_types.Assembly):
         pull_empty = self.add_empty('Pull Empty')
         pull_empty.empty_display_size = .01
 
-        pull_obj = home_builder_utils.get_pull(props.pull_category,props.pull_name)
+        pull_path = path.join(home_builder_paths.get_pull_path(),props.pull_category,props.pull_name + ".blend")
+        pull_obj = home_builder_utils.get_object(pull_path)
         pull_obj['IS_CABINET_PULL'] = True
         home_builder_utils.get_object_props(pull_obj).pointer_name = "Drawer Pulls"
         self.add_object(pull_obj)

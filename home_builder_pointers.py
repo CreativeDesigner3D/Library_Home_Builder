@@ -35,6 +35,8 @@ def get_default_material_pointers():
     #DOORS
     pointers.append(("Entry Doors","Wood","Painted Wood White"))
     pointers.append(("Entry Door Frame","Wood","Painted Wood White"))
+    pointers.append(("Entry Door Panels","Wood","Painted Wood White"))
+    pointers.append(("Entry Door Handle","Metal","Polished Chrome"))
 
     return pointers
 

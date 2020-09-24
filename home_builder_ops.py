@@ -317,7 +317,8 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
             exterior_bp = home_builder_utils.get_exterior_bp(pull)
             for pointer in pull_pointers:
                 if pointer.name == props.pointer_name:
-                    new_pull = home_builder_utils.get_pull(pointer.category,pointer.item_name)
+                    pull_path = os.path.join(home_builder_paths.get_pull_path(),props.pull_category,props.pull_name + ".blend")
+                    new_pull = home_builder_utils.get_object(pull_path)
                     new_pull_props = home_builder_utils.get_object_props(new_pull)
                     new_pull_props.pointer_name = pointer.name
                     new_pull.parent = pull.parent

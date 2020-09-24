@@ -106,15 +106,11 @@ def get_material(category,material_name):
         for mat in data_to.materials:
             return mat
             
-def get_pull(category,pull_name):
-    pull_path = os.path.join(home_builder_paths.get_pull_path(),category,pull_name + ".blend")
-    if os.path.exists(pull_path):
+def get_object(path):
+    if os.path.exists(path):
 
-        with bpy.data.libraries.load(pull_path, False, False) as (data_from, data_to):
-            for obj in data_from.objects:
-                if obj == pull_name:
-                    data_to.objects = [obj]
-                    break    
+        with bpy.data.libraries.load(path, False, False) as (data_from, data_to):
+            data_to.objects = data_from.objects 
         
         for obj in data_to.objects:
             return obj
