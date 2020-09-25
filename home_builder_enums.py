@@ -18,6 +18,7 @@ preview_collections["range_hood_categories"] = pc_pointer_utils.create_image_pre
 preview_collections["range_hood_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cabinet_door_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cabinet_door_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["entry_door_panel_items"] = pc_pointer_utils.create_image_preview_collection()
 
 #MATERIALS
 def enum_material_categories(self,context):
@@ -187,3 +188,12 @@ def update_cabinet_door_category(self,context):
         preview_collections["cabinet_door_items"] = pc_pointer_utils.create_image_preview_collection()     
         
     enum_cabinet_door_names(self,context)              
+
+#ENTRY DOOR PANELS     
+def enum_entry_door_panels_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(home_builder_paths.get_entry_door_panel_path())
+    pcoll = preview_collections["entry_door_panel_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)

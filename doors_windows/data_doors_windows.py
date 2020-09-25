@@ -20,13 +20,23 @@ def get_default_door_frame():
     ASSET_DIR = home_builder_paths.get_asset_folder_path()
     return path.join(ASSET_DIR,"Door Frames","Door Frame.blend") 
 
-def get_default_door_panel():
+def get_door_panel(door_panel_name):
     ASSET_DIR = home_builder_paths.get_entry_door_panel_path()
-    return path.join(ASSET_DIR,"Door Panel Slab.blend") 
+    if door_panel_name == "":
+        return path.join(ASSET_DIR,"Door Panel Slab.blend") 
+    else:
+        return path.join(ASSET_DIR, door_panel_name + ".blend") 
+
+def get_door_handle(door_handle_name):
+    ASSET_DIR = home_builder_paths.get_entry_door_handle_path()
+    if door_handle_name == "":
+        return path.join(ASSET_DIR,"Entry Door Handle 1.blend") 
+    else:
+        return path.join(ASSET_DIR, door_handle_name + ".blend") 
 
 class Standard_Door(pc_types.Assembly):
 
-    def add_doors(self):
+    def add_doors(self,door_panel_name="",door_handle_name=""):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')        
@@ -41,8 +51,9 @@ class Standard_Door(pc_types.Assembly):
         door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
         
         #LEFT DOOR
-        l_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_default_door_panel()))
+        l_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_name)))
         l_door_panel.set_name("Left Door Panel")
+        l_door_panel.obj_bp["IS_ENTRY_DOOR_PANEL"] = True
         self.add_assembly(l_door_panel)
         l_door_panel.loc_x('IF(outswing,width-door_frame_width-door_reveal,door_frame_width+door_reveal)',[outswing,width,door_frame_width,door_reveal])
         l_door_panel.loc_y('IF(outswing,depth,0)',[outswing,depth])
@@ -63,8 +74,7 @@ class Standard_Door(pc_types.Assembly):
         door_handle_center.empty_display_size = .001
         door_handle_center.pyclone.loc_y('l_door_thickness/2',[l_door_thickness])
 
-        door_handle_path = path.join(home_builder_paths.get_entry_door_handle_path(),"Entry Door Handle 1.blend")
-        l_door_handle_obj = home_builder_utils.get_object(door_handle_path)
+        l_door_handle_obj = home_builder_utils.get_object(get_door_handle(door_handle_name))
         l_door_panel.add_object(l_door_handle_obj)
         l_door_handle_obj.pyclone.loc_x('l_door_panel_width-handle_location_from_edge',[l_door_panel_width,handle_location_from_edge])
         l_door_handle_obj.pyclone.loc_y(value=0)
@@ -79,8 +89,9 @@ class Standard_Door(pc_types.Assembly):
         mirror.use_axis[2] = False
 
         #RIGHT DOOR
-        r_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_default_door_panel()))
+        r_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_name)))
         r_door_panel.set_name("Right Door Panel")
+        r_door_panel.obj_bp["IS_ENTRY_DOOR_PANEL"] = True
         self.add_assembly(r_door_panel)
         r_door_panel.loc_x('IF(outswing,door_frame_width+door_reveal,width-door_frame_width-door_reveal)',[outswing,width,door_frame_width,door_reveal])
         r_door_panel.loc_y('IF(outswing,depth,0)',[outswing,depth])
@@ -100,8 +111,7 @@ class Standard_Door(pc_types.Assembly):
         door_handle_center.empty_display_size = .001
         door_handle_center.pyclone.loc_y('r_door_thickness/2',[r_door_thickness])
 
-        door_handle_path = path.join(home_builder_paths.get_entry_door_handle_path(),"Entry Door Handle 1.blend")
-        r_door_handle_obj = home_builder_utils.get_object(door_handle_path)
+        r_door_handle_obj = home_builder_utils.get_object(get_door_handle(door_handle_name))
         r_door_panel.add_object(r_door_handle_obj)
         r_door_handle_obj.pyclone.loc_x('r_door_panel_width+handle_location_from_edge',[r_door_panel_width,handle_location_from_edge])
         r_door_handle_obj.pyclone.loc_y(value=0)

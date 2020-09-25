@@ -3,6 +3,8 @@ import os
 import math
 from ..pc_lib import pc_utils, pc_types, pc_unit
 from .. import home_builder_utils
+from .. import home_builder_enums
+from . import data_doors_windows
 
 class home_builder_OT_place_door_window(bpy.types.Operator):
     bl_idname = "home_builder.place_door_window"
@@ -182,18 +184,40 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
         context.area.tag_redraw()
         return {'FINISHED'}
 
+def update_door_panel(self,context):
+    self.door_panel_changed = True
 
 class home_builder_OT_window_door_prompts(bpy.types.Operator):
     bl_idname = "home_builder.window_door_prompts"
-    bl_label = "Window Door Prompts"
+    bl_label = "Prompts"
 
     assembly_name: bpy.props.StringProperty(name="Window Name",default="")
+    door_panel_changed: bpy.props.BoolProperty(name="Door Panel Changed")
+
+    product_tabs: bpy.props.EnumProperty(name="Product Tabs",
+                                         items=[('MAIN',"Main","Main Options"),
+                                                ('EXTERIOR',"Exterior","Exterior Options"),
+                                                ('INTERIOR',"Interior","Interior Options"),
+                                                ('SPLITTER',"Openings","Openings Options")])
+
+    door_swing: bpy.props.EnumProperty(name="Door Swing",
+                                       items=[('LEFT',"Left","Left Swing Door"),
+                                              ('RIGHT',"Right","Right Swing Door"),
+                                              ('DOUBLE',"Double","Double Doors")])
 
     width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
     height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
     depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
+    # material_category: bpy.props.EnumProperty(name="Material Category",
+    #     items=home_builder_enums.enum_material_categories,
+    #     update=home_builder_enums.update_material_category)
+    door_panel: bpy.props.EnumProperty(name="Door Panel",
+        items=home_builder_enums.enum_entry_door_panels_names,
+        update=update_door_panel)
+
     assembly = None
+    door_panels = []
 
     def update_product_size(self):
         if 'IS_MIRROR' in self.assembly.obj_x and self.assembly.obj_x['IS_MIRROR']:
@@ -211,25 +235,65 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
         else:
             self.assembly.obj_z.location.z = self.height
 
+    def update_door_panel(self,context):
+        if self.door_panel_changed:
+            for door_panel in self.door_panels:
+                pc_utils.delete_object_and_children(door_panel)
+
+            if hasattr(self.assembly,'add_doors'):
+                self.assembly.add_doors(door_panel_name=self.door_panel)
+
+            # exterior = cabinet_utils.get_exterior_from_name(self.exterior)
+            # if exterior:
+            #     self.exterior_assembly = self.carcass.add_insert(self.cabinet,exterior)
+            #     update_child_props(self.exterior_assembly.obj_bp)
+
+            self.door_panel_changed = False
+            self.get_assemblies_and_set_prompts(context)
+
     def check(self, context):
         self.update_product_size()
+        self.update_door_panel(context)
+        entry_door_swing = self.assembly.get_prompt("Entry Door Swing")
+        if entry_door_swing:
+            if self.door_swing == 'LEFT':
+                entry_door_swing.set_value(0)
+            if self.door_swing == 'RIGHT':
+                entry_door_swing.set_value(1)
+            if self.door_swing == 'DOUBLE':
+                entry_door_swing.set_value(2)                        
         return True
 
     def execute(self, context):
         return {'FINISHED'}
 
-    def get_assemblies(self,context):
-        pass
+    def get_assemblies_and_set_prompts(self,context):
+        self.door_panels = []
+        
+        bp_window = home_builder_utils.get_window_bp(context.object)
+        if bp_window:
+            self.assembly = data_doors_windows.Standard_Window(bp_window)
+        bp_door = home_builder_utils.get_door_bp(context.object)  
+        if bp_door:
+            self.assembly = data_doors_windows.Standard_Door(bp_door)
+        for child in self.assembly.obj_bp.children:
+            if "IS_ENTRY_DOOR_PANEL" in child:
+                self.door_panels.append(child)
+
+        entry_door_swing = self.assembly.get_prompt("Entry Door Swing")
+        if entry_door_swing:
+            if entry_door_swing.get_value() == 0:
+                self.door_swing = 'LEFT'
+            if entry_door_swing.get_value() == 1:
+                self.door_swing = 'RIGHT'
+            if entry_door_swing.get_value() == 2:
+                self.door_swing = 'DOUBLE'
 
     def invoke(self,context,event):
-        bp = home_builder_utils.get_window_bp(context.object)
-        if bp is None:
-            bp = home_builder_utils.get_door_bp(context.object)
-        self.assembly = pc_types.Assembly(bp)
+        self.get_assemblies_and_set_prompts(context)
         self.depth = math.fabs(self.assembly.obj_y.location.y)
         self.height = math.fabs(self.assembly.obj_z.location.z)
         self.width = math.fabs(self.assembly.obj_x.location.x)
-        self.get_assemblies(context)
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
 
@@ -269,27 +333,55 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
             row1.label(text='Depth:')
             row1.prop(self,'depth',text="")
             row1.prop(self.assembly.obj_y,'hide_viewport',text="")
-            
-        if len(self.assembly.obj_bp.constraints) > 0:
-            col = row.column(align=True)
-            col.label(text="Location:")
-            col.operator('home_builder.disconnect_constraint',text='Disconnect Constraint',icon='CONSTRAINT').obj_name = self.door.obj_bp.name
-        else:
-            col = row.column(align=True)
-            col.label(text="Location X:")
-            col.label(text="Location Y:")
-            col.label(text="Location Z:")
-        
-            col = row.column(align=True)
-            col.prop(self.assembly.obj_bp,'location',text="")
-        
-        row = box.row()
-        row.label(text='Rotation Z:')
-        row.prop(self.assembly.obj_bp,'rotation_euler',index=2,text="")  
+
+        row = box.row()    
+        row.label(text="Location:")
+        row.prop(self.assembly.obj_bp,'location',index=0,text="X")
+        row.prop(self.assembly.obj_bp,'location',index=2,text="Z")
+
+    def draw_prompts(self,layout,context):
+        # door_reveal = self.assembly.get_prompt("Door Reveal")
+        handle_vertical_location = self.assembly.get_prompt("Handle Vertical Location")
+        handle_location_from_edge = self.assembly.get_prompt("Handle Location From Edge")
+        entry_door_swing = self.assembly.get_prompt("Entry Door Swing")
+        outswing = self.assembly.get_prompt("Outswing")
+        open_door = self.assembly.get_prompt("Open Door")
+
+        if open_door and outswing and entry_door_swing:
+            box = layout.box()
+            box.label(text="Door Swing")
+            row = box.row()
+            open_door.draw(row,allow_edit=False)
+            row = box.row(align=True)
+            row.label(text="Door Swing")
+            row.prop_enum(self, "door_swing", 'LEFT') 
+            row.prop_enum(self, "door_swing", 'RIGHT') 
+            row.prop_enum(self, "door_swing", 'DOUBLE')
+            outswing.draw(row,allow_edit=False)     
+
+        if handle_vertical_location and handle_location_from_edge:
+            box = layout.box()
+            box.label(text="Door Hardware")
+            row = box.row()
+            row.label(text="Pull Location:")
+            row.prop(handle_vertical_location,'distance_value',text="Vertical")  
+            row.prop(handle_location_from_edge,'distance_value',text="From Edge")  
+
+    def draw_door_panel(self,layout,context):
+        box = layout.box()
+        box.label(text="Door Panel Selection")
+        box.template_icon_view(self,"door_panel",show_labels=True)          
 
     def draw(self, context):
         layout = self.layout
         self.draw_product_size(layout,context)
+        # row = layout.row(align=True)
+        # row.prop_enum(self, "product_tabs", 'MAIN') 
+        # row.prop_enum(self, "product_tabs", 'EXTERIOR') 
+        # row.prop_enum(self, "product_tabs", 'INTERIOR') 
+        # if self.product_tabs == 'EXTERIOR':
+        self.draw_prompts(layout,context)
+        self.draw_door_panel(layout,context)
 
 
 classes = (
