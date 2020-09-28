@@ -16,9 +16,13 @@ def get_default_window_insert():
     ASSET_DIR = home_builder_paths.get_asset_folder_path()
     return path.join(ASSET_DIR,"Window Inserts","Window Insert 1.blend")
 
+def get_default_door_jamb():
+    ASSET_DIR = home_builder_paths.get_asset_folder_path()
+    return path.join(ASSET_DIR,"Door Frames","Door Jamb.blend") 
+
 def get_default_door_frame():
     ASSET_DIR = home_builder_paths.get_asset_folder_path()
-    return path.join(ASSET_DIR,"Door Frames","Door Frame.blend") 
+    return path.join(ASSET_DIR,"Door Frames","Door Frame Square.blend") 
 
 def get_door_panel(door_panel_name):
     ASSET_DIR = home_builder_paths.get_entry_door_panel_path()
@@ -160,6 +164,17 @@ class Standard_Door(pc_types.Assembly):
         hole.dim_y('depth+(boolean_overhang_var*2)',[depth,boolean_overhang_var])
         hole.dim_z('height+boolean_overhang_var',[height,boolean_overhang_var])
 
+        door_jamb = pc_types.Assembly(self.add_assembly_from_file(get_default_door_jamb()))
+        self.add_assembly(door_jamb)
+        door_jamb.set_name("Door Jamb")
+        door_jamb.loc_x(value=0)
+        door_jamb.loc_y(value=0)
+        door_jamb.loc_z(value=0)
+        door_jamb.dim_x('width',[width])
+        door_jamb.dim_y('depth',[depth])
+        door_jamb.dim_z('height',[height])  
+        home_builder_pointers.assign_pointer_to_assembly(door_jamb,"Entry Door Frame")
+
         door_frame = pc_types.Assembly(self.add_assembly_from_file(get_default_door_frame()))
         self.add_assembly(door_frame)
         door_frame.set_name("Door Frame")
@@ -170,7 +185,7 @@ class Standard_Door(pc_types.Assembly):
         door_frame.dim_y('depth',[depth])
         door_frame.dim_z('height',[height])  
         home_builder_pointers.assign_pointer_to_assembly(door_frame,"Entry Door Frame")
-
+        
 
 class Standard_Window(pc_types.Assembly):
 
