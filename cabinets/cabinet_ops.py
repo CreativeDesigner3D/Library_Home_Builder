@@ -1510,7 +1510,6 @@ class home_builder_OT_free_move_cabinet(bpy.types.Operator):
         cabinet.obj_bp.hide_viewport = False
         cabinet.obj_bp.select_set(True)
 
-        context.window.cursor_warp(0,0)
         bpy.ops.transform.translate('INVOKE_DEFAULT')
         
         return {'FINISHED'}
