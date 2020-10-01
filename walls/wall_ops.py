@@ -258,6 +258,7 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         next_rot = 0
         left_angle = self.current_wall.get_prompt("Left Angle")
         right_angle = self.current_wall.get_prompt("Right Angle")    
+        rot = math.degrees(self.current_wall.obj_bp.rotation_euler.z)
 
         if self.previous_wall:
             prev_left_angle = self.previous_wall.get_prompt("Left Angle")
@@ -268,16 +269,13 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
             next_left_angle = self.next_wall.get_prompt("Left Angle")
             next_rot = math.degrees(self.next_wall.obj_bp.rotation_euler.z)  
 
-        rot = math.degrees(self.current_wall.obj_bp.rotation_euler.z)
-
-        left_angle.set_value((rot-prev_rot)/2)
-
         if self.next_wall:
             right_angle.set_value((rot-next_rot)/2)
             next_left_angle.set_value((next_rot-rot)/2)
 
         if self.previous_wall:
             prev_right_angle.set_value((prev_rot-rot)/2)
+            left_angle.set_value((rot-prev_rot)/2)
 
         self.current_wall.obj_prompts.location = self.current_wall.obj_prompts.location
         if self.previous_wall:
@@ -318,9 +316,9 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         if pc_utils.object_has_driver(self.current_wall.obj_x):
             x = math.fabs(self.current_wall.obj_x.location.x)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',x))
-            row1.label(text='Wall Length: ' + value)
+            row1.label(text='Length: ' + value)
         else:
-            row1.label(text='Wall Length:')
+            row1.label(text='Length:')
             row1.prop(self.current_wall.obj_x,'location',index=0,text="")
             row1.prop(self.current_wall.obj_x,'hide_viewport',text="")
         
@@ -328,9 +326,9 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         if pc_utils.object_has_driver(self.current_wall.obj_z):
             z = math.fabs(self.current_wall.obj_z.location.z)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',z))            
-            row1.label(text='Wall Height: ' + value)
+            row1.label(text='Height: ' + value)
         else:
-            row1.label(text='Wall Height:')
+            row1.label(text='Height:')
             row1.prop(self.current_wall.obj_z,'location',index=2,text="")
             row1.prop(self.current_wall.obj_z,'hide_viewport',text="")
         
@@ -338,9 +336,9 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         if pc_utils.object_has_driver(self.current_wall.obj_y):
             y = math.fabs(self.current_wall.obj_y.location.y)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',y))                 
-            row1.label(text='Wall Thickness: ' + value)
+            row1.label(text='Thickness: ' + value)
         else:
-            row1.label(text='Wall Thickness:')
+            row1.label(text='Thickness:')
             row1.prop(self.current_wall.obj_y,'location',index=1,text="")
             row1.prop(self.current_wall.obj_y,'hide_viewport',text="")
             
