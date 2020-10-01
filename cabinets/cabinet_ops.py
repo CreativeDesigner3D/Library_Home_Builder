@@ -1315,17 +1315,19 @@ class home_builder_MT_cabinet_menu(bpy.types.Menu):
 
         if cabinet_bp:
             layout.operator('home_builder.move_cabinet',text="Move Cabinet - " + cabinet_bp.name,icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
-            layout.operator('home_builder.duplicate_cabinet',text="Duplicate Cabinet - " + cabinet_bp.name,icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
+            layout.operator('home_builder.free_move_cabinet',text="Grab Cabinet - " + cabinet_bp.name,icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
+            layout.operator('home_builder.duplicate_cabinet',text="Duplicate Cabinet - " + cabinet_bp.name,icon='DUPLICATE').obj_bp_name = cabinet_bp.name
+            layout.separator()
             
-            cabinet = pc_types.Assembly(cabinet_bp)
-            add_sink = cabinet.get_prompt("Add Sink")
-            if add_sink:
-                layout.operator('home_builder.cabinet_sink_options',text="Cabinet Sink Options",icon='WINDOW')
+        #     cabinet = pc_types.Assembly(cabinet_bp)
+        #     add_sink = cabinet.get_prompt("Add Sink")
+        #     if add_sink:
+        #         layout.operator('home_builder.cabinet_sink_options',text="Cabinet Sink Options",icon='WINDOW')
 
-        if appliance_bp:
-            range_bp = home_builder_utils.get_range_bp(context.object)
-            if range_bp:
-                layout.operator('home_builder.range_options',text="Range Options",icon='WINDOW')
+        # if appliance_bp:
+        #     range_bp = home_builder_utils.get_range_bp(context.object)
+        #     if range_bp:
+        #         layout.operator('home_builder.range_options',text="Range Options",icon='WINDOW')
 
         layout.operator('home_builder.part_prompts',text="Part Prompts - " + obj_bp.name,icon='WINDOW')
         layout.operator('home_builder.hardlock_part_size',icon='FILE_REFRESH')
@@ -1484,6 +1486,35 @@ class home_builder_OT_duplicate_cabinet(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
+class home_builder_OT_free_move_cabinet(bpy.types.Operator):
+    bl_idname = "home_builder.free_move_cabinet"
+    bl_label = "Free Move Cabinet"
+
+    obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+
+    @classmethod
+    def poll(cls, context):
+        obj_bp = home_builder_utils.get_cabinet_bp(context.object)
+        if obj_bp:
+            return True
+        else:
+            return False
+
+    def execute(self, context):
+        obj = context.object
+        obj_bp = home_builder_utils.get_cabinet_bp(obj)
+        cabinet = pc_types.Assembly(obj_bp)
+        bpy.ops.object.select_all(action='DESELECT')
+
+        cabinet.obj_bp.hide_viewport = False
+        cabinet.obj_bp.select_set(True)
+
+        context.window.cursor_warp(0,0)
+        bpy.ops.transform.translate('INVOKE_DEFAULT')
+        
+        return {'FINISHED'}
+
 def register():
     bpy.utils.register_class(home_builder_OT_place_cabinet)  
     bpy.utils.register_class(home_builder_OT_cabinet_prompts)  
@@ -1498,6 +1529,7 @@ def register():
     bpy.utils.register_class(home_builder_OT_update_prompts)  
     bpy.utils.register_class(home_builder_OT_move_cabinet)  
     bpy.utils.register_class(home_builder_OT_duplicate_cabinet)  
+    bpy.utils.register_class(home_builder_OT_free_move_cabinet)  
     
 
 def unregister():
@@ -1514,3 +1546,4 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_update_prompts)  
     bpy.utils.unregister_class(home_builder_OT_move_cabinet)  
     bpy.utils.unregister_class(home_builder_OT_duplicate_cabinet)  
+    bpy.utils.unregister_class(home_builder_OT_free_move_cabinet)
