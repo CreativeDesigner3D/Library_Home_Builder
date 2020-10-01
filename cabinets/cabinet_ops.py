@@ -1315,6 +1315,8 @@ class home_builder_MT_cabinet_menu(bpy.types.Menu):
 
         if cabinet_bp:
             layout.operator('home_builder.move_cabinet',text="Move Cabinet - " + cabinet_bp.name,icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
+            layout.operator('home_builder.duplicate_cabinet',text="Duplicate Cabinet - " + cabinet_bp.name,icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
+            
             cabinet = pc_types.Assembly(cabinet_bp)
             add_sink = cabinet.get_prompt("Add Sink")
             if add_sink:
@@ -1435,6 +1437,53 @@ class home_builder_OT_update_cabinet_lighting(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
+class home_builder_OT_duplicate_cabinet(bpy.types.Operator):
+    bl_idname = "home_builder.duplicate_cabinet"
+    bl_label = "Duplicate Cabinet"
+
+    obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+
+    @classmethod
+    def poll(cls, context):
+        obj_bp = home_builder_utils.get_cabinet_bp(context.object)
+        if obj_bp:
+            return True
+        else:
+            return False
+
+    def select_obj_and_children(self,obj):
+        obj.hide_viewport = False
+        obj.select_set(True)
+        for child in obj.children:
+            obj.hide_viewport = False
+            child.select_set(True)
+            self.select_obj_and_children(child)
+
+    def hide_empties_and_boolean_meshes(self,obj):
+        if obj.type == 'EMPTY' or obj.hide_render:
+            obj.hide_viewport = True
+        for child in obj.children:
+            self.hide_empties_and_boolean_meshes(child)
+
+    def execute(self, context):
+        obj = context.object
+        obj_bp = home_builder_utils.get_cabinet_bp(obj)
+        cabinet = pc_types.Assembly(obj_bp)
+        bpy.ops.object.select_all(action='DESELECT')
+        self.select_obj_and_children(cabinet.obj_bp)
+        bpy.ops.object.duplicate_move()
+        self.hide_empties_and_boolean_meshes(cabinet.obj_bp)
+
+        obj = context.object
+        new_obj_bp = home_builder_utils.get_cabinet_bp(obj)
+        new_cabinet = pc_types.Assembly(new_obj_bp)
+        self.hide_empties_and_boolean_meshes(new_cabinet.obj_bp)
+
+        bpy.ops.home_builder.move_cabinet(obj_bp_name=new_cabinet.obj_bp.name)
+
+        return {'FINISHED'}
+
 def register():
     bpy.utils.register_class(home_builder_OT_place_cabinet)  
     bpy.utils.register_class(home_builder_OT_cabinet_prompts)  
@@ -1448,7 +1497,7 @@ def register():
     bpy.utils.register_class(home_builder_OT_update_cabinet_lighting)  
     bpy.utils.register_class(home_builder_OT_update_prompts)  
     bpy.utils.register_class(home_builder_OT_move_cabinet)  
-    
+    bpy.utils.register_class(home_builder_OT_duplicate_cabinet)  
     
 
 def unregister():
@@ -1464,3 +1513,4 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_update_cabinet_lighting)  
     bpy.utils.unregister_class(home_builder_OT_update_prompts)  
     bpy.utils.unregister_class(home_builder_OT_move_cabinet)  
+    bpy.utils.unregister_class(home_builder_OT_duplicate_cabinet)  
