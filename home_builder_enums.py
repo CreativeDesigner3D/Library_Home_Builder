@@ -19,6 +19,10 @@ preview_collections["range_hood_items"] = pc_pointer_utils.create_image_preview_
 preview_collections["cabinet_door_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cabinet_door_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["entry_door_panel_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["dishwasher_categories"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["dishwasher_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["refrigerator_categories"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["refrigerator_items"] = pc_pointer_utils.create_image_preview_collection()
 
 #MATERIALS
 def enum_material_categories(self,context):
@@ -197,3 +201,75 @@ def enum_entry_door_panels_names(self,context):
     icon_dir = os.path.join(home_builder_paths.get_entry_door_panel_path())
     pcoll = preview_collections["entry_door_panel_items"]
     return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+#DISHWASHERS
+def enum_dishwasher_categories(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = home_builder_paths.get_dishwasher_path()
+    pcoll = preview_collections["dishwasher_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
+def enum_dishwasher_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(home_builder_paths.get_dishwasher_path(),self.dishwasher_category)
+    pcoll = preview_collections["dishwasher_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_dishwasher_category(self,context):
+    if preview_collections["dishwasher_items"]:
+        bpy.utils.previews.remove(preview_collections["dishwasher_items"])
+        preview_collections["dishwasher_items"] = pc_pointer_utils.create_image_preview_collection()     
+        
+    enum_dishwasher_names(self,context)           
+
+#REFRIGERATORS
+def enum_refrigerator_categories(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = home_builder_paths.get_refrigerator_path()
+    pcoll = preview_collections["refrigerator_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
+def enum_refrigerator_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(home_builder_paths.get_refrigerator_path(),self.refrigerator_category)
+    pcoll = preview_collections["refrigerator_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_refrigerator_category(self,context):
+    if preview_collections["refrigerator_items"]:
+        bpy.utils.previews.remove(preview_collections["refrigerator_items"])
+        preview_collections["refrigerator_items"] = pc_pointer_utils.create_image_preview_collection()     
+        
+    enum_refrigerator_names(self,context)
+
+#COOKTOPS
+def enum_cooktop_categories(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = home_builder_paths.get_cooktop_path()
+    pcoll = preview_collections["cooktop_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
+def enum_cooktop_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(home_builder_paths.get_cooktop_path(),self.cooktop_category)
+    pcoll = preview_collections["cooktop_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_cooktop_category(self,context):
+    if preview_collections["cooktop_items"]:
+        bpy.utils.previews.remove(preview_collections["cooktop_items"])
+        preview_collections["cooktop_items"] = pc_pointer_utils.create_image_preview_collection()     
+        
+    enum_cooktop_names(self,context)

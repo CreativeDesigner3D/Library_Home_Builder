@@ -12,14 +12,18 @@ from .. import home_builder_utils
 from .. import home_builder_paths
 from .. import home_builder_enums
 from .. import home_builder_pointers
+from bpy_extras.view3d_utils import location_3d_to_region_2d
+from mathutils import Vector
 
-def update_assembly_cabinet_id_props(assembly):
+def update_assembly_cabinet_id_props(assembly,parent_assembly):
     for child in assembly.obj_bp.children:
-        update_cabinet_id_props(child)
+        update_cabinet_id_props(child,parent_assembly.obj_bp)
 
-def update_cabinet_id_props(obj):
-    obj["PROMPT_ID"] = "home_builder.cabinet_prompts"   
-    obj["MENU_ID"] = "home_builder_MT_cabinet_menu"       
+def update_cabinet_id_props(obj,parent_obj):
+    if "PROMPT_ID" in parent_obj:
+        obj["PROMPT_ID"] = parent_obj["PROMPT_ID"]
+    if "MENU_ID" in parent_obj:
+        obj["MENU_ID"] = parent_obj["MENU_ID"]   
 
 class home_builder_OT_place_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.place_cabinet"
@@ -164,7 +168,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
                 calculator.calculate()
                 self.calculators.append(calculator)
 
-        update_cabinet_id_props(obj)
+        update_cabinet_id_props(obj,self.cabinet.obj_bp)
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':
@@ -587,10 +591,10 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def update_child_props(obj):
-    update_cabinet_id_props(obj)
-    for child in obj.children:
-        update_child_props(child)
+# def update_child_props(obj):
+#     update_cabinet_id_props(obj)
+#     for child in obj.children:
+#         update_child_props(child)
 
 def update_exterior(self,context):
     self.exterior_changed = True
@@ -712,10 +716,10 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         right_adjustment_width = self.cabinet.get_prompt("Right Adjustment Width")
         if left_adjustment_width.get_value() > 0 and self.carcass.left_filler is None:
             self.carcass.add_left_filler(self.cabinet)
-            update_assembly_cabinet_id_props(self.carcass.left_filler)
+            update_assembly_cabinet_id_props(self.carcass.left_filler,self.cabinet)
         if right_adjustment_width.get_value() > 0 and self.carcass.right_filler is None:
             self.carcass.add_right_filler(self.cabinet)   
-            update_assembly_cabinet_id_props(self.carcass.right_filler)          
+            update_assembly_cabinet_id_props(self.carcass.right_filler,self.cabinet)          
         if left_adjustment_width.get_value() == 0 and self.carcass.left_filler is not None:
             pc_utils.delete_object_and_children(self.carcass.left_filler.obj_bp)
             self.carcass.left_filler = None
@@ -732,7 +736,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             exterior = cabinet_utils.get_exterior_from_name(self.exterior)
             if exterior:
                 self.exterior_assembly = self.carcass.add_insert(self.cabinet,exterior)
-                update_child_props(self.exterior_assembly.obj_bp)
+                update_assembly_cabinet_id_props(self.exterior_assembly,self.cabinet)
 
             self.exterior_changed = False
             self.get_assemblies(context)
@@ -1075,7 +1079,7 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
             data_to.objects = data_from.objects
 
         for obj in data_to.objects:
-            update_cabinet_id_props(obj)
+            update_cabinet_id_props(obj,self.cabinet.obj_bp)
             self.faucet = obj
 
         self.sink.add_object(self.faucet)
@@ -1089,8 +1093,7 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
         sink_path = os.path.join(root_path,self.sink_category,self.sink_name + ".blend")
         self.sink = pc_types.Assembly(filepath=sink_path)
         self.sink.obj_bp["IS_SINK_BP"] = True
-        for child in self.sink.obj_bp.children:
-            update_cabinet_id_props(child)
+        update_assembly_cabinet_id_props(self.sink,self.cabinet)
         return self.sink
 
     def get_assemblies(self,context):
@@ -1147,6 +1150,150 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
 
         self.draw_sink_prompts(split.box(),context)
         self.draw_faucet_prompts(split.box(),context)
+
+
+class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
+    bl_idname = "home_builder.cabinet_cooktop_options"
+    bl_label = "Cabinet Cooktop Options"
+
+    cabinet_name: bpy.props.StringProperty(name="Cabinet Name",default="")
+
+    cooktop_category: bpy.props.EnumProperty(name="Cooktop Category",
+        items=home_builder_enums.enum_cooktop_categories,
+        update=home_builder_enums.update_cooktop_category)
+    cooktop_name: bpy.props.EnumProperty(name="Cooktop Name",
+        items=home_builder_enums.enum_cooktop_names)
+
+    range_hood_category: bpy.props.EnumProperty(name="Range Hood Category",
+        items=home_builder_enums.enum_range_hood_categories,
+        update=home_builder_enums.update_range_hood_category)
+    range_hood_name: bpy.props.EnumProperty(name="Range Hood Name",
+        items=home_builder_enums.enum_range_hood_names)
+
+    add_cooktop = False
+    add_range_hood = False
+    cabinet = None
+    carcass = None
+    countertop = None
+    previous_cooktop = None
+    cooktop = None
+    range_hood = None
+
+    def reset_variables(self):
+        self.cabinet = None
+        self.carcass = None
+        self.countertop = None
+        self.cooktop = None
+        self.range_hood = None
+
+    def check(self, context):
+        return True
+
+    def assign_boolean_to_child_assemblies(self,context,assembly,bool_obj):
+        for child in assembly.obj_bp.children:
+            for nchild in child.children:
+                if nchild.type == 'MESH':       
+                    mod = nchild.modifiers.new(bool_obj.name,'BOOLEAN')
+                    mod.object = bool_obj
+                    mod.operation = 'DIFFERENCE'      
+
+    def assign_boolean_modifiers(self,context):
+        bool_obj = None
+
+        for child in self.cooktop.obj_bp.children:
+            if child.type == 'MESH':   
+                if 'IS_BOOLEAN' in child and child['IS_BOOLEAN'] == True:   
+                    bool_obj = child  
+                    bool_obj.hide_viewport = True
+                    bool_obj.hide_render = True
+                    bool_obj.display_type = 'WIRE'                        
+
+        if bool_obj:
+            self.assign_boolean_to_child_assemblies(context,self.countertop,bool_obj)
+            self.assign_boolean_to_child_assemblies(context,self.carcass,bool_obj)                
+
+    def delete_previous_cooktop(self,context):
+        if not self.previous_cooktop:
+            return
+
+        pc_utils.delete_object_and_children(self.previous_cooktop.obj_bp)
+
+    def execute(self, context):
+        self.delete_previous_cooktop(context)
+        if self.add_cooktop:
+            cabinet_utils.add_sink(self.cabinet,self.carcass,self.countertop,self.get_cooktop(context))
+            self.assign_boolean_modifiers(context)
+            self.sink.obj_bp.hide_viewport = True
+            self.sink.obj_x.hide_viewport = True
+            self.sink.obj_y.hide_viewport = True
+            self.sink.obj_z.hide_viewport = True
+            if self.add_faucet:
+                self.get_faucet(context)
+        return {'FINISHED'}
+
+    def get_cooktop(self,context):
+        root_path = home_builder_paths.get_sink_path()
+        sink_path = os.path.join(root_path,self.sink_category,self.sink_name + ".blend")
+        self.sink = pc_types.Assembly(filepath=sink_path)
+        self.sink.obj_bp["IS_SINK_BP"] = True
+        update_assembly_cabinet_id_props(self.sink,self.cabinet)
+        return self.sink
+
+    def get_assemblies(self,context):
+        self.carcass = None
+        self.countertop = None
+
+        for child in self.cabinet.obj_bp.children:
+            if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
+                self.carcass = pc_types.Assembly(child)      
+            if "IS_COUNTERTOP_BP" in child and child["IS_COUNTERTOP_BP"]:
+                self.countertop = pc_types.Assembly(child)   
+            if "IS_COOKTOP_BP" in child and child["IS_COOKTOP_BP"]:
+                self.previous_cooktop = pc_types.Assembly(child)   
+
+    def invoke(self,context,event):
+        self.reset_variables()
+        bp = home_builder_utils.get_cabinet_bp(context.object)
+        self.cabinet = pc_types.Assembly(bp)
+        self.cabinet_name = self.cabinet.obj_bp.name
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=500)
+
+    def draw_sink_prompts(self,layout,context):
+        add_sink = self.cabinet.get_prompt("Add Sink")
+
+        if not add_sink:
+            return False
+
+        add_sink.draw(layout)
+        self.add_sink = add_sink.get_value()
+        if self.add_sink:
+            layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
+            if len(self.sink_name) > 0:
+                layout.template_icon_view(self,"sink_name",show_labels=True)  
+
+    def draw_faucet_prompts(self,layout,context):
+        add_faucet = self.cabinet.get_prompt("Add Faucet")
+
+        if not add_faucet:
+            return False
+
+        add_faucet.draw(layout)
+        self.add_faucet = add_faucet.get_value()
+        if self.add_faucet:
+            layout.prop(self,'faucet_category',text="",icon='FILE_FOLDER')  
+            if len(self.sink_name) > 0:
+                layout.template_icon_view(self,"faucet_name",show_labels=True)  
+
+    def draw(self, context):
+        layout = self.layout
+
+        split = layout.split()
+
+        self.draw_cooktop_prompts(split.box(),context)
+        self.draw_range_prompts(split.box(),context)
+
 
 def update_range(self,context):
     if self.appliance_bp_name not in bpy.data.objects:
@@ -1220,9 +1367,9 @@ def update_range_hood(self,context):
     if range_hood_assembly:
         pc_utils.delete_object_and_children(range_hood_assembly.obj_bp)
 
-class home_builder_OT_range_options(bpy.types.Operator):
-    bl_idname = "home_builder.range_options"
-    bl_label = "Range Options"
+class home_builder_OT_range_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.range_prompts"
+    bl_label = "Range Prompts"
 
     appliance_bp_name: bpy.props.StringProperty(name="Appliance BP Name",default="")
     add_range_hood: bpy.props.BoolProperty(name="Add Range Hood",default=False,update=update_range_hood)
@@ -1301,6 +1448,164 @@ class home_builder_OT_range_options(bpy.types.Operator):
         split = layout.split()
         self.draw_range_prompts(split.column(),context)
         self.draw_range_hood_prompts(split.column(),context)
+
+def update_appliance(self,context):
+    self.appliance_changed = True
+
+
+class home_builder_OT_dishwasher_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.dishwasher_prompts"
+    bl_label = "Dishwasher Prompts"
+
+    appliance_changed: bpy.props.BoolProperty(name="Applianced Changed")
+
+    dishwasher_category: bpy.props.EnumProperty(name="Dishwasher Category",
+        items=home_builder_enums.enum_dishwasher_categories,
+        update=home_builder_enums.update_dishwasher_category)
+    dishwasher_name: bpy.props.EnumProperty(name="Dishwasher Name",
+        items=home_builder_enums.enum_dishwasher_names,
+        update=update_appliance)
+
+    product = None
+    dishwasher_appliance = None
+
+    def reset_variables(self):
+        self.product = None
+        self.dishwasher_appliance = None
+
+    def check(self, context):
+        if self.appliance_changed:
+            ASSET_DIR = home_builder_paths.get_dishwasher_path()
+            assembly_path = os.path.join(ASSET_DIR,self.dishwasher_category,self.dishwasher_name + ".blend")
+            if os.path.exists(assembly_path):
+                new_dishwasher_appliance = pc_types.Assembly(self.product.add_assembly_from_file(assembly_path))
+                new_dishwasher_appliance.obj_bp["IS_DISHWASHER_BP"] = True            
+
+                width = self.product.obj_x.pyclone.get_var('location.x','width')
+                height = self.product.obj_z.pyclone.get_var('location.z','height')
+                depth = self.product.obj_y.pyclone.get_var('location.y','depth')
+
+                new_dishwasher_appliance.dim_x('width',[width])
+                new_dishwasher_appliance.dim_y('depth',[depth])
+                new_dishwasher_appliance.dim_z('height',[height])
+
+                update_assembly_cabinet_id_props(new_dishwasher_appliance,self.product)
+
+                pc_utils.delete_object_and_children(self.dishwasher_appliance.obj_bp)
+
+                self.dishwasher_appliance = new_dishwasher_appliance
+
+        return True
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def get_assemblies(self,context):
+        self.carcass = None
+        self.countertop = None
+
+        for child in self.product.obj_bp.children:
+            if "IS_DISHWASHER_BP" in child and child["IS_DISHWASHER_BP"]:
+                self.dishwasher_appliance = pc_types.Assembly(child)
+
+    def invoke(self,context,event):
+        self.reset_variables()
+        bp = home_builder_utils.get_appliance_bp(context.object)
+        self.product = pc_types.Assembly(bp)
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=500)
+
+    def draw_dishwasher_prompts(self,layout,context):
+        layout.label(text="")
+        box = layout.box()
+        box.prop(self,'dishwasher_category',text="",icon='FILE_FOLDER')  
+        box.template_icon_view(self,"dishwasher_name",show_labels=True)  
+
+    def draw(self, context):
+        layout = self.layout
+        #TODO: DRAW SIZE
+        #TODO: COUNTERTOP PROMPTS
+        split = layout.split()
+        self.draw_dishwasher_prompts(split.column(),context)
+
+
+class home_builder_OT_refrigerator_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.refrigerator_prompts"
+    bl_label = "Refrigerator Prompts"
+
+    appliance_changed: bpy.props.BoolProperty(name="Applianced Changed")
+
+    refrigerator_category: bpy.props.EnumProperty(name="Refrigerator Category",
+        items=home_builder_enums.enum_refrigerator_categories,
+        update=home_builder_enums.update_refrigerator_category)
+    refrigerator_name: bpy.props.EnumProperty(name="Refrigerator Name",
+        items=home_builder_enums.enum_refrigerator_names,
+        update=update_appliance)
+
+    product = None
+    refrigerator_appliance = None
+
+    def reset_variables(self):
+        self.product = None
+        self.refrigerator_appliance = None
+
+    def check(self, context):
+        print("CHECK")
+        if self.appliance_changed:
+            ASSET_DIR = home_builder_paths.get_refrigerator_path()
+            assembly_path = os.path.join(ASSET_DIR,self.refrigerator_category,self.refrigerator_name + ".blend")
+            print("PATH",assembly_path)
+            if os.path.exists(assembly_path):
+                new_refrigerator_appliance = pc_types.Assembly(self.product.add_assembly_from_file(assembly_path))
+                new_refrigerator_appliance.obj_bp["IS_REFRIGERATOR_BP"] = True            
+
+                width = self.product.obj_x.pyclone.get_var('location.x','width')
+                height = self.product.obj_z.pyclone.get_var('location.z','height')
+                depth = self.product.obj_y.pyclone.get_var('location.y','depth')
+
+                new_refrigerator_appliance.dim_x('width',[width])
+                new_refrigerator_appliance.dim_y('depth',[depth])
+                new_refrigerator_appliance.dim_z('height',[height])
+
+                update_assembly_cabinet_id_props(new_refrigerator_appliance,self.product)
+
+                pc_utils.delete_object_and_children(self.refrigerator_appliance.obj_bp)
+
+                self.refrigerator_appliance = new_refrigerator_appliance        
+        return True             
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def get_assemblies(self,context):
+        self.carcass = None
+
+        for child in self.product.obj_bp.children:
+            if "IS_REFRIGERATOR_BP" in child and child["IS_REFRIGERATOR_BP"]:
+                self.refrigerator_appliance = pc_types.Assembly(child)
+
+    def invoke(self,context,event):
+        self.reset_variables()
+        bp = home_builder_utils.get_appliance_bp(context.object)
+        self.product = pc_types.Assembly(bp)
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=500)
+
+    def draw_refrigerator_prompts(self,layout,context):
+        layout.label(text="")
+        box = layout.box()
+        box.prop(self,'refrigerator_category',text="",icon='FILE_FOLDER')  
+        box.template_icon_view(self,"refrigerator_name",show_labels=True)  
+
+    def draw(self, context):
+        layout = self.layout
+        #TODO: DRAW SIZE
+        #TODO: DRAW HANDLE LOCATION
+        #TODO: COUNTERTOP PROMPTS
+        split = layout.split()
+        self.draw_refrigerator_prompts(split.column(),context)
 
 
 class home_builder_MT_cabinet_menu(bpy.types.Menu):
@@ -1510,6 +1815,10 @@ class home_builder_OT_free_move_cabinet(bpy.types.Operator):
         cabinet.obj_bp.hide_viewport = False
         cabinet.obj_bp.select_set(True)
 
+        region = context.region
+        co = location_3d_to_region_2d(region,context.region_data,cabinet.obj_bp.matrix_world.translation)
+        region_offset = Vector((region.x,region.y))
+        context.window.cursor_warp(*(co + region_offset))
         bpy.ops.transform.translate('INVOKE_DEFAULT')
         
         return {'FINISHED'}
@@ -1518,7 +1827,9 @@ def register():
     bpy.utils.register_class(home_builder_OT_place_cabinet)  
     bpy.utils.register_class(home_builder_OT_cabinet_prompts)  
     bpy.utils.register_class(home_builder_OT_cabinet_sink_options)  
-    bpy.utils.register_class(home_builder_OT_range_options)  
+    bpy.utils.register_class(home_builder_OT_range_prompts)  
+    bpy.utils.register_class(home_builder_OT_dishwasher_prompts)  
+    bpy.utils.register_class(home_builder_OT_refrigerator_prompts)  
     bpy.utils.register_class(home_builder_MT_cabinet_menu)     
     bpy.utils.register_class(home_builder_OT_delete_cabinet)    
     bpy.utils.register_class(home_builder_OT_delete_part)    
@@ -1535,7 +1846,9 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_place_cabinet)  
     bpy.utils.unregister_class(home_builder_OT_cabinet_prompts)   
     bpy.utils.unregister_class(home_builder_OT_cabinet_sink_options)   
-    bpy.utils.unregister_class(home_builder_OT_range_options) 
+    bpy.utils.unregister_class(home_builder_OT_range_prompts) 
+    bpy.utils.unregister_class(home_builder_OT_dishwasher_prompts)  
+    bpy.utils.unregister_class(home_builder_OT_refrigerator_prompts)  
     bpy.utils.unregister_class(home_builder_MT_cabinet_menu)       
     bpy.utils.unregister_class(home_builder_OT_delete_cabinet)        
     bpy.utils.unregister_class(home_builder_OT_delete_part)      

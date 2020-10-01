@@ -32,6 +32,7 @@ def add_cabinet_bottom(assembly):
     material_thickness = assembly.get_prompt("Material Thickness").get_var("material_thickness")
 
     bottom = data_cabinet_parts.add_carcass_part(assembly)
+    bottom.obj_bp["IS_BOTTOM_BP"] = True
     bottom.set_name('Bottom')
     bottom.loc_x('material_thickness',[material_thickness])
     bottom.loc_y(value=0)
@@ -48,6 +49,7 @@ def add_upper_cabinet_bottom(assembly):
     material_thickness = assembly.get_prompt("Material Thickness").get_var("material_thickness")
 
     bottom = data_cabinet_parts.add_carcass_part(assembly)
+    bottom.obj_bp["IS_BOTTOM_BP"] = True
     bottom.set_name('Bottom')
     bottom.loc_x('material_thickness',[material_thickness])
     bottom.loc_y(value=0)
@@ -86,6 +88,7 @@ def add_upper_cabinet_back(assembly):
     finished_back = assembly.get_prompt("Finished Back")
 
     back = data_cabinet_parts.add_carcass_part(assembly)
+    back.obj_bp["IS_BACK_BP"] = True
     back.set_name('Back')
     back.loc_x('width-material_thickness',[width,material_thickness])
     back.loc_y(value=0)
@@ -391,6 +394,7 @@ class Carcass(pc_types.Assembly):
     left_filler = None
     right_filler = None
     back = None
+    bottom = None
 
     def __init__(self,obj_bp=None):
         super().__init__(obj_bp=obj_bp)  
@@ -406,6 +410,8 @@ class Carcass(pc_types.Assembly):
                     self.right_side = pc_types.Assembly(child)    
                 if "IS_BACK_BP" in child:
                     self.back = pc_types.Assembly(child)   
+                if "IS_BOTTOM_BP" in child:
+                    self.bottom = pc_types.Assembly(child)   
 
     def add_insert(self,cabinet,insert):
         x_loc_carcass = self.obj_bp.pyclone.get_var('location.x','x_loc_carcass')

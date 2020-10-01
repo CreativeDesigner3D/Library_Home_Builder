@@ -37,6 +37,15 @@ def get_range_path():
 def get_range_hood_path():
     return os.path.join(get_asset_folder_path(),'Range Hoods')         
 
+def get_dishwasher_path():
+    return os.path.join(get_asset_folder_path(),'Dishwashers')     
+
+def get_refrigerator_path():
+    return os.path.join(get_asset_folder_path(),'Refrigerators')     
+
+def get_cooktop_path():
+    return os.path.join(get_asset_folder_path(),'Cooktops')    
+
 def get_cabinet_door_path():
     return os.path.join(get_asset_folder_path(),'Cabinet Doors')        
 

@@ -19,6 +19,7 @@ class Range(pc_types.Assembly):
 
         self.create_assembly("Range")
         self.obj_bp["IS_APPLIANCE_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.range_prompts"
         self.obj_y['IS_MIRROR'] = True
 
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -47,7 +48,8 @@ class Refrigerator(pc_types.Assembly):
         assembly_path = path.join(ASSET_DIR,"Refrigerators","Generic","Generic Refrigerator.blend")
 
         self.create_assembly("Refrigerator")
-        self.obj_bp["IS_APPLIANCE_BP"] = True      
+        self.obj_bp["IS_APPLIANCE_BP"] = True    
+        self.obj_bp["PROMPT_ID"] = "home_builder.refrigerator_prompts"  
         self.obj_y['IS_MIRROR'] = True
 
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -101,7 +103,8 @@ class Dishwasher(pc_types.Assembly):
         assembly_path = path.join(ASSET_DIR,"Dishwashers","Generic","Generic Dishwasher.blend")
 
         self.create_assembly("Dishwasher")
-        self.obj_bp["IS_APPLIANCE_BP"] = True        
+        self.obj_bp["IS_APPLIANCE_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.dishwasher_prompts"       
         self.obj_y['IS_MIRROR'] = True
 
         width = self.obj_x.pyclone.get_var('location.x','width')

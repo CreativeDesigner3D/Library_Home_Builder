@@ -8,9 +8,6 @@ from . import data_cabinet_exteriors
 from . import common_prompts
 from . import data_countertops
 
-def update_id_properties(parent,assembly_to_update):
-    pass
-
 def get_exterior_from_name(name):
     exterior = None
     if name == 'DOORS':
@@ -26,72 +23,6 @@ def get_exterior_from_name(name):
     elif name == 'DRAWERS':
         exterior = data_cabinet_exteriors.Drawers()
     return exterior
-
-def add_exterior_to_cabinet(cabinet,carcass,exterior,cabinet_type):
-    width = cabinet.obj_x.pyclone.get_var('location.x','width')
-    depth = cabinet.obj_y.pyclone.get_var('location.y','depth')
-    height = cabinet.obj_z.pyclone.get_var('location.z','height')
-    material_thickness = carcass.get_prompt('Material Thickness').get_var('material_thickness')
-    
-    exterior = cabinet.add_assembly(exterior)
-    exterior.loc_x('material_thickness',[material_thickness])
-    exterior.loc_y('depth',[depth])
-    if cabinet_type == 2: #UPPER CABINET
-        exterior.loc_z('material_thickness',[material_thickness])
-        exterior.dim_z('height-(material_thickness*2)',[height,material_thickness])
-    else:
-        toe_kick_height = carcass.get_prompt('Toe Kick Height').get_var('toe_kick_height')
-        exterior.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])
-        exterior.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
-    
-    exterior.dim_x('width-(material_thickness*2)',[width,material_thickness])
-    exterior.dim_y('fabs(depth)',[depth])
-    exterior.obj_x.empty_display_size = .001
-    exterior.obj_y.empty_display_size = .001
-    exterior.obj_z.empty_display_size = .001
-    exterior.obj_bp.empty_display_size = .001
-    exterior.obj_prompts.empty_display_size = .001
-
-    carcass_cabinet_type = carcass.get_prompt("Cabinet Type")
-    exterior_cabinet_type = exterior.get_prompt("Cabinet Type")
-    exterior_cabinet_type.set_value(carcass_cabinet_type.get_value())
-
-    bpy.context.view_layer.update()
-
-    calculator = exterior.get_calculator('Front Height Calculator')
-    if calculator:
-        calculator.calculate()
-
-def add_interior_to_cabinet(cabinet,carcass,interior,cabinet_type):
-    width = cabinet.obj_x.pyclone.get_var('location.x','width')
-    depth = cabinet.obj_y.pyclone.get_var('location.y','depth')
-    height = cabinet.obj_z.pyclone.get_var('location.z','height')
-    material_thickness = carcass.get_prompt('Material Thickness').get_var('material_thickness')
-    
-    interior = cabinet.add_assembly(interior)
-    interior.loc_x('material_thickness',[material_thickness])
-    interior.loc_y('depth',[depth])
-    if cabinet_type == "Upper":
-        interior.loc_z('material_thickness',[material_thickness])
-        interior.dim_z('height-(material_thickness*2)',[height,material_thickness])
-    else:
-        toe_kick_height = carcass.get_prompt('Toe Kick Height').get_var('toe_kick_height')
-        interior.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])
-        interior.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
-    
-    interior.dim_x('width-(material_thickness*2)',[width,material_thickness])
-    interior.dim_y('fabs(depth)-material_thickness',[depth,material_thickness])
-    interior.obj_x.empty_display_size = .001
-    interior.obj_y.empty_display_size = .001
-    interior.obj_z.empty_display_size = .001
-    interior.obj_bp.empty_display_size = .001
-    interior.obj_prompts.empty_display_size = .001
-
-    carcass_cabinet_type = carcass.get_prompt("Cabinet Type")
-    interior_cabinet_type = interior.get_prompt("Cabinet Type")
-    interior_cabinet_type.set_value(carcass_cabinet_type.get_value())
-
-    bpy.context.view_layer.update()
 
 def add_countertop(cabinet):
     width = cabinet.obj_x.pyclone.get_var('location.x','width')
@@ -125,17 +56,21 @@ def add_sink(cabinet,carcass,countertop,sink):
     sink_width = sink.obj_x.location.x
     sink_depth = sink.obj_y.location.y
 
-    # carcass.assign_boolean(sink)
-    # countertop.assign_boolean(sink)
-
     sink.loc_x('(cabinet_width/2)-' + str(sink_width/2),[cabinet_width])
     sink.loc_y('(cabinet_depth/2)-' + str(sink_depth/2),[cabinet_depth])
     sink.loc_z('cabinet_height+countertop_height',[cabinet_height,countertop_height])
 
-def add_appliance(product,appliance):
-    app = product.add_assembly(appliance)
-    app.obj_bp.parent = product.obj_bp
+def add_cooktop(cabinet,carcass,countertop,cooktop):
+    cooktop = cabinet.add_assembly(cooktop)
+    cooktop.obj_bp.parent = cabinet.obj_bp
 
-    product.dim_x(value = app.obj_x.location.x)
-    product.dim_y(value = app.obj_y.location.y)
-    product.dim_z(value = app.obj_z.location.z)  
+    cabinet_width = cabinet.obj_x.pyclone.get_var('location.x','cabinet_width')
+    cabinet_depth = cabinet.obj_y.pyclone.get_var('location.y','cabinet_depth')
+    cabinet_height = cabinet.obj_z.pyclone.get_var('location.z','cabinet_height')
+    countertop_height = countertop.obj_z.pyclone.get_var('location.z','countertop_height')
+    cooktop_width = cooktop.obj_x.location.x
+    cooktop_depth = cooktop.obj_y.location.y
+
+    cooktop.loc_x('(cabinet_width/2)-' + str(cooktop_width/2),[cabinet_width])
+    cooktop.loc_y('(cabinet_depth/2)-' + str(cooktop_depth/2),[cabinet_depth])
+    cooktop.loc_z('cabinet_height+countertop_height',[cabinet_height,countertop_height])
