@@ -1551,11 +1551,9 @@ class home_builder_OT_refrigerator_prompts(bpy.types.Operator):
         self.refrigerator_appliance = None
 
     def check(self, context):
-        print("CHECK")
         if self.appliance_changed:
             ASSET_DIR = home_builder_paths.get_refrigerator_path()
             assembly_path = os.path.join(ASSET_DIR,self.refrigerator_category,self.refrigerator_name + ".blend")
-            print("PATH",assembly_path)
             if os.path.exists(assembly_path):
                 new_refrigerator_appliance = pc_types.Assembly(self.product.add_assembly_from_file(assembly_path))
                 new_refrigerator_appliance.obj_bp["IS_REFRIGERATOR_BP"] = True            
@@ -1624,16 +1622,6 @@ class home_builder_MT_cabinet_menu(bpy.types.Menu):
             layout.operator('home_builder.duplicate_cabinet',text="Duplicate Cabinet - " + cabinet_bp.name,icon='DUPLICATE').obj_bp_name = cabinet_bp.name
             layout.separator()
             
-        #     cabinet = pc_types.Assembly(cabinet_bp)
-        #     add_sink = cabinet.get_prompt("Add Sink")
-        #     if add_sink:
-        #         layout.operator('home_builder.cabinet_sink_options',text="Cabinet Sink Options",icon='WINDOW')
-
-        # if appliance_bp:
-        #     range_bp = home_builder_utils.get_range_bp(context.object)
-        #     if range_bp:
-        #         layout.operator('home_builder.range_options',text="Range Options",icon='WINDOW')
-
         layout.operator('home_builder.part_prompts',text="Part Prompts - " + obj_bp.name,icon='WINDOW')
         layout.operator('home_builder.hardlock_part_size',icon='FILE_REFRESH')
         layout.separator()
