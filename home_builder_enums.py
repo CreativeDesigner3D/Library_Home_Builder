@@ -23,6 +23,8 @@ preview_collections["dishwasher_categories"] = pc_pointer_utils.create_image_pre
 preview_collections["dishwasher_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["refrigerator_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["refrigerator_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["cooktop_categories"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["cooktop_items"] = pc_pointer_utils.create_image_preview_collection()
 
 #MATERIALS
 def enum_material_categories(self,context):

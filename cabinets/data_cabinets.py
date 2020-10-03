@@ -40,6 +40,7 @@ class Standard_Cabinet(pc_types.Assembly):
         if cabinet_type.get_value() == 'Base':
             cabinet_utils.add_countertop(self)
             common_prompts.add_sink_prompts(self)
+            common_prompts.add_cooktop_prompts(self)
 
         print("Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
 

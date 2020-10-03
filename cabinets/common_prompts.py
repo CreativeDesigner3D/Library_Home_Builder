@@ -16,6 +16,10 @@ def add_sink_prompts(assembly):
     assembly.add_prompt("Add Sink",'CHECKBOX',False)
     assembly.add_prompt("Add Faucet",'CHECKBOX',False)
 
+def add_cooktop_prompts(assembly):
+    assembly.add_prompt("Add Cooktop",'CHECKBOX',False)
+    assembly.add_prompt("Add Range Hood",'CHECKBOX',False)
+
 def add_door_prompts(assembly):
     door_swing = assembly.add_prompt("Door Swing",'COMBOBOX',0,["Left","Right","Double"])
     door_swing.combobox_columns = 3

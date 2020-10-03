@@ -930,8 +930,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         if add_sink:
             row.operator('home_builder.cabinet_sink_options',text="Sink Options")
         if add_cooktop:
-            pass #TODO: Add CookTop Options
-
+            row.operator('home_builder.cabinet_cooktop_options',text="Cooktop Options")
+            
     def check_for_stale_data(self,context,assembly,prompt_name):
         '''
         After removing assemblies some data doesn't evaluate correctly
@@ -1176,6 +1176,7 @@ class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
     carcass = None
     countertop = None
     previous_cooktop = None
+    previous_range_hood = None
     cooktop = None
     range_hood = None
 
@@ -1221,27 +1222,37 @@ class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
     def execute(self, context):
         self.delete_previous_cooktop(context)
         if self.add_cooktop:
-            cabinet_utils.add_sink(self.cabinet,self.carcass,self.countertop,self.get_cooktop(context))
+            cabinet_utils.add_cooktop(self.cabinet,self.carcass,self.countertop,self.get_cooktop(context))
             self.assign_boolean_modifiers(context)
-            self.sink.obj_bp.hide_viewport = True
-            self.sink.obj_x.hide_viewport = True
-            self.sink.obj_y.hide_viewport = True
-            self.sink.obj_z.hide_viewport = True
-            if self.add_faucet:
-                self.get_faucet(context)
+            self.cooktop.obj_bp.hide_viewport = True
+            self.cooktop.obj_x.hide_viewport = True
+            self.cooktop.obj_y.hide_viewport = True
+            self.cooktop.obj_z.hide_viewport = True
+            if self.add_range_hood:
+                self.get_range_hood(context)
         return {'FINISHED'}
 
     def get_cooktop(self,context):
-        root_path = home_builder_paths.get_sink_path()
-        sink_path = os.path.join(root_path,self.sink_category,self.sink_name + ".blend")
-        self.sink = pc_types.Assembly(filepath=sink_path)
-        self.sink.obj_bp["IS_SINK_BP"] = True
-        update_assembly_cabinet_id_props(self.sink,self.cabinet)
-        return self.sink
+        root_path = home_builder_paths.get_cooktop_path()
+        cooktop_path = os.path.join(root_path,self.cooktop_category,self.cooktop_name + ".blend")
+        self.cooktop = pc_types.Assembly(filepath=cooktop_path)
+        self.cooktop.obj_bp["IS_COOKTOP_BP"] = True
+        update_assembly_cabinet_id_props(self.cooktop,self.cabinet)
+        return self.cooktop
+
+    def get_range_hood(self,context):
+        root_path = home_builder_paths.get_range_hood_path()
+        range_hood_path = os.path.join(root_path,self.range_hood_category,self.range_hood_name + ".blend")
+        self.range_hood = pc_types.Assembly(self.cabinet.add_assembly_from_file(filepath=range_hood_path))
+        self.range_hood.obj_bp["IS_RANGE_HOOD_BP"] = True
+        update_assembly_cabinet_id_props(self.range_hood,self.cabinet)
+        return self.range_hood
 
     def get_assemblies(self,context):
         self.carcass = None
         self.countertop = None
+        self.previous_cooktop = None
+        self.previous_range_hood = None
 
         for child in self.cabinet.obj_bp.children:
             if "IS_CARCASS_BP" in child and child["IS_CARCASS_BP"]:
@@ -1250,6 +1261,8 @@ class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
                 self.countertop = pc_types.Assembly(child)   
             if "IS_COOKTOP_BP" in child and child["IS_COOKTOP_BP"]:
                 self.previous_cooktop = pc_types.Assembly(child)   
+            if "IS_RANGE_HOOD_BP" in child and child["IS_RANGE_HOOD_BP"]:
+                self.previous_range_hood = pc_types.Assembly(child)   
 
     def invoke(self,context,event):
         self.reset_variables()
@@ -1260,31 +1273,29 @@ class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
 
-    def draw_sink_prompts(self,layout,context):
-        add_sink = self.cabinet.get_prompt("Add Sink")
+    def draw_cooktop_prompts(self,layout,context):
+        add_cooktop = self.cabinet.get_prompt("Add Cooktop")
 
-        if not add_sink:
+        if not add_cooktop:
             return False
 
-        add_sink.draw(layout)
-        self.add_sink = add_sink.get_value()
-        if self.add_sink:
-            layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
-            if len(self.sink_name) > 0:
-                layout.template_icon_view(self,"sink_name",show_labels=True)  
+        add_cooktop.draw(layout)
+        self.add_cooktop = add_cooktop.get_value()
+        if self.add_cooktop:
+            layout.prop(self,'cooktop_category',text="",icon='FILE_FOLDER')
+            layout.template_icon_view(self,"cooktop_name",show_labels=True)
 
-    def draw_faucet_prompts(self,layout,context):
-        add_faucet = self.cabinet.get_prompt("Add Faucet")
+    def draw_range_hood_prompts(self,layout,context):
+        add_range_hood = self.cabinet.get_prompt("Add Range Hood")
 
-        if not add_faucet:
+        if not add_range_hood:
             return False
 
-        add_faucet.draw(layout)
-        self.add_faucet = add_faucet.get_value()
-        if self.add_faucet:
-            layout.prop(self,'faucet_category',text="",icon='FILE_FOLDER')  
-            if len(self.sink_name) > 0:
-                layout.template_icon_view(self,"faucet_name",show_labels=True)  
+        add_range_hood.draw(layout)
+        self.add_range_hood = add_range_hood.get_value()
+        if self.add_range_hood:
+            layout.prop(self,'range_hood_category',text="",icon='FILE_FOLDER')  
+            layout.template_icon_view(self,"range_hood_name",show_labels=True)  
 
     def draw(self, context):
         layout = self.layout
@@ -1292,7 +1303,7 @@ class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
         split = layout.split()
 
         self.draw_cooktop_prompts(split.box(),context)
-        self.draw_range_prompts(split.box(),context)
+        self.draw_range_hood_prompts(split.box(),context)
 
 
 def update_range(self,context):
@@ -1815,6 +1826,7 @@ def register():
     bpy.utils.register_class(home_builder_OT_place_cabinet)  
     bpy.utils.register_class(home_builder_OT_cabinet_prompts)  
     bpy.utils.register_class(home_builder_OT_cabinet_sink_options)  
+    bpy.utils.register_class(home_builder_OT_cabinet_cooktop_options)   
     bpy.utils.register_class(home_builder_OT_range_prompts)  
     bpy.utils.register_class(home_builder_OT_dishwasher_prompts)  
     bpy.utils.register_class(home_builder_OT_refrigerator_prompts)  
@@ -1834,6 +1846,7 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_place_cabinet)  
     bpy.utils.unregister_class(home_builder_OT_cabinet_prompts)   
     bpy.utils.unregister_class(home_builder_OT_cabinet_sink_options)   
+    bpy.utils.unregister_class(home_builder_OT_cabinet_cooktop_options)   
     bpy.utils.unregister_class(home_builder_OT_range_prompts) 
     bpy.utils.unregister_class(home_builder_OT_dishwasher_prompts)  
     bpy.utils.unregister_class(home_builder_OT_refrigerator_prompts)  
