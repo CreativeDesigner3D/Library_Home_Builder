@@ -391,19 +391,16 @@ class Carcass(pc_types.Assembly):
 
     left_side = None
     right_side = None
-    left_filler = None
-    right_filler = None
     back = None
     bottom = None
+    top = None
+    interior = None
+    exterior = None
 
     def __init__(self,obj_bp=None):
         super().__init__(obj_bp=obj_bp)  
         if obj_bp:
-            for child in obj_bp.children:
-                if "IS_LEFT_FILLER_BP" in child:
-                    self.left_filler = pc_types.Assembly(child)
-                if "IS_RIGHT_FILLER_BP" in child:
-                    self.right_filler = pc_types.Assembly(child)       
+            for child in obj_bp.children:   
                 if "IS_LEFT_SIDE_BP" in child:
                     self.left_side = pc_types.Assembly(child)
                 if "IS_RIGHT_SIDE_BP" in child:
@@ -411,25 +408,30 @@ class Carcass(pc_types.Assembly):
                 if "IS_BACK_BP" in child:
                     self.back = pc_types.Assembly(child)   
                 if "IS_BOTTOM_BP" in child:
-                    self.bottom = pc_types.Assembly(child)   
+                    self.bottom = pc_types.Assembly(child)
+                if "IS_TOP_BP" in child:
+                    self.top = pc_types.Assembly(child)          
+                if "IS_INTERIOR_BP" in child:
+                    self.interior = pc_types.Assembly(child)    
+                if "IS_EXTERIOR_BP" in child:
+                    self.exterior = pc_types.Assembly(child)                                                      
 
-    def add_insert(self,cabinet,insert):
-        x_loc_carcass = self.obj_bp.pyclone.get_var('location.x','x_loc_carcass')
+    def add_insert(self,insert):
+        # x_loc_carcass = self.obj_bp.pyclone.get_var('location.x','x_loc_carcass')
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
         material_thickness = self.get_prompt('Material Thickness').get_var('material_thickness')
-        cabinet_type = self.get_prompt("Cabinet Type")
+        carcass_type = self.get_prompt("Carcass Type")
 
-        #CHANGE CABINET TYPE TO STRING
         #ADD NAME OF EXTERIOR TO 
         #PASS PROMPTS IN CORRECT
-        insert.cabinet_type = cabinet_type.get_value()
+        insert.carcass_type = carcass_type.get_value()
 
-        insert = cabinet.add_assembly(insert)
-        insert.loc_x('x_loc_carcass+material_thickness',[material_thickness,x_loc_carcass])
+        insert = self.add_assembly(insert)
+        insert.loc_x('material_thickness',[material_thickness])
         insert.loc_y('depth',[depth])
-        if cabinet_type.get_value() == "Upper": #UPPER CABINET
+        if carcass_type.get_value() == "Upper": #UPPER CABINET
             insert.loc_z('material_thickness',[material_thickness])
             insert.dim_z('height-(material_thickness*2)',[height,material_thickness])
         else:
@@ -453,40 +455,6 @@ class Carcass(pc_types.Assembly):
         
         return insert
 
-    def add_left_filler(self,cabinet):
-        depth = cabinet.obj_y.pyclone.get_var('location.y','depth')
-        height = cabinet.obj_z.pyclone.get_var('location.z','height')
-        left_adjustment_width = cabinet.get_prompt("Left Adjustment Width").get_var("left_adjustment_width")
-
-        self.left_filler = data_cabinet_parts.add_carcass_part(self)
-        self.left_filler.obj_bp["IS_LEFT_FILLER_BP"] = True
-        self.left_filler.set_name('Left Filler')
-        self.left_filler.loc_x('-left_adjustment_width',[left_adjustment_width])
-        self.left_filler.loc_y(value=0)
-        self.left_filler.loc_z(value=0)
-        self.left_filler.dim_x('left_adjustment_width',[left_adjustment_width])
-        self.left_filler.dim_y('depth',[depth])
-        self.left_filler.dim_z('height',[height])
-        home_builder_pointers.assign_pointer_to_assembly(self.left_filler,"Exposed Cabinet Surfaces")
-
-    def add_right_filler(self,cabinet):
-        carcass_width = self.obj_x.pyclone.get_var('location.x','carcass_width')
-        depth = cabinet.obj_y.pyclone.get_var('location.y','depth')
-        height = cabinet.obj_z.pyclone.get_var('location.z','height')
-        right_adjustment_width = cabinet.get_prompt("Right Adjustment Width").get_var("right_adjustment_width")
-
-        self.right_filler = data_cabinet_parts.add_carcass_part(self)
-        self.right_filler.obj_bp["IS_RIGHT_FILLER_BP"] = True
-        self.right_filler.set_name('Right Filler')
-        self.right_filler.loc_x('carcass_width',[carcass_width])
-        self.right_filler.loc_y(value=0)
-        self.right_filler.loc_z(value=0)
-        self.right_filler.dim_x('right_adjustment_width',[right_adjustment_width])
-        self.right_filler.dim_y('depth',[depth])
-        self.right_filler.dim_z('height',[height])
-        home_builder_utils.flip_normals(self.right_filler)
-        home_builder_pointers.assign_pointer_to_assembly(self.right_filler,"Exposed Cabinet Surfaces")
-
 
 class Base_Advanced(Carcass):
 
@@ -499,14 +467,14 @@ class Base_Advanced(Carcass):
         self.create_assembly("Carcass")
         self.obj_bp["IS_CARCASS_BP"] = True
 
-        common_prompts.add_cabinet_prompts(self)
+        # common_prompts.add_cabinet_prompts(self)
         common_prompts.add_thickness_prompts(self)
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_base_assembly_prompts(self)
         common_prompts.add_cabinet_lighting_prompts(self)
         
-        cabinet_type = self.get_prompt("Cabinet Type")
-        cabinet_type.set_value("Base")
+        carcass_type = self.get_prompt("Carcass Type")
+        carcass_type.set_value("Base")
 
         self.obj_x.location.x = pc_unit.inch(18) 
         self.obj_y.location.y = -props.base_cabinet_depth
@@ -533,14 +501,14 @@ class Tall_Advanced(Carcass):
         self.create_assembly("Carcass")
         self.obj_bp["IS_CARCASS_BP"] = True
 
-        common_prompts.add_cabinet_prompts(self)
+        # common_prompts.add_cabinet_prompts(self)
         common_prompts.add_thickness_prompts(self)
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_base_assembly_prompts(self)
         common_prompts.add_cabinet_lighting_prompts(self)
 
-        cabinet_type = self.get_prompt("Cabinet Type")
-        cabinet_type.set_value("Tall")
+        carcass_type = self.get_prompt("Carcass Type")
+        carcass_type.set_value("Tall")
 
         self.obj_x.location.x = pc_unit.inch(18) 
         self.obj_y.location.y = -props.tall_cabinet_depth
@@ -571,8 +539,8 @@ class Upper_Advanced(Carcass):
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_cabinet_lighting_prompts(self)
 
-        cabinet_type = self.get_prompt("Cabinet Type")
-        cabinet_type.set_value("Upper")
+        carcass_type = self.get_prompt("Carcass Type")
+        carcass_type.set_value("Upper")
 
         self.obj_x.location.x = pc_unit.inch(18) 
         self.obj_y.location.y = -props.upper_cabinet_depth

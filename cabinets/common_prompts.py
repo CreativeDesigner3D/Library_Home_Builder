@@ -3,6 +3,9 @@ from ..pc_lib import pc_types, pc_unit, pc_utils
 def add_cabinet_prompts(assembly):
     assembly.add_prompt("Cabinet Type",'TEXT',"")
 
+def add_stacked_cabinet_prompts(assembly):
+    assembly.add_prompt("Bottom Cabinet Height",'DISTANCE',pc_unit.inch(50))
+
 def add_filler_prompts(assembly):
     assembly.add_prompt("Left Adjustment Width",'DISTANCE',pc_unit.inch(0))
     assembly.add_prompt("Right Adjustment Width",'DISTANCE',pc_unit.inch(0))
@@ -25,6 +28,9 @@ def add_door_prompts(assembly):
     door_swing.combobox_columns = 3
     assembly.add_prompt("Door Rotation",'ANGLE',120)
     assembly.add_prompt("Open Door",'PERCENTAGE',0)
+
+def add_drawer_prompts(assembly):
+    assembly.add_prompt("Open Drawer",'PERCENTAGE',0)
 
 def add_front_overlay_prompts(assembly):
     assembly.add_prompt("Half Overlay Top",'CHECKBOX',False)
@@ -66,6 +72,7 @@ def add_base_assembly_prompts(assembly):
     assembly.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))  
 
 def add_carcass_prompts(assembly):
+    assembly.add_prompt("Carcass Type",'TEXT',"")
     assembly.add_prompt("Left Finished End",'CHECKBOX',True)
     assembly.add_prompt("Right Finished End",'CHECKBOX',True)
     assembly.add_prompt("Finished Back",'CHECKBOX',True)

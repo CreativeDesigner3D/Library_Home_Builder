@@ -243,11 +243,6 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
             if hasattr(self.assembly,'add_doors'):
                 self.assembly.add_doors(door_panel_name=self.door_panel)
 
-            # exterior = cabinet_utils.get_exterior_from_name(self.exterior)
-            # if exterior:
-            #     self.exterior_assembly = self.carcass.add_insert(self.cabinet,exterior)
-            #     update_child_props(self.exterior_assembly.obj_bp)
-
             self.door_panel_changed = False
             self.get_assemblies_and_set_prompts(context)
 

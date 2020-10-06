@@ -24,27 +24,6 @@ def get_exterior_from_name(name):
         exterior = data_cabinet_exteriors.Drawers()
     return exterior
 
-def add_countertop(cabinet):
-    width = cabinet.obj_x.pyclone.get_var('location.x','width')
-    depth = cabinet.obj_y.pyclone.get_var('location.y','depth')
-    height = cabinet.obj_z.pyclone.get_var('location.z','height')    
-    ctop_front = cabinet.add_prompt("Countertop Overhang Front",'DISTANCE',pc_unit.inch(1))
-    ctop_back = cabinet.add_prompt("Countertop Overhang Back",'DISTANCE',pc_unit.inch(0))
-    ctop_left = cabinet.add_prompt("Countertop Overhang Left",'DISTANCE',pc_unit.inch(0))
-    ctop_right = cabinet.add_prompt("Countertop Overhang Right",'DISTANCE',pc_unit.inch(0))      
-    ctop_overhang_front = ctop_front.get_var('ctop_overhang_front')
-    ctop_overhang_back = ctop_back.get_var('ctop_overhang_back')
-    ctop_overhang_left = ctop_left.get_var('ctop_overhang_left')
-    ctop_overhang_right = ctop_right.get_var('ctop_overhang_right')
-
-    countertop = cabinet.add_assembly(data_countertops.Countertop())
-    countertop.set_name('Countertop')
-    countertop.loc_x('-ctop_overhang_left',[ctop_overhang_left])
-    countertop.loc_y('ctop_overhang_back',[ctop_overhang_back])
-    countertop.loc_z('height',[height])
-    countertop.dim_x('width+ctop_overhang_left+ctop_overhang_right',[width,ctop_overhang_left,ctop_overhang_right])
-    countertop.dim_y('depth-(ctop_overhang_front+ctop_overhang_back)',[depth,ctop_overhang_front,ctop_overhang_back])
-
 def add_sink(cabinet,carcass,countertop,sink):
     sink = cabinet.add_assembly(sink)
     sink.obj_bp.parent = cabinet.obj_bp

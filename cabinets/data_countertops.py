@@ -12,7 +12,7 @@ class Countertop(pc_types.Assembly):
     placement_id = ""
 
     def draw(self):
-        self.create_assembly("Carcass")
+        self.create_assembly("Countertop")
         self.obj_bp["IS_COUNTERTOP_BP"] = True
 
         common_prompts.add_countertop_prompts(self)

@@ -34,26 +34,27 @@ def add_overlay_prompts(assembly):
 class Doors(pc_types.Assembly):
 
     door_swing = 0 # Left = 0, Right = 1, Double = 2
-    cabinet_type = '' #Base, Tall, Upper
+    carcass_type = '' #Base, Tall, Upper
 
     def set_pull_props(self,obj):
         obj['IS_CABINET_PULL'] = True
         home_builder_pointers.assign_pointer_to_object(obj,"Pull Finish")  
-        if self.cabinet_type == 'Base':
+        if self.carcass_type == 'Base':
             home_builder_utils.get_object_props(obj).pointer_name = "Base Cabinet Pulls"
-        if self.cabinet_type == 'Tall':
+        if self.carcass_type == 'Tall':
             home_builder_utils.get_object_props(obj).pointer_name = "Tall Cabinet Pulls"
-        if self.cabinet_type == 'Upper':
+        if self.carcass_type == 'Upper':
             home_builder_utils.get_object_props(obj).pointer_name = "Upper Cabinet Pulls"
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
-        self.create_assembly("Double Door")
+        self.create_assembly("Doors")
         self.obj_bp["IS_DOORS_BP"] = True
         self.obj_bp["IS_EXTERIOR_BP"] = True
         self.obj_bp["EXTERIOR_NAME"] = "DOORS"
         
+        common_prompts.add_carcass_prompts(self)
         common_prompts.add_cabinet_prompts(self)
         common_prompts.add_door_prompts(self)
         common_prompts.add_front_prompts(self)
@@ -88,11 +89,11 @@ class Doors(pc_types.Assembly):
         ro_var = ro.get_var("ro_var")
 
         pointer = None
-        if self.cabinet_type == 'Base':
+        if self.carcass_type == 'Base':
             pointer = props.cabinet_door_pointers["Base Cabinet Doors"]
-        if self.cabinet_type == 'Tall':
+        if self.carcass_type == 'Tall':
             pointer = props.cabinet_door_pointers["Tall Cabinet Doors"]
-        if self.cabinet_type == 'Upper':
+        if self.carcass_type == 'Upper':
             pointer = props.cabinet_door_pointers["Upper Cabinet Doors"]
 
         #LEFT DOOR
@@ -127,13 +128,13 @@ class Doors(pc_types.Assembly):
         l_pull_empty.pyclone.loc_z('front_thickness',[front_thickness])
 
         pull_length.set_value(round(pull_obj.dimensions.x,2))
-        if self.cabinet_type == 'Base':
+        if self.carcass_type == 'Base':
             l_pull_empty.pyclone.loc_x('door_length-base_pull_vertical_location-(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])  
-        if self.cabinet_type == 'Tall':
+        if self.carcass_type == 'Tall':
             l_pull_empty.pyclone.loc_x('tall_pull_vertical_location-(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])  
-        if self.cabinet_type == 'Upper': 
+        if self.carcass_type == 'Upper': 
             l_pull_empty.pyclone.loc_x('upper_pull_vertical_location+(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])     
         l_pull_empty.rotation_euler.x = math.radians(-90)
@@ -170,13 +171,13 @@ class Doors(pc_types.Assembly):
         r_pull_empty.pyclone.loc_y('door_width-pull_horizontal_location',[door_width,pull_horizontal_location])
         r_pull_empty.pyclone.loc_z('front_thickness',[front_thickness])
         pull_length.set_value(round(pull_obj.dimensions.x,2))
-        if self.cabinet_type == 'Base':
+        if self.carcass_type == 'Base':
             r_pull_empty.pyclone.loc_x('door_length-base_pull_vertical_location-(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])    
-        if self.cabinet_type == 'Tall':
+        if self.carcass_type == 'Tall':
             r_pull_empty.pyclone.loc_x('tall_pull_vertical_location-(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])  
-        if self.cabinet_type == 'Upper':
+        if self.carcass_type == 'Upper':
             r_pull_empty.pyclone.loc_x('upper_pull_vertical_location+(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])    
         r_pull_empty.rotation_euler.x = math.radians(-90)
@@ -188,6 +189,7 @@ class Doors(pc_types.Assembly):
 
 class Drawers(pc_types.Assembly):
     category_name = "Cabinet Exteriors"
+    carcass_type = '' #Base, Tall, Upper
 
     drawer_qty = 3
 
@@ -254,8 +256,8 @@ class Drawers(pc_types.Assembly):
         self.obj_bp["IS_EXTERIOR_BP"] = True
         self.obj_bp["EXTERIOR_NAME"] = "DRAWERS"
 
-        common_prompts.add_cabinet_prompts(self)
-        common_prompts.add_door_prompts(self)
+        common_prompts.add_carcass_prompts(self)
+        common_prompts.add_drawer_prompts(self)
         common_prompts.add_thickness_prompts(self)
         common_prompts.add_front_prompts(self)
         common_prompts.add_front_overlay_prompts(self)
