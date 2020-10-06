@@ -231,6 +231,10 @@ class Assembly:
         if name in self.obj_prompts.pyclone.calculators:
             return self.obj_prompts.pyclone.calculators[name]
 
+    def update_calculators(self):
+        for calculator in self.obj_prompts.pyclone.calculators:
+            calculator.calculate()
+
     def set_prompts(self):
         for key in self.prompts:
             if key in self.obj_prompts.pyclone.prompts:
