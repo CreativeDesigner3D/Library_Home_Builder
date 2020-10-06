@@ -317,7 +317,7 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
             exterior_bp = home_builder_utils.get_exterior_bp(pull)
             for pointer in pull_pointers:
                 if pointer.name == props.pointer_name:
-                    pull_path = os.path.join(home_builder_paths.get_pull_path(),props.pull_category,props.pull_name + ".blend")
+                    pull_path = os.path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
                     new_pull = home_builder_utils.get_object(pull_path)
                     new_pull_props = home_builder_utils.get_object_props(new_pull)
                     new_pull_props.pointer_name = pointer.name
@@ -339,12 +339,41 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
 class home_builder_OT_update_cabinet_doors(bpy.types.Operator):
     bl_idname = "home_builder.update_cabinet_doors"
     bl_label = "Update Cabinet Doors"
-    
-    def run_calculators(self,context,assembly):
-        for calculator in assembly.obj_prompts.pyclone.calculators:
-            calculator.calculate()
 
     def execute(self, context):
+        door_panel_bps = []
+
+        for obj in bpy.data.objects:
+            if "IS_CABINET_DOOR_PANEL" in obj and obj["IS_CABINET_DOOR_PANEL"]:
+                door_panel_bps.append(obj)
+
+        for exterior_bp in door_panel_bps:
+            pc_utils.delete_object_and_children(exterior_bp)
+
+            # cabinet_bp = home_builder_utils.get_cabinet_bp(exterior_bp)
+            # carcass = None
+            # for child in cabinet_bp.children:
+            #     carcass_bp = home_builder_utils.get_carcass_bp(child)
+            #     if carcass_bp:
+            #         carcass = data_cabinet_carcass.Carcass(child) 
+            #         break
+
+            # if carcass:
+            #     cabinet = pc_types.Assembly(cabinet_bp)
+            #     old_exterior = pc_types.Assembly(exterior_bp)
+
+            #     exterior_prompt_dict = old_exterior.get_prompt_dict()
+            #     exterior = cabinet_utils.get_exterior_from_name(exterior_bp["EXTERIOR_NAME"])
+            #     exterior.prompts = exterior_prompt_dict
+            #     new_exterior = carcass.add_insert(cabinet,exterior)
+            #     new_exterior.update_calculators()
+                
+
+            # pc_utils.delete_object_and_children(exterior_bp)
+
+        return {'FINISHED'}
+
+    def execute_old(self, context):
         exterior_bp_objs = []
 
         for obj in bpy.data.objects:
@@ -368,7 +397,7 @@ class home_builder_OT_update_cabinet_doors(bpy.types.Operator):
                 exterior = cabinet_utils.get_exterior_from_name(exterior_bp["EXTERIOR_NAME"])
                 exterior.prompts = exterior_prompt_dict
                 new_exterior = carcass.add_insert(cabinet,exterior)
-                self.run_calculators(context,exterior)
+                new_exterior.update_calculators()
                 
 
             pc_utils.delete_object_and_children(exterior_bp)

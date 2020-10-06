@@ -924,7 +924,7 @@ def update_exterior(self,context):
 
             carcass_bp = home_builder_utils.get_carcass_bp(exterior)
             carcass = data_cabinet_carcass.Carcass(carcass_bp)
-            new_exterior = cabinet_utils.get_exterior_from_name(self.exterior)
+            new_exterior = data_cabinet_exteriors.get_class_from_name(self.exterior)
             carcass.add_insert(new_exterior)
             update_object_and_children_id_props(new_exterior.obj_bp,carcass.obj_bp)
             new_exterior.update_calculators()
@@ -940,14 +940,7 @@ class home_builder_OT_change_cabinet_exterior(bpy.types.Operator):
     cabinet_name: bpy.props.StringProperty(name="Cabinet Name",default="")
 
     exterior: bpy.props.EnumProperty(name="Exterior",
-                                     items=[('SELECT_EXTERIOR',"Select Exterior","Select Exterior"),
-                                            ('OPEN',"Open","Open"),
-                                            ('DOORS',"Doors","Doors"),
-                                            ('2_DOOR_2_DRAWER',"2 Door 2 Drawer","2 Door 2 Drawer"),
-                                            ('1_DOOR_1_DRAWER',"1 Door 1 Drawer","1 Door 1 Drawer"),
-                                            ('2_DOOR_1_DRAWER',"2 Door 1 Drawer","2 Door 1 Drawer"),
-                                            ('SLIDING_DOORS',"Sliding Doors","Sliding Doors"),
-                                            ('DRAWERS',"Drawers","Drawers")],
+                                     items=data_cabinet_exteriors.exterior_selection,
                                     update=update_exterior)
 
     exterior_changed: bpy.props.BoolProperty(name="Exterior Changed")

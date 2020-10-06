@@ -11,8 +11,6 @@ def add_filler_prompts(assembly):
     assembly.add_prompt("Right Adjustment Width",'DISTANCE',pc_unit.inch(0))
 
 def add_front_prompts(assembly):
-    assembly.add_prompt("Inset Front",'CHECKBOX',False)
-    assembly.add_prompt("Door to Cabinet Gap",'DISTANCE',pc_unit.inch(.125))
     assembly.add_prompt("Front Thickness",'DISTANCE',pc_unit.inch(.75))
 
 def add_sink_prompts(assembly):
@@ -33,15 +31,17 @@ def add_drawer_prompts(assembly):
     assembly.add_prompt("Open Drawer",'PERCENTAGE',0)
 
 def add_front_overlay_prompts(assembly):
+    assembly.add_prompt("Inset Front",'CHECKBOX',False)
+    assembly.add_prompt("Door to Cabinet Gap",'DISTANCE',pc_unit.inch(.125))    
     assembly.add_prompt("Half Overlay Top",'CHECKBOX',False)
     assembly.add_prompt("Half Overlay Bottom",'CHECKBOX',False)
     assembly.add_prompt("Half Overlay Left",'CHECKBOX',False)
     assembly.add_prompt("Half Overlay Right",'CHECKBOX',False)
     assembly.add_prompt("Inset Reveal",'DISTANCE',pc_unit.inch(.125))
-    # assembly.add_prompt("Top Overlay",'DISTANCE',pc_unit.inch(.6875))
-    # assembly.add_prompt("Bottom Overlay",'DISTANCE',pc_unit.inch(.6875))
-    # assembly.add_prompt("Left Overlay",'DISTANCE',pc_unit.inch(.6875))
-    # assembly.add_prompt("Right Overlay",'DISTANCE',pc_unit.inch(.6875))
+    assembly.add_prompt("Top Reveal",'DISTANCE',pc_unit.inch(.0625))
+    assembly.add_prompt("Bottom Reveal",'DISTANCE',pc_unit.inch(0))
+    assembly.add_prompt("Left Reveal",'DISTANCE',pc_unit.inch(.0625))
+    assembly.add_prompt("Right Reveal",'DISTANCE',pc_unit.inch(.0625))
     assembly.add_prompt("Vertical Gap",'DISTANCE',pc_unit.inch(.125))
 
 def add_pull_prompts(assembly):
