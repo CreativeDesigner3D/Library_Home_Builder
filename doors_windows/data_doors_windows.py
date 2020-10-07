@@ -9,20 +9,20 @@ from .. import home_builder_paths
 from .. import home_builder_parts
 
 def get_default_window_frame():
-    ASSET_DIR = home_builder_paths.get_asset_folder_path()
-    return path.join(ASSET_DIR,"Window Frames","Window Frame.blend")
+    ASSET_DIR = home_builder_paths.get_entry_window_frame_path()
+    return path.join(ASSET_DIR,"Window Frame.blend")
 
 def get_default_window_insert():
-    ASSET_DIR = home_builder_paths.get_asset_folder_path()
-    return path.join(ASSET_DIR,"Window Inserts","Window Insert 1.blend")
+    ASSET_DIR = home_builder_paths.get_entry_window_insert_path()
+    return path.join(ASSET_DIR,"Window Insert 1.blend")
 
 def get_default_door_jamb():
-    ASSET_DIR = home_builder_paths.get_asset_folder_path()
-    return path.join(ASSET_DIR,"Door Frames","Door Jamb.blend") 
+    ASSET_DIR = home_builder_paths.get_entry_door_jamb_path()
+    return path.join(ASSET_DIR,"Door Jamb.blend") 
 
 def get_default_door_frame():
-    ASSET_DIR = home_builder_paths.get_asset_folder_path()
-    return path.join(ASSET_DIR,"Door Frames","Door Frame Square.blend") 
+    ASSET_DIR = home_builder_paths.get_entry_door_frame_path()
+    return path.join(ASSET_DIR,"Door Frame Square.blend") 
 
 def get_door_panel(door_panel_name):
     ASSET_DIR = home_builder_paths.get_entry_door_panel_path()

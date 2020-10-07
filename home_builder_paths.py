@@ -22,6 +22,9 @@ def get_asset_folder_path():
 def get_material_path():
     return os.path.join(get_asset_folder_path(),'Materials') 
 
+def get_cabinet_parts_path():
+    return os.path.join(get_asset_folder_path(),'Cabinet Parts') 
+
 def get_pull_path():
     return os.path.join(get_asset_folder_path(),'Cabinet Pulls') 
 
@@ -52,8 +55,20 @@ def get_cabinet_door_path():
 def get_cabinet_door_panel_path(pointer):
     return os.path.join(get_cabinet_door_path(),pointer.category,pointer.item_name + ".blend")
 
+def get_entry_door_frame_path():
+    return os.path.join(get_asset_folder_path(),'Entry Door Frames')  
+
+def get_entry_door_jamb_path():
+    return os.path.join(get_asset_folder_path(),'Entry Door Jambs')
+
 def get_entry_door_handle_path():
     return os.path.join(get_asset_folder_path(),'Entry Door Handles')       
 
 def get_entry_door_panel_path():
-    return os.path.join(get_asset_folder_path(),'Entry Door Panels')        
+    return os.path.join(get_asset_folder_path(),'Entry Door Panels')      
+
+def get_entry_window_frame_path():
+    return os.path.join(get_asset_folder_path(),'Window Frames')   
+
+def get_entry_window_insert_path():
+    return os.path.join(get_asset_folder_path(),'Window Inserts')             

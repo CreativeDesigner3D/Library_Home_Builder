@@ -107,7 +107,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                  ('MOLDINGS',"Moldings","Show the Molding Options"),
                                  ('FRONTS',"Fronts","Show the Door and Drawer Front Options"),
                                  ('HARDWARE',"Hardware","Show the Hardware Options"),
-                                 ('LIBRARY',"Thumbnails","Show the Library Options")],
+                                 ('LIBRARY',"Assets","Show the Available Asset Options")],
                           default='DEFAULTS')
 
     default_tabs: EnumProperty(name="Default Tabs",
@@ -117,6 +117,27 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                  ('WINDOW_SIZES',"Window Sizes","Show the Window Options"),
                                  ('WALLS',"Walls","Show the Wall Options")],
                           default='CABINETS_SIZES')
+
+    asset_tabs: EnumProperty(name="Default Tabs",
+                             items=[('PYTHON',"Python Classes","Show the Assets Defined in Python"),
+                                    ('BUILT_IN_APPLIANCES',"Built in Appliances","Show the Built in Appliances"),
+                                    ('CABINET_DOORS',"Cabinet Doors","Show the Cabinet Doors"),
+                                    ('CABINET_PARTS',"Cabinet Parts","Show the Cabinet Parts"),
+                                    ('CABINET_PULLS',"Cabinet Pulls","Show the Cabinet Pulls"),
+                                    ('COOKTOPS',"Cooktops","Show the Cooktops"),
+                                    ('DISHWASHERS',"Dishwashers","Show the Dishwashers"),
+                                    ('ENTRY_DOOR_FRAMES',"Entry Door Frames","Show the Entry Door Frames"),
+                                    ('ENTRY_DOOR_HANDLES',"Entry Door Handles","Show the Entry Door Handles"),
+                                    ('ENTRY_DOOR_PANELS',"Entry Door Panels","Show the Entry Door Panels"),
+                                    ('FAUCETS',"Faucets","Show the Faucets"),
+                                    ('MATERIALS',"Materials","Show the Materials"),
+                                    ('RANGE_HOODS',"Range Hoods","Show the Range Hoods"),
+                                    ('RANGES',"Ranges","Show the Ranges"),
+                                    ('REFRIGERATORS',"Refrigerators","Show the Refrigerators"),
+                                    ('SINKS',"Sinks","Show the Sinks"),
+                                    ('WINDOW_FRAMES',"Window Frames","Show the Window Frames"),
+                                    ('WINDOW_INSERTS',"Window Inserts","Show the Window Inserts")],
+                             default='PYTHON')
 
     active_category: StringProperty(name="Active Category")
 
@@ -372,9 +393,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
         items=home_builder_enums.enum_cabinet_door_names)
 
     def draw_sizes(self,layout):
-        box = layout.box()
+        # box = layout.box()
 
-        split = box.split(factor=.25)
+        split = layout.split(factor=.25)
         tab_col = split.column()
         tab_col.prop(self,'default_tabs',expand=True)
 
@@ -626,41 +647,49 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.label(text=cabinet_door.category + " - " + cabinet_door.item_name,icon='MODIFIER_ON')
 
     def draw_library(self,layout):
-        layout = layout
-
-        layout.operator('home_builder.render_asset_thumbnails')
-        split = layout.split()
-
+        split = layout.split(factor=.25)
         left_col = split.column()
         right_col = split.column()
 
-        cabinet_box = left_col.box()
-        cabinet_box.label(text="Cabinets")
-        cabinet_col = cabinet_box.column(align=True)
+        left_col.prop(self,'asset_tabs',expand=True)
 
-        wall_box = left_col.box()
-        wall_box.label(text="Walls")
-        wall_col = wall_box.column(align=True)
+        if self.asset_tabs == 'PYTHON':
+            row = right_col.row()
+            row.scale_y = 1.3
+            row.operator('home_builder.render_asset_thumbnails')
 
-        appliance_box = right_col.box()
-        appliance_box.label(text="Appliances")
-        appliance_col = appliance_box.column(align=True)
-        wm_props = home_builder_utils.get_wm_props(bpy.context.window_manager)
+            split = right_col.split()
 
-        door_window_box = right_col.box()
-        door_window_box.label(text="Doors and Windows")
-        door_window_col = door_window_box.column(align=True)
+            asset_left_col = split.column()
+            asset_right_col = split.column()
 
-        for asset in wm_props.assets:
-            text = asset.name
-            if asset.category_name == 'Appliances':
-                appliance_col.prop(asset,'is_selected',text=text)            
-            if asset.category_name == 'Cabinets':
-                cabinet_col.prop(asset,'is_selected',text=text)
-            if asset.category_name == 'Walls': 
-                wall_col.prop(asset,'is_selected',text=text)
-            if asset.category_name == 'Doors and Windows':
-                door_window_col.prop(asset,'is_selected',text=text)                
+            cabinet_box = asset_left_col.box()
+            cabinet_box.label(text="Cabinets")
+            cabinet_col = cabinet_box.column(align=True)
+
+            wall_box = asset_left_col.box()
+            wall_box.label(text="Walls")
+            wall_col = wall_box.column(align=True)
+
+            appliance_box = asset_right_col.box()
+            appliance_box.label(text="Appliances")
+            appliance_col = appliance_box.column(align=True)
+            wm_props = home_builder_utils.get_wm_props(bpy.context.window_manager)
+
+            door_window_box = asset_right_col.box()
+            door_window_box.label(text="Doors and Windows")
+            door_window_col = door_window_box.column(align=True)
+
+            for asset in wm_props.assets:
+                text = asset.name
+                if asset.category_name == 'Appliances':
+                    appliance_col.prop(asset,'is_selected',text=text)            
+                if asset.category_name == 'Cabinets':
+                    cabinet_col.prop(asset,'is_selected',text=text)
+                if asset.category_name == 'Walls': 
+                    wall_col.prop(asset,'is_selected',text=text)
+                if asset.category_name == 'Doors and Windows':
+                    door_window_col.prop(asset,'is_selected',text=text)                
 
     def draw(self,layout):
         col = layout.column(align=True)
