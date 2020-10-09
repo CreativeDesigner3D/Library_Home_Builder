@@ -37,6 +37,9 @@ def get_faucet_path():
 def get_range_path():
     return os.path.join(get_asset_folder_path(),'Ranges')     
 
+def get_built_in_appliances_path():
+    return os.path.join(get_asset_folder_path(),'Built in Appliances') 
+
 def get_range_hood_path():
     return os.path.join(get_asset_folder_path(),'Range Hoods')         
 

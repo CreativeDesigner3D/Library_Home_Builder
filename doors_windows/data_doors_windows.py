@@ -10,37 +10,37 @@ from .. import home_builder_parts
 
 def get_default_window_frame():
     ASSET_DIR = home_builder_paths.get_entry_window_frame_path()
-    return path.join(ASSET_DIR,"Window Frame.blend")
+    return path.join(ASSET_DIR,"Generic","Window Frame.blend")
 
 def get_default_window_insert():
     ASSET_DIR = home_builder_paths.get_entry_window_insert_path()
-    return path.join(ASSET_DIR,"Window Insert 1.blend")
+    return path.join(ASSET_DIR,"Generic","Window Insert 1.blend")
 
 def get_default_door_jamb():
     ASSET_DIR = home_builder_paths.get_entry_door_jamb_path()
-    return path.join(ASSET_DIR,"Door Jamb.blend") 
+    return path.join(ASSET_DIR,"Generic","Door Jamb.blend") 
 
 def get_default_door_frame():
     ASSET_DIR = home_builder_paths.get_entry_door_frame_path()
-    return path.join(ASSET_DIR,"Door Frame Square.blend") 
+    return path.join(ASSET_DIR,"Generic","Door Frame Square.blend") 
 
-def get_door_panel(door_panel_name):
+def get_door_panel(door_panel_category,door_panel_name):
     ASSET_DIR = home_builder_paths.get_entry_door_panel_path()
     if door_panel_name == "":
-        return path.join(ASSET_DIR,"Door Panel Slab.blend") 
+        return path.join(ASSET_DIR,"Generic","Door Panel Slab.blend") 
     else:
-        return path.join(ASSET_DIR, door_panel_name + ".blend") 
+        return path.join(ASSET_DIR, door_panel_category,door_panel_name + ".blend") 
 
 def get_door_handle(door_handle_name):
     ASSET_DIR = home_builder_paths.get_entry_door_handle_path()
     if door_handle_name == "":
-        return path.join(ASSET_DIR,"Entry Door Handle 1.blend") 
+        return path.join(ASSET_DIR,"Generic","Entry Door Handle 1.blend") 
     else:
         return path.join(ASSET_DIR, door_handle_name + ".blend") 
 
 class Standard_Door(pc_types.Assembly):
 
-    def add_doors(self,door_panel_name="",door_handle_name=""):
+    def add_doors(self,door_panel_category="",door_panel_name="",door_handle_name=""):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')        
@@ -55,7 +55,7 @@ class Standard_Door(pc_types.Assembly):
         door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
         
         #LEFT DOOR
-        l_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_name)))
+        l_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_category,door_panel_name)))
         l_door_panel.set_name("Left Door Panel")
         l_door_panel.obj_bp["IS_ENTRY_DOOR_PANEL"] = True
         self.add_assembly(l_door_panel)
@@ -93,7 +93,7 @@ class Standard_Door(pc_types.Assembly):
         mirror.use_axis[2] = False
 
         #RIGHT DOOR
-        r_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_name)))
+        r_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_category,door_panel_name)))
         r_door_panel.set_name("Right Door Panel")
         r_door_panel.obj_bp["IS_ENTRY_DOOR_PANEL"] = True
         self.add_assembly(r_door_panel)

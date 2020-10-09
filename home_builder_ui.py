@@ -59,10 +59,34 @@ class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
         props = home_builder_utils.get_scene_props(context.scene)
         props.draw(layout)
 
+
+class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
+    bl_label = "Asset Commands"
+
+    def draw(self, context):
+
+        props = home_builder_utils.get_scene_props(context.scene)
+        path = props.get_active_category_path()
+        layout = self.layout
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator('home_builder.save_asset_to_library')
+        layout.operator('home_builder.create_thumnails_for_selected_assets')
+        layout.operator('home_builder.open_browser_window').path = path
+        
+
+
+class HOME_BUILDER_UL_assets(bpy.types.UIList):
+    
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.label(text=item.name)
+        layout.prop(item,'is_selected',text="")
+
 classes = (
     FILEBROWSER_PT_home_builder_headers,
     HOME_BUILDER_MT_category_menu,
     HOME_BUILDER_PT_library_settings,
+    HOME_BUILDER_MT_asset_commands_menu,
+    HOME_BUILDER_UL_assets,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)        

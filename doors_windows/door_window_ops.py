@@ -209,9 +209,9 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
     height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
     depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
-    # material_category: bpy.props.EnumProperty(name="Material Category",
-    #     items=home_builder_enums.enum_material_categories,
-    #     update=home_builder_enums.update_material_category)
+    entry_door_panel_category: bpy.props.EnumProperty(name="Entry Door Panel Category",
+        items=home_builder_enums.enum_entry_door_panel_categories,
+        update=home_builder_enums.update_entry_door_panel_category)
     door_panel: bpy.props.EnumProperty(name="Door Panel",
         items=home_builder_enums.enum_entry_door_panels_names,
         update=update_door_panel)
@@ -241,7 +241,8 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
                 pc_utils.delete_object_and_children(door_panel)
 
             if hasattr(self.assembly,'add_doors'):
-                self.assembly.add_doors(door_panel_name=self.door_panel)
+                self.assembly.add_doors(door_panel_category=self.entry_door_panel_category,
+                                        door_panel_name=self.door_panel)
 
             self.door_panel_changed = False
             self.get_assemblies_and_set_prompts(context)
@@ -365,16 +366,12 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
     def draw_door_panel(self,layout,context):
         box = layout.box()
         box.label(text="Door Panel Selection")
+        box.prop(self,'entry_door_panel_category')
         box.template_icon_view(self,"door_panel",show_labels=True)          
 
     def draw(self, context):
         layout = self.layout
         self.draw_product_size(layout,context)
-        # row = layout.row(align=True)
-        # row.prop_enum(self, "product_tabs", 'MAIN') 
-        # row.prop_enum(self, "product_tabs", 'EXTERIOR') 
-        # row.prop_enum(self, "product_tabs", 'INTERIOR') 
-        # if self.product_tabs == 'EXTERIOR':
         self.draw_prompts(layout,context)
         self.draw_door_panel(layout,context)
 

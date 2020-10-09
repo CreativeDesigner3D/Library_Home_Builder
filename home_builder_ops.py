@@ -547,6 +547,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
                 subprocess.call(bpy.app.binary_path + ' -b --python "' + script + '"') 
         return {'FINISHED'}
 
+
 class home_builder_OT_message(bpy.types.Operator):
     bl_idname = "home_builder.message"
     bl_label = "Message"
@@ -599,7 +600,260 @@ class home_builder_OT_archipack_not_enabled(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_create_thumnails_for_selected_assets(Operator):
+    bl_idname = "home_builder.create_thumnails_for_selected_assets"
+    bl_label = "Create Thumnails for Selected Assets"
+    bl_description = "This will create thumbnails for the selected assets"
+    bl_options = {'UNDO'}
+    
+    @classmethod
+    def poll(cls, context):
+        return True
 
+    def reset_variables(self):
+        pass
+
+    def create_item_thumbnail_script(self,asset):
+        file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+        file.write("import sys\n")
+
+        file.write("path = '" + os.path.join(os.path.dirname(asset.asset_path),asset.name)  + "'\n")
+
+        file.write("bpy.ops.object.select_all(action='DESELECT')\n")
+
+        file.write("with bpy.data.libraries.load(r'" + asset.asset_path + "', False, True) as (data_from, data_to):\n")
+        file.write("    data_to.objects = data_from.objects\n")
+
+        file.write("for obj in data_to.objects:\n")
+        file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+        file.write("    obj.select_set(True)\n")
+
+        file.write("bpy.ops.view3d.camera_to_view_selected()\n")
+
+        #RENDER
+        file.write("render = bpy.context.scene.render\n")    
+        file.write("render.use_file_extension = True\n")
+        file.write("render.filepath = path\n")
+        file.write("bpy.ops.render.render(write_still=True)\n")
+        file.close()
+        return os.path.join(bpy.app.tempdir,'thumb_temp.py')
+
+    def create_item_material_thumbnail_script(self,asset):
+        file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+        file.write("import sys\n")
+
+        file.write("path = '" + os.path.join(os.path.dirname(asset.asset_path),asset.name)  + "'\n")
+
+        file.write("bpy.ops.object.select_all(action='DESELECT')\n")
+
+        file.write("with bpy.data.libraries.load(r'" + asset.asset_path + "', False, True) as (data_from, data_to):\n")
+        file.write("    for mat in data_from.materials:\n")
+        file.write("        if mat == '" + asset.name + "':\n")
+        file.write("            data_to.materials = [mat]\n")
+        file.write("            break\n")
+        file.write("for mat in data_to.materials:\n")
+        file.write("    bpy.ops.mesh.primitive_cube_add()\n")
+        file.write("    obj = bpy.context.view_layer.objects.active\n")
+        file.write("    bpy.ops.object.shade_smooth()\n")
+        file.write("    obj.dimensions = (2,2,2)\n")
+        file.write("    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)\n")
+        file.write("    mod = obj.modifiers.new('bevel','BEVEL')\n")
+        file.write("    mod.segments = 5\n")
+        file.write("    mod.width = .05\n")
+        file.write("    bpy.ops.object.modifier_apply(modifier='bevel')\n")
+        file.write("    bpy.ops.object.editmode_toggle()\n")
+        file.write("    bpy.ops.mesh.select_all(action='SELECT')\n")
+        file.write("    bpy.ops.uv.smart_project(angle_limit=66, island_margin=0, user_area_weight=0)\n")
+        file.write("    bpy.ops.object.editmode_toggle()\n")
+        file.write("    bpy.ops.object.material_slot_add()\n")
+        file.write("    for slot in obj.material_slots:\n")
+        file.write("        slot.material = mat\n")
+
+        file.write("bpy.ops.view3d.camera_to_view_selected()\n")
+
+        #RENDER
+        file.write("render = bpy.context.scene.render\n")
+        file.write("render.use_file_extension = True\n")
+        file.write("render.filepath = path\n")
+        file.write("bpy.ops.render.render(write_still=True)\n")        
+        file.close()
+        return os.path.join(bpy.app.tempdir,'thumb_temp.py')    
+
+    def get_thumbnail_path(self,asset):
+        return os.path.join(os.path.dirname(os.path.dirname(asset.asset_path)),"thumbnail.blend")
+
+    def execute(self, context):
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        for asset in scene_props.active_asset_collection:
+            if asset.is_selected:
+                if scene_props.asset_tabs == 'MATERIALS':
+                    script = self.create_item_material_thumbnail_script(asset)
+                else:
+                    script = self.create_item_thumbnail_script(asset)
+                subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path(asset) + '" -b --python "' + script + '"') 
+                # subprocess.call(bpy.app.binary_path + ' -b --python "' + script + '"') 
+        return {'FINISHED'}
+
+
+class home_builder_OT_save_asset_to_library(Operator):
+    bl_idname = "home_builder.save_asset_to_library"
+    bl_label = "Save Current Asset to Library"
+    bl_description = "This will save the current file to the active library"
+    bl_options = {'UNDO'}
+    
+    object_libraries = {'CABINET_PULLS','ENTRY_DOOR_HANDLES','FAUCETS'}
+    assembly_libraries = {'BUILT_IN_APPLIANCES','CABINET_DOORS','CABINET_PARTS',
+                            'COOKTOPS','DISHWASHERS','ENTRY_DOOR_FRAMES','ENTRY_DOOR_PANELS',
+                            'RANGE_HOODS','RANGES','REFRIGERATORS','SINKS','WINDOW_FRAMES',
+                            'WINDOW_INSERTS'}
+    material_libraries = {'MATERIALS'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def invoke(self,context,event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def create_save_object_script(self,save_dir,asset):
+        source_file = bpy.data.filepath
+        file = codecs.open(os.path.join(bpy.app.tempdir,"save_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+        file.write("for mat in bpy.data.materials:\n")
+        file.write("    bpy.data.materials.remove(mat,do_unlink=True)\n")
+        file.write("for obj in bpy.data.objects:\n")
+        file.write("    bpy.data.objects.remove(obj,do_unlink=True)\n")        
+        file.write("bpy.context.preferences.filepaths.save_version = 0\n")
+        file.write("with bpy.data.libraries.load(r'" + source_file + "', False, True) as (data_from, data_to):\n")
+        file.write("    data_to.objects = data_from.objects\n")
+        file.write("for obj in data_to.objects:\n")
+        file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+        # file.write("    obj.select_set(True)\n")
+        # file.write("    if obj.type == 'CURVE':\n")
+        # file.write("        bpy.context.scene.camera.rotation_euler = (0,0,0)\n")
+        # file.write("        obj.data.dimensions = '2D'\n")
+        # file.write("    bpy.context.view_layer.objects.active = obj\n")
+        file.write("bpy.ops.wm.save_as_mainfile(filepath=r'" + os.path.join(save_dir,asset.name) + ".blend')\n")
+        file.close()
+
+        return os.path.join(bpy.app.tempdir,'save_temp.py')
+
+    def create_save_material_script(self,save_dir,material):
+        source_file = bpy.data.filepath
+        file = codecs.open(os.path.join(bpy.app.tempdir,"save_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+        file.write("for mat in bpy.data.materials:\n")
+        file.write("    bpy.data.materials.remove(mat,do_unlink=True)\n")
+        file.write("for obj in bpy.data.objects:\n")
+        file.write("    bpy.data.objects.remove(obj,do_unlink=True)\n")        
+        file.write("bpy.context.preferences.filepaths.save_version = 0\n")
+        file.write("with bpy.data.libraries.load(r'" + source_file + "', False, True) as (data_from, data_to):\n")
+        file.write("    for mat in data_from.materials:\n")
+        file.write("        if mat == '" + material.name + "':\n")
+        file.write("            data_to.materials = [mat]\n")
+        file.write("            break\n")
+        file.write("for mat in data_to.materials:\n")
+        file.write("    bpy.ops.mesh.primitive_cube_add()\n")
+        file.write("    obj = bpy.context.view_layer.objects.active\n")
+        file.write("    bpy.ops.object.shade_smooth()\n")
+        file.write("    obj.dimensions = (2,2,2)\n")
+        file.write("    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)\n")
+        file.write("    mod = obj.modifiers.new('bevel','BEVEL')\n")
+        file.write("    mod.segments = 5\n")
+        file.write("    mod.width = .05\n")
+        file.write("    bpy.ops.object.modifier_apply(modifier='bevel')\n")
+        file.write("    bpy.ops.object.editmode_toggle()\n")
+        file.write("    bpy.ops.mesh.select_all(action='SELECT')\n")
+        file.write("    bpy.ops.uv.smart_project(angle_limit=66, island_margin=0, user_area_weight=0)\n")
+        file.write("    bpy.ops.object.editmode_toggle()\n")
+        file.write("    bpy.ops.object.material_slot_add()\n")
+        file.write("    for slot in obj.material_slots:\n")
+        file.write("        slot.material = mat\n")
+        file.write("    bpy.context.view_layer.objects.active = obj\n")
+        file.write("bpy.ops.wm.save_as_mainfile(filepath=r'" + os.path.join(save_dir,material.name) + ".blend')\n")
+        file.close()
+
+        return os.path.join(bpy.app.tempdir,'save_temp.py')
+
+    def execute(self, context):     
+        if bpy.data.filepath == "":
+            bpy.ops.wm.save_as_mainfile(filepath=os.path.join(bpy.app.tempdir,"temp_blend.blend"))
+
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        path = os.path.join(scene_props.get_active_category_path(),scene_props.active_asset_category)
+
+        if scene_props.asset_tabs in self.object_libraries:
+            save_script_path = self.create_save_object_script(path, self.get_asset(context))
+            subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"')
+
+        if scene_props.asset_tabs in self.assembly_libraries:
+            save_script_path = self.create_save_object_script(path, self.get_asset(context))
+            subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"')
+
+        if scene_props.asset_tabs in self.material_libraries:
+            save_script_path = self.create_save_material_script(path, self.get_asset(context))
+            subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"')
+
+        file_path = os.path.join(path,self.get_asset(context).name + ".blend")
+
+        for asset in scene_props.active_asset_collection:
+            scene_props.active_asset_collection.remove(0)
+
+        asset = scene_props.active_asset_collection.add()
+        asset.is_selected = True
+        asset.name = self.get_asset(context).name
+        asset.asset_path = file_path
+
+        bpy.ops.home_builder.create_thumnails_for_selected_assets()
+        return {'FINISHED'}
+
+    def get_asset(self,context):
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        if scene_props.asset_tabs in self.object_libraries:
+            return context.object
+        if scene_props.asset_tabs in self.assembly_libraries:
+            return pc_utils.get_assembly_bp(context.object)
+        if scene_props.asset_tabs in self.material_libraries:
+            return context.object.active_material     
+
+    def draw(self, context):
+        layout = self.layout
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+
+        path = os.path.join(scene_props.get_active_category_path(),scene_props.active_asset_category)
+        files = os.listdir(path) if os.path.exists(path) else []
+        
+        asset_name = self.get_asset(context).name
+
+        layout.label(text="Asset Name: " + asset_name)
+        
+        if asset_name + ".blend" in files or asset_name + ".png" in files:
+            layout.label(text="File already exists",icon="ERROR")     
+
+
+class home_builder_OT_open_browser_window(bpy.types.Operator):
+    bl_idname = "home_builder.open_browser_window"
+    bl_label = "Open Browser Window"
+    bl_description = "This will open a path in your OS file browser"
+
+    path: bpy.props.StringProperty(name="Path",description="Path to Open")
+
+    def execute(self, context):
+        import subprocess
+        if 'Windows' in str(bpy.app.build_platform):
+            subprocess.Popen(r'explorer ' + self.path)
+        elif 'Darwin' in str(bpy.app.build_platform):
+            subprocess.Popen(['open' , os.path.normpath(self.path)])
+        else:
+            subprocess.Popen(['xdg-open' , os.path.normpath(self.path)])
+        return {'FINISHED'}
 
 classes = (
     room_builder_OT_activate,
@@ -621,6 +875,9 @@ classes = (
     home_builder_OT_render_asset_thumbnails,
     home_builder_OT_message,
     home_builder_OT_archipack_not_enabled,
+    home_builder_OT_save_asset_to_library,
+    home_builder_OT_create_thumnails_for_selected_assets,
+    home_builder_OT_open_browser_window,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

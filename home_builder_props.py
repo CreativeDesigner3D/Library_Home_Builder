@@ -39,6 +39,7 @@ class Pointer(PropertyGroup):
 class Asset(PropertyGroup):
     is_selected: BoolProperty(name="Is Selected",default=False)
     preview_found: BoolProperty(name="Preivew Found",default=False)
+    asset_path: StringProperty(name="Asset Path")
     library_path: StringProperty(name="Library Path")
     package_name: StringProperty(name="Package Name")
     module_name: StringProperty(name="Module Name")
@@ -100,6 +101,10 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
     def unregister(cls):
         del bpy.types.WindowManager.home_builder
 
+def update_active_asset_index(self,context):
+    active_asset = self.active_asset_collection[self.active_asset_index]
+    self.active_assets = active_asset.name
+
 class Home_Builder_Scene_Props(PropertyGroup):
     ui_tabs: EnumProperty(name="UI Tabs",
                           items=[('DEFAULTS',"Library","Default Library Settings"),
@@ -137,7 +142,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                     ('SINKS',"Sinks","Show the Sinks"),
                                     ('WINDOW_FRAMES',"Window Frames","Show the Window Frames"),
                                     ('WINDOW_INSERTS',"Window Inserts","Show the Window Inserts")],
-                             default='PYTHON')
+                             default='PYTHON',
+                             update=home_builder_enums.update_active_asset_tab)
 
     active_category: StringProperty(name="Active Category")
 
@@ -373,6 +379,14 @@ class Home_Builder_Scene_Props(PropertyGroup):
     material_pointers: bpy.props.CollectionProperty(name="Material Pointers",type=Pointer)
     pull_pointers: bpy.props.CollectionProperty(name="Pull Pointers",type=Pointer)
     cabinet_door_pointers: bpy.props.CollectionProperty(name="Cabinet Door Pointers",type=Pointer)
+
+    active_asset_category: bpy.props.EnumProperty(name="Active Asset Category",
+        items=home_builder_enums.enum_active_asset_categories,
+        update=home_builder_enums.update_active_asset_category)
+    active_assets: bpy.props.EnumProperty(name="Active Assets",
+        items=home_builder_enums.enum_active_asset_names)
+    active_asset_collection: bpy.props.CollectionProperty(name="Active Asset Collection",type=Asset)
+    active_asset_index: bpy.props.IntProperty(name="Active Asset Index",update=update_active_asset_index)
 
     material_category: bpy.props.EnumProperty(name="Material Category",
         items=home_builder_enums.enum_material_categories,
@@ -689,8 +703,60 @@ class Home_Builder_Scene_Props(PropertyGroup):
                 if asset.category_name == 'Walls': 
                     wall_col.prop(asset,'is_selected',text=text)
                 if asset.category_name == 'Doors and Windows':
-                    door_window_col.prop(asset,'is_selected',text=text)                
+                    door_window_col.prop(asset,'is_selected',text=text)     
+        else:
+            row = right_col.row()
+            row.scale_y = 1.3
+            split = row.split(factor=.70)
+            list_col = split.column()
+            image_col = split.column()            
+            
+            list_col.prop(self,'active_asset_category',text="")
+            image_col.menu('HOME_BUILDER_MT_asset_commands_menu',text="Commands")
 
+            split = right_col.split(factor=.70)
+            list_col = split.column()
+            image_col = split.column()
+
+            list_col.template_list("HOME_BUILDER_UL_assets"," ", self, "active_asset_collection", self, "active_asset_index",rows=16,type='DEFAULT')
+            image_col.template_icon_view(self,"active_assets",show_labels=True)  
+
+    def get_active_category_path(self):
+        if self.asset_tabs == 'BUILT_IN_APPLIANCES':
+            return home_builder_paths.get_built_in_appliances_path()
+        if self.asset_tabs == 'CABINET_DOORS':
+            return home_builder_paths.get_cabinet_door_path()
+        if self.asset_tabs == 'CABINET_PARTS':
+            return home_builder_paths.get_cabinet_parts_path()
+        if self.asset_tabs == 'CABINET_PULLS':
+            return home_builder_paths.get_pull_path()
+        if self.asset_tabs == 'COOKTOPS':
+            return home_builder_paths.get_cooktop_path()
+        if self.asset_tabs == 'DISHWASHERS':
+            return home_builder_paths.get_dishwasher_path()
+        if self.asset_tabs == 'ENTRY_DOOR_FRAMES':
+            return home_builder_paths.get_entry_window_frame_path()
+        if self.asset_tabs == 'ENTRY_DOOR_HANDLES':
+            return home_builder_paths.get_entry_door_handle_path()
+        if self.asset_tabs == 'ENTRY_DOOR_PANELS':
+            return home_builder_paths.get_entry_door_panel_path()
+        if self.asset_tabs == 'FAUCETS':
+            return home_builder_paths.get_faucet_path()
+        if self.asset_tabs == 'MATERIALS':
+            return home_builder_paths.get_material_path()
+        if self.asset_tabs == 'RANGE_HOODS':
+            return home_builder_paths.get_range_hood_path()
+        if self.asset_tabs == 'RANGES':
+            return home_builder_paths.get_range_path()             
+        if self.asset_tabs == 'REFRIGERATORS':
+            return home_builder_paths.get_refrigerator_path()     
+        if self.asset_tabs == 'SINKS':
+            return home_builder_paths.get_sink_path()     
+        if self.asset_tabs == 'WINDOW_FRAMES':
+            return home_builder_paths.get_entry_window_frame_path()     
+        if self.asset_tabs == 'WINDOW_INSERTS':
+            return home_builder_paths.get_entry_window_insert_path()                                                                                                                                                                            
+        
     def draw(self,layout):
         col = layout.column(align=True)
 
@@ -701,7 +767,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         row.prop_enum(self, "ui_tabs", 'MOLDINGS', icon='MOD_SMOOTH', text="Moldings") 
         row.prop_enum(self, "ui_tabs", 'FRONTS', icon='FACESEL', text="Fronts") 
         row.prop_enum(self, "ui_tabs", 'HARDWARE', icon='MODIFIER_ON', text="Hardware") 
-        row.prop_enum(self, "ui_tabs", 'LIBRARY', icon='FILE_IMAGE', text="Thumbnails") 
+        row.prop_enum(self, "ui_tabs", 'LIBRARY', icon='FILE_IMAGE', text="Assets") 
 
         box = col.box()
 

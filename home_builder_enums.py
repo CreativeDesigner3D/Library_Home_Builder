@@ -18,6 +18,7 @@ preview_collections["range_hood_categories"] = pc_pointer_utils.create_image_pre
 preview_collections["range_hood_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cabinet_door_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cabinet_door_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["entry_door_panel_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["entry_door_panel_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["dishwasher_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["dishwasher_items"] = pc_pointer_utils.create_image_preview_collection()
@@ -25,6 +26,8 @@ preview_collections["refrigerator_categories"] = pc_pointer_utils.create_image_p
 preview_collections["refrigerator_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cooktop_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cooktop_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["active_asset_categories"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["active_asset_items"] = pc_pointer_utils.create_image_preview_collection()
 
 #MATERIALS
 def enum_material_categories(self,context):
@@ -196,13 +199,28 @@ def update_cabinet_door_category(self,context):
     enum_cabinet_door_names(self,context)              
 
 #ENTRY DOOR PANELS     
+def enum_entry_door_panel_categories(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = home_builder_paths.get_entry_door_panel_path()
+    pcoll = preview_collections["entry_door_panel_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
 def enum_entry_door_panels_names(self,context):
     if context is None:
         return []
     
-    icon_dir = os.path.join(home_builder_paths.get_entry_door_panel_path())
+    icon_dir = os.path.join(home_builder_paths.get_entry_door_panel_path(),self.entry_door_panel_category)
     pcoll = preview_collections["entry_door_panel_items"]
     return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_entry_door_panel_category(self,context):
+    if preview_collections["entry_door_panel_items"]:
+        bpy.utils.previews.remove(preview_collections["entry_door_panel_items"])
+        preview_collections["entry_door_panel_items"] = pc_pointer_utils.create_image_preview_collection()     
+        
+    enum_entry_door_panels_names(self,context)           
 
 #DISHWASHERS
 def enum_dishwasher_categories(self,context):
@@ -274,4 +292,55 @@ def update_cooktop_category(self,context):
         bpy.utils.previews.remove(preview_collections["cooktop_items"])
         preview_collections["cooktop_items"] = pc_pointer_utils.create_image_preview_collection()     
         
-    enum_cooktop_names(self,context)
+    enum_cooktop_names(self,context)   
+
+def enum_active_asset_categories(self,context):
+    if context is None:
+        return []
+    path = self.get_active_category_path()
+    icon_dir = path
+
+    pcoll = preview_collections["active_asset_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
+def enum_active_asset_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(self.get_active_category_path(),self.active_asset_category)
+    pcoll = preview_collections["active_asset_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_active_asset_tab(self,context):
+    bpy.utils.previews.remove(preview_collections["active_asset_categories"])
+    preview_collections["active_asset_categories"] = pc_pointer_utils.create_image_preview_collection()     
+
+    enum_active_asset_categories(self,context)   
+    update_active_asset_category(self,context)  
+
+    self.active_asset_index = 0
+
+def update_active_asset_category(self,context):
+    if preview_collections["active_asset_categories"]:
+        bpy.utils.previews.remove(preview_collections["active_asset_items"])
+        preview_collections["active_asset_items"] = pc_pointer_utils.create_image_preview_collection()     
+
+        for i in self.active_asset_collection:
+            self.active_asset_collection.remove(0)
+
+        path = os.path.join(self.get_active_category_path(),self.active_asset_category)
+
+        if os.path.exists(path):
+            image_paths = []
+            for fn in os.listdir(path):
+                if fn.lower().endswith(".blend"):
+                    image_paths.append(fn)
+
+            for i, name in enumerate(image_paths):
+                filepath = os.path.join(path, name)
+                name, ext = os.path.splitext(name)        
+                item = self.active_asset_collection.add()
+                item.name = name
+                item.asset_path = filepath
+
+    enum_active_asset_names(self,context)         
