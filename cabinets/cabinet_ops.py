@@ -912,26 +912,10 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             pass
             # TODO: Draw interior options
 
+
 def update_exterior(self,context):
-    selected_exteriors = []
-    for obj in context.selected_objects:
-        bp = home_builder_utils.get_exterior_bp(obj)
-        if bp not in selected_exteriors:
-            selected_exteriors.append(bp)
-
-    if self.exterior != 'SELECT_EXTERIOR':
-        for exterior in selected_exteriors:
-
-            carcass_bp = home_builder_utils.get_carcass_bp(exterior)
-            carcass = data_cabinet_carcass.Carcass(carcass_bp)
-            new_exterior = data_cabinet_exteriors.get_class_from_name(self.exterior)
-            carcass.add_insert(new_exterior)
-            update_object_and_children_id_props(new_exterior.obj_bp,carcass.obj_bp)
-            new_exterior.update_calculators()
-            
-            pc_utils.delete_object_and_children(exterior)
-            
     self.exterior_changed = True
+
 
 class home_builder_OT_change_cabinet_exterior(bpy.types.Operator):
     bl_idname = "home_builder.change_cabinet_exterior"
@@ -948,6 +932,26 @@ class home_builder_OT_change_cabinet_exterior(bpy.types.Operator):
     selected_exteriors = []
 
     def check(self, context):
+        if self.exterior_changed:
+            new_exteriors = []
+            if self.exterior != 'SELECT_EXTERIOR':
+                for exterior in self.selected_exteriors:
+                    if self.exterior != 'OPEN':
+                        carcass_bp = home_builder_utils.get_carcass_bp(exterior)
+                        carcass = data_cabinet_carcass.Carcass(carcass_bp)
+                        new_exterior = data_cabinet_exteriors.get_class_from_name(self.exterior)
+                        carcass.add_insert(new_exterior)
+                        update_object_and_children_id_props(new_exterior.obj_bp,carcass.obj_bp)
+                        new_exterior.update_calculators()
+                        new_exteriors.append(new_exterior.obj_bp)
+                    pc_utils.delete_object_and_children(exterior)        
+
+                self.selected_exteriors = []
+                for exterior in new_exteriors:
+                    self.selected_exteriors.append(exterior)
+                    home_builder_utils.hide_empties(exterior)                    
+                self.exterior_changed = False
+
         return True
 
     def execute(self, context):
@@ -956,29 +960,27 @@ class home_builder_OT_change_cabinet_exterior(bpy.types.Operator):
     def get_assemblies(self,context):
         pass
 
-    def invoke(self,context,event):
-        self.exterior = 'SELECT_EXTERIOR'
+    def get_selected_exteriors(self,context):
         self.selected_exteriors = []
         for obj in context.selected_objects:
             bp = home_builder_utils.get_exterior_bp(obj)
             if bp not in self.selected_exteriors:
                 self.selected_exteriors.append(bp)
 
+    def invoke(self,context,event):
+        self.exterior = 'SELECT_EXTERIOR'
+        self.get_selected_exteriors(context)
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=400)
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self,'exterior')
-        if not self.exterior_changed:
-            box = layout.box()
-            box.label(text="Selected Exteriors:")
-            col = box.column(align=True)
-            for bp in self.selected_exteriors:
-                col.label(text=bp.name)
-        else:
-            box = layout.box()
-            box.label(text="Exteriors Updated:")            
+        box = layout.box()
+        box.label(text="Selected Exteriors:")
+        col = box.column(align=True)
+        for bp in self.selected_exteriors:
+            col.label(text=bp.name)          
 
 
 class home_builder_OT_cabinet_sink_options(bpy.types.Operator):

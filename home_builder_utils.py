@@ -148,3 +148,9 @@ def add_bevel(assembly):
         if child.type == 'MESH':
             bevel = child.modifiers.new('Bevel','BEVEL')    
             bevel.width = .0005
+
+def hide_empties(obj):
+    if obj.type == 'EMPTY':
+        obj.hide_viewport = True
+    for child in obj.children:
+        hide_empties(child)    

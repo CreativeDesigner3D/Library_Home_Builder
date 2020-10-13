@@ -244,16 +244,10 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
                 self.assembly.add_doors(door_panel_category=self.entry_door_panel_category,
                                         door_panel_name=self.door_panel)
                 
-                self.hide_empties(self.assembly.obj_bp)
+                home_builder_utils.hide_empties(self.assembly.obj_bp)
 
             self.door_panel_changed = False
             self.get_assemblies_and_set_prompts(context)
-
-    def hide_empties(self,obj):
-        if obj.type == 'EMPTY':
-            obj.hide_viewport = True
-        for child in obj.children:
-            self.hide_empties(child)
 
     def check(self, context):
         self.update_product_size()
