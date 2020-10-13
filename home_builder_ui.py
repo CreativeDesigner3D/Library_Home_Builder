@@ -72,7 +72,7 @@ class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
         layout.operator('home_builder.save_asset_to_library')
         layout.operator('home_builder.create_thumnails_for_selected_assets')
         layout.operator('home_builder.open_browser_window').path = path
-        
+        layout.operator('home_builder.create_new_asset')
 
 
 class HOME_BUILDER_UL_assets(bpy.types.UIList):

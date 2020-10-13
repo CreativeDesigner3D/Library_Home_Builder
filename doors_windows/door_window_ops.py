@@ -239,6 +239,8 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
 
     assembly = None
     door_panels = []
+    door_frames = []
+    door_handles = []
 
     def update_product_size(self):
         if 'IS_MIRROR' in self.assembly.obj_x and self.assembly.obj_x['IS_MIRROR']:
@@ -270,9 +272,28 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
             self.door_panel_changed = False
             self.get_assemblies_and_set_prompts(context)
 
+    def update_door_frame(self,context):
+        if self.door_frame_changed:
+            for door_frame in self.door_frames:
+                pc_utils.delete_object_and_children(door_frame)
+
+            if hasattr(self.assembly,'add_frame'):
+                print('add frame',self.assembly)
+                self.assembly.add_frame(door_frame_category=self.entry_door_frame_category,
+                                        door_frame_name=self.entry_door_frame)
+                
+                home_builder_utils.hide_empties(self.assembly.obj_bp)
+
+            self.door_frame_changed = False
+            self.get_assemblies_and_set_prompts(context)
+
+    def update_door_handle(self,context):
+        pass
+
     def check(self, context):
         self.update_product_size()
         self.update_door_panel(context)
+        self.update_door_frame(context)
         entry_door_swing = self.assembly.get_prompt("Entry Door Swing")
         if entry_door_swing:
             if self.door_swing == 'LEFT':
@@ -288,6 +309,8 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
 
     def get_assemblies_and_set_prompts(self,context):
         self.door_panels = []
+        self.door_frames = []
+        self.door_handles = []
         
         bp_window = home_builder_utils.get_window_bp(context.object)
         if bp_window:
@@ -298,6 +321,9 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
         for child in self.assembly.obj_bp.children:
             if "IS_ENTRY_DOOR_PANEL" in child:
                 self.door_panels.append(child)
+        for child in self.assembly.obj_bp.children:
+            if "IS_ENTRY_DOOR_FRAME" in child:
+                self.door_frames.append(child)
 
         entry_door_swing = self.assembly.get_prompt("Entry Door Swing")
         if entry_door_swing:

@@ -855,6 +855,58 @@ class home_builder_OT_open_browser_window(bpy.types.Operator):
             subprocess.Popen(['xdg-open' , os.path.normpath(self.path)])
         return {'FINISHED'}
 
+class home_builder_OT_create_new_asset(bpy.types.Operator):
+    bl_idname = "home_builder.create_new_asset"
+    bl_label = "Create New Asset"
+    bl_description = "This will create a new asset of the specified type"
+
+    asset_type: bpy.props.StringProperty(name="Asset Type",description="Type of Asset to Create")
+
+    def execute(self, context):
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        if scene_props.asset_tabs == 'BUILT_IN_APPLIANCES':
+            return home_builder_paths.get_built_in_appliances_path()
+        if scene_props.asset_tabs == 'CABINET_DOORS':
+            return home_builder_paths.get_cabinet_door_path()
+        if scene_props.asset_tabs == 'CABINET_PARTS':
+            return home_builder_paths.get_cabinet_parts_path()
+        if scene_props.asset_tabs == 'CABINET_PULLS':
+            return home_builder_paths.get_pull_path()
+        if scene_props.asset_tabs == 'COOKTOPS':
+            return home_builder_paths.get_cooktop_path()
+        if scene_props.asset_tabs == 'DISHWASHERS':
+            return home_builder_paths.get_dishwasher_path()
+        if scene_props.asset_tabs == 'ENTRY_DOOR_FRAMES':
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Entry Door Frame")
+            assembly.obj_x.location.x = pc_unit.inch(36)
+            assembly.obj_y.location.y = pc_unit.inch(6)
+            assembly.obj_z.location.z = pc_unit.inch(90)
+            assembly.obj_bp.select_set(True)
+            assembly.add_prompt("Door Frame Width",'DISTANCE',pc_unit.inch(3))
+            context.view_layer.objects.active = assembly.obj_bp
+        if scene_props.asset_tabs == 'ENTRY_DOOR_HANDLES':
+            return home_builder_paths.get_entry_door_handle_path()
+        if scene_props.asset_tabs == 'ENTRY_DOOR_PANELS':
+            return home_builder_paths.get_entry_door_panel_path()
+        if scene_props.asset_tabs == 'FAUCETS':
+            return home_builder_paths.get_faucet_path()
+        if scene_props.asset_tabs == 'MATERIALS':
+            return home_builder_paths.get_material_path()
+        if scene_props.asset_tabs == 'RANGE_HOODS':
+            return home_builder_paths.get_range_hood_path()
+        if scene_props.asset_tabs == 'RANGES':
+            return home_builder_paths.get_range_path()             
+        if scene_props.asset_tabs == 'REFRIGERATORS':
+            return home_builder_paths.get_refrigerator_path()     
+        if scene_props.asset_tabs == 'SINKS':
+            return home_builder_paths.get_sink_path()     
+        if scene_props.asset_tabs == 'WINDOW_FRAMES':
+            return home_builder_paths.get_window_frame_path()     
+        if scene_props.asset_tabs == 'WINDOW_INSERTS':
+            return home_builder_paths.get_window_insert_path()         
+        return {'FINISHED'}
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -878,6 +930,7 @@ classes = (
     home_builder_OT_save_asset_to_library,
     home_builder_OT_create_thumnails_for_selected_assets,
     home_builder_OT_open_browser_window,
+    home_builder_OT_create_new_asset,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
