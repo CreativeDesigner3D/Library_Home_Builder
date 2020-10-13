@@ -187,18 +187,25 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
 def update_door_panel(self,context):
     self.door_panel_changed = True
 
+def update_door_frame(self,context):
+    self.door_frame_changed = True
+
+def update_door_handle(self,context):
+    self.door_handle_changed = True
+
 class home_builder_OT_window_door_prompts(bpy.types.Operator):
     bl_idname = "home_builder.window_door_prompts"
     bl_label = "Prompts"
 
     assembly_name: bpy.props.StringProperty(name="Window Name",default="")
     door_panel_changed: bpy.props.BoolProperty(name="Door Panel Changed")
+    door_frame_changed: bpy.props.BoolProperty(name="Door Frame Changed")
+    door_handle_changed: bpy.props.BoolProperty(name="Door Handle Changed")
 
-    product_tabs: bpy.props.EnumProperty(name="Product Tabs",
-                                         items=[('MAIN',"Main","Main Options"),
-                                                ('EXTERIOR',"Exterior","Exterior Options"),
-                                                ('INTERIOR',"Interior","Interior Options"),
-                                                ('SPLITTER',"Openings","Openings Options")])
+    entry_door_tabs: bpy.props.EnumProperty(name="Entry Door Tabs",
+                                         items=[('PANEL',"Panel","Panel Options"),
+                                                ('FRAME',"Frame","Frame Options"),
+                                                ('HANDLE',"Handle","Handle Options")])
 
     door_swing: bpy.props.EnumProperty(name="Door Swing",
                                        items=[('LEFT',"Left","Left Swing Door"),
@@ -212,9 +219,23 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
     entry_door_panel_category: bpy.props.EnumProperty(name="Entry Door Panel Category",
         items=home_builder_enums.enum_entry_door_panel_categories,
         update=home_builder_enums.update_entry_door_panel_category)
-    door_panel: bpy.props.EnumProperty(name="Door Panel",
+    entry_door_panel: bpy.props.EnumProperty(name="Entry Door Panel",
         items=home_builder_enums.enum_entry_door_panels_names,
         update=update_door_panel)
+
+    entry_door_frame_category: bpy.props.EnumProperty(name="Entry Door Frame Category",
+        items=home_builder_enums.enum_entry_door_frame_categories,
+        update=home_builder_enums.update_entry_door_frame_category)
+    entry_door_frame: bpy.props.EnumProperty(name="Entry Door Frame",
+        items=home_builder_enums.enum_entry_door_frame_names,
+        update=update_door_frame)
+
+    entry_door_handle_category: bpy.props.EnumProperty(name="Entry Door Handle Category",
+        items=home_builder_enums.enum_entry_door_handle_categories,
+        update=home_builder_enums.update_entry_door_handle_category)
+    entry_door_handle: bpy.props.EnumProperty(name="Entry Door Handle",
+        items=home_builder_enums.enum_entry_door_handle_names,
+        update=update_door_handle)
 
     assembly = None
     door_panels = []
@@ -242,7 +263,7 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
 
             if hasattr(self.assembly,'add_doors'):
                 self.assembly.add_doors(door_panel_category=self.entry_door_panel_category,
-                                        door_panel_name=self.door_panel)
+                                        door_panel_name=self.entry_door_panel)
                 
                 home_builder_utils.hide_empties(self.assembly.obj_bp)
 
@@ -293,7 +314,7 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
         self.height = math.fabs(self.assembly.obj_z.location.z)
         self.width = math.fabs(self.assembly.obj_x.location.x)
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=500)
+        return wm.invoke_props_dialog(self, width=400)
 
     def draw_product_size(self,layout,context):
         unit_system = context.scene.unit_settings.system
@@ -366,16 +387,30 @@ class home_builder_OT_window_door_prompts(bpy.types.Operator):
             row.prop(handle_location_from_edge,'distance_value',text="From Edge")  
 
     def draw_door_panel(self,layout,context):
-        box = layout.box()
-        box.label(text="Door Panel Selection")
-        box.prop(self,'entry_door_panel_category')
-        box.template_icon_view(self,"door_panel",show_labels=True)          
+        layout.prop(self,'entry_door_panel_category',text="")
+        layout.template_icon_view(self,"entry_door_panel",show_labels=True)          
+
+    def draw_door_frame(self,layout,context):
+        layout.prop(self,'entry_door_frame_category',text="")
+        layout.template_icon_view(self,"entry_door_frame",show_labels=True)      
+
+    def draw_door_handle(self,layout,context):
+        layout.prop(self,'entry_door_handle_category',text="")
+        layout.template_icon_view(self,"entry_door_handle",show_labels=True)      
 
     def draw(self, context):
         layout = self.layout
         self.draw_product_size(layout,context)
         self.draw_prompts(layout,context)
-        self.draw_door_panel(layout,context)
+        box = layout.box()
+        row = box.row(align=True)
+        row.prop(self,'entry_door_tabs',expand=True)
+        if self.entry_door_tabs == 'PANEL':
+            self.draw_door_panel(box,context)
+        if self.entry_door_tabs == 'FRAME':
+            self.draw_door_frame(box,context)
+        if self.entry_door_tabs == 'HANDLE':
+            self.draw_door_handle(box,context)                        
 
 
 classes = (

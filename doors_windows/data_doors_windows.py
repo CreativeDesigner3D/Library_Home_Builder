@@ -9,11 +9,11 @@ from .. import home_builder_paths
 from .. import home_builder_parts
 
 def get_default_window_frame():
-    ASSET_DIR = home_builder_paths.get_entry_window_frame_path()
+    ASSET_DIR = home_builder_paths.get_window_frame_path()
     return path.join(ASSET_DIR,"Generic","Window Frame.blend")
 
 def get_default_window_insert():
-    ASSET_DIR = home_builder_paths.get_entry_window_insert_path()
+    ASSET_DIR = home_builder_paths.get_window_insert_path()
     return path.join(ASSET_DIR,"Generic","Window Insert 1.blend")
 
 def get_default_door_jamb():

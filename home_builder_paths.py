@@ -70,8 +70,8 @@ def get_entry_door_handle_path():
 def get_entry_door_panel_path():
     return os.path.join(get_asset_folder_path(),'Entry Door Panels')      
 
-def get_entry_window_frame_path():
+def get_window_frame_path():
     return os.path.join(get_asset_folder_path(),'Window Frames')   
 
-def get_entry_window_insert_path():
+def get_window_insert_path():
     return os.path.join(get_asset_folder_path(),'Window Inserts')             

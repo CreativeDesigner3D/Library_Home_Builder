@@ -735,7 +735,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         if self.asset_tabs == 'DISHWASHERS':
             return home_builder_paths.get_dishwasher_path()
         if self.asset_tabs == 'ENTRY_DOOR_FRAMES':
-            return home_builder_paths.get_entry_window_frame_path()
+            return home_builder_paths.get_entry_door_frame_path()
         if self.asset_tabs == 'ENTRY_DOOR_HANDLES':
             return home_builder_paths.get_entry_door_handle_path()
         if self.asset_tabs == 'ENTRY_DOOR_PANELS':
@@ -753,9 +753,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
         if self.asset_tabs == 'SINKS':
             return home_builder_paths.get_sink_path()     
         if self.asset_tabs == 'WINDOW_FRAMES':
-            return home_builder_paths.get_entry_window_frame_path()     
+            return home_builder_paths.get_window_frame_path()     
         if self.asset_tabs == 'WINDOW_INSERTS':
-            return home_builder_paths.get_entry_window_insert_path()                                                                                                                                                                            
+            return home_builder_paths.get_window_insert_path()                                                                                                                                                                            
         
     def draw(self,layout):
         col = layout.column(align=True)
