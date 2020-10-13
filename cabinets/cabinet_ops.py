@@ -790,26 +790,6 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 row.prop(add_top_light,'checkbox_value',text="Top")
                 row.prop(add_side_light,'checkbox_value',text="Side")  
 
-    def draw_exterior_prompts(self,layout,context,exterior):
-        open_door = exterior.get_prompt("Open Door")
-        front_height_calculator = exterior.get_calculator("Front Height Calculator")
-        door_swing = exterior.get_prompt("Door Swing")
-                  
-        if open_door:
-            open_door.draw(layout,allow_edit=False)
-
-        if door_swing:
-            door_swing.draw(layout,allow_edit=False)    
-
-        if front_height_calculator:
-            for prompt in front_height_calculator.prompts:
-                prompt.draw(layout)      
-            row = layout.row()   
-            row.scale_y = 1.3
-            props = row.operator('pc_prompts.run_calculator',text="Calculate Drawer Front Heights")
-            props.calculator_name = front_height_calculator.name
-            props.obj_name = exterior.obj_prompts.name
-
     def draw_cabinet_prompts(self,layout,context):
         bottom_cabinet_height = self.cabinet.get_prompt("Bottom Cabinet Height")    
         left_adjustment_width = self.cabinet.get_prompt("Left Adjustment Width")       
@@ -880,11 +860,14 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 if carcass.exterior:
                     box = prompt_box.box()
                     box.label(text=carcass.exterior.obj_bp.name)
-                    self.draw_exterior_prompts(box,context,carcass.exterior)
+                    carcass.exterior.draw_prompts(box,context)
 
         if self.product_tabs == 'INTERIOR':
-            pass
-            # TODO: Draw interior options
+            for carcass in reversed(self.cabinet.carcasses):
+                if carcass.interior:
+                    box = prompt_box.box()
+                    box.label(text=carcass.interior.obj_bp.name)
+                    carcass.interior.draw_prompts(box,context)
 
 
 def update_exterior(self,context):

@@ -2,6 +2,8 @@ import bpy
 import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinet_parts
+from . import data_cabinet_exteriors
+from . import data_cabinet_interiors
 from .. import home_builder_utils
 from .. import home_builder_pointers
 from . import common_prompts
@@ -423,9 +425,9 @@ class Carcass(pc_types.Assembly):
                 if "IS_TOP_BP" in child:
                     self.top = pc_types.Assembly(child)          
                 if "IS_INTERIOR_BP" in child:
-                    self.interior = pc_types.Assembly(child)    
+                    self.interior = data_cabinet_interiors.Cabinet_Interior(child)    
                 if "IS_EXTERIOR_BP" in child:
-                    self.exterior = pc_types.Assembly(child)                                                      
+                    self.exterior = data_cabinet_exteriors.Cabinet_Exterior(child)                                                    
 
     def add_insert(self,insert):
         # x_loc_carcass = self.obj_bp.pyclone.get_var('location.x','x_loc_carcass')

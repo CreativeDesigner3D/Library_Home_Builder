@@ -177,6 +177,26 @@ class Cabinet_Exterior(pc_types.Assembly):
         if self.carcass_type == 'Upper':
             home_builder_utils.get_object_props(pull_obj).pointer_name = "Upper Cabinet Pulls"
 
+    def draw_prompts(self,layout,context):
+        open_door = self.get_prompt("Open Door")
+        front_height_calculator = self.get_calculator("Front Height Calculator")
+        door_swing = self.get_prompt("Door Swing")
+                  
+        if open_door:
+            open_door.draw(layout,allow_edit=False)
+
+        if door_swing:
+            door_swing.draw(layout,allow_edit=False)    
+
+        if front_height_calculator:
+            for prompt in front_height_calculator.prompts:
+                prompt.draw(layout)      
+            row = layout.row()   
+            row.scale_y = 1.3
+            props = row.operator('pc_prompts.run_calculator',text="Calculate Drawer Front Heights")
+            props.calculator_name = front_height_calculator.name
+            props.obj_name = self.obj_prompts.name
+
 class Doors(Cabinet_Exterior):
 
     door_swing = 0 # Left = 0, Right = 1, Double = 2

@@ -34,14 +34,28 @@ def add_shelf_holes(assembly):
     width = assembly.obj_x.pyclone.get_var('location.x','width')
     height = assembly.obj_z.pyclone.get_var('location.z','height')
     depth = assembly.obj_y.pyclone.get_var('location.y','depth')
+    shelf_setback = assembly.get_prompt("Shelf Setback").get_var("shelf_setback")
 
     holes = data_cabinet_parts.add_shelf_holes(assembly)
+    holes.loc_y('shelf_setback',[shelf_setback])
     holes.dim_x('width',[width])
-    holes.dim_y('depth',[depth])
+    holes.dim_y('depth-shelf_setback',[depth,shelf_setback])
     holes.dim_z('height',[height])    
 
+class Cabinet_Interior(pc_types.Assembly):
+    carcass_type = '' #Base, Tall, Upper
 
-class Shelves(pc_types.Assembly):
+    def draw_prompts(self,layout,context):
+        shelf_quantity = self.get_prompt("Shelf Quantity")
+        shelf_setback = self.get_prompt("Shelf Setback")
+        
+        if shelf_quantity:
+            shelf_quantity.draw(layout,allow_edit=False)
+
+        if shelf_setback:
+            shelf_setback.draw(layout,allow_edit=False)           
+
+class Shelves(Cabinet_Interior):
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)    
