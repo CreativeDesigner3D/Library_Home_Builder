@@ -13,8 +13,11 @@ def add_cabinet_top(assembly):
     height = assembly.obj_z.pyclone.get_var('location.z','height')
     depth = assembly.obj_y.pyclone.get_var('location.y','depth')
     material_thickness = assembly.get_prompt("Material Thickness").get_var("material_thickness")
+    finished_back = assembly.get_prompt("Finished Back")
+    finished_top = assembly.get_prompt("Finished Top")
 
     top = data_cabinet_parts.add_carcass_part(assembly)
+    top.obj_bp["IS_TOP_BP"] = True
     top.set_name('Top')
     top.loc_x('material_thickness',[material_thickness])
     top.loc_y(value=0)
@@ -22,14 +25,16 @@ def add_cabinet_top(assembly):
     top.dim_x('width-(material_thickness*2)',[width,material_thickness])
     top.dim_y('depth',[depth])
     top.dim_z('-material_thickness',[material_thickness])
+    home_builder_pointers.update_bottom_material(top,finished_back.get_value(),finished_top.get_value())
     return top
 
 def add_cabinet_bottom(assembly):
     width = assembly.obj_x.pyclone.get_var('location.x','width')
     depth = assembly.obj_y.pyclone.get_var('location.y','depth')
-
     toe_kick_height = assembly.get_prompt("Toe Kick Height").get_var("toe_kick_height")
     material_thickness = assembly.get_prompt("Material Thickness").get_var("material_thickness")
+    finished_back = assembly.get_prompt("Finished Back")
+    finished_bottom = assembly.get_prompt("Finished Bottom")
 
     bottom = data_cabinet_parts.add_carcass_part(assembly)
     bottom.obj_bp["IS_BOTTOM_BP"] = True
@@ -40,6 +45,7 @@ def add_cabinet_bottom(assembly):
     bottom.dim_x('width-(material_thickness*2)',[width,material_thickness])
     bottom.dim_y('depth',[depth])
     bottom.dim_z('material_thickness',[material_thickness])
+    home_builder_pointers.update_bottom_material(bottom,finished_back.get_value(),finished_bottom.get_value())
     home_builder_utils.flip_normals(bottom)
     return bottom
 
@@ -47,8 +53,10 @@ def add_upper_cabinet_bottom(assembly):
     width = assembly.obj_x.pyclone.get_var('location.x','width')
     depth = assembly.obj_y.pyclone.get_var('location.y','depth')
     material_thickness = assembly.get_prompt("Material Thickness").get_var("material_thickness")
+    finished_back = assembly.get_prompt("Finished Back")
+    finished_bottom = assembly.get_prompt("Finished Bottom")
 
-    bottom = data_cabinet_parts.add_carcass_part(assembly)
+    bottom = data_cabinet_parts.add_carcass_bottom(assembly)
     bottom.obj_bp["IS_BOTTOM_BP"] = True
     bottom.set_name('Bottom')
     bottom.loc_x('material_thickness',[material_thickness])
@@ -57,6 +65,7 @@ def add_upper_cabinet_bottom(assembly):
     bottom.dim_x('width-(material_thickness*2)',[width,material_thickness])
     bottom.dim_y('depth',[depth])
     bottom.dim_z('material_thickness',[material_thickness])
+    home_builder_pointers.update_bottom_material(bottom,finished_back.get_value(),finished_bottom.get_value())
     home_builder_utils.flip_normals(bottom)
     return bottom
 
@@ -127,6 +136,8 @@ def add_cabinet_sides(assembly,add_toe_kick_notch):
     left_finished_end = assembly.get_prompt("Left Finished End")
     right_finished_end = assembly.get_prompt("Right Finished End")
     finished_back = assembly.get_prompt("Finished Back")
+    finished_top = assembly.get_prompt("Finished Top")
+    finished_bottom = assembly.get_prompt("Finished Bottom")
 
     left_side = data_cabinet_parts.add_carcass_part(assembly)
     left_side.obj_bp["IS_LEFT_SIDE_BP"] = True
@@ -150,8 +161,8 @@ def add_cabinet_sides(assembly,add_toe_kick_notch):
     right_side.dim_y('depth',[depth])
     right_side.dim_z('material_thickness',[material_thickness])
     home_builder_utils.flip_normals(right_side)
-    home_builder_pointers.update_side_material(left_side,left_finished_end.get_value(),finished_back.get_value())
-    home_builder_pointers.update_side_material(right_side,right_finished_end.get_value(),finished_back.get_value())
+    home_builder_pointers.update_side_material(left_side,left_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
+    home_builder_pointers.update_side_material(right_side,right_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
 
     if add_toe_kick_notch:
         toe_kick_height = assembly.get_prompt("Toe Kick Height").get_var("toe_kick_height")

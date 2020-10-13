@@ -614,41 +614,11 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                                                 ('INTERIOR',"Interior","Interior Options"),
                                                 ('SPLITTER',"Openings","Openings Options")])
 
-    # exterior: bpy.props.EnumProperty(name="Exterior",
-    #                                  items=[('OPEN',"Open","Open"),
-    #                                         ('DOOR',"Door","Door"),
-    #                                         ('2_DOOR_2_DRAWER',"2 Door 2 Drawer","2 Door 2 Drawer"),
-    #                                         ('1_DOOR_1_DRAWER',"1 Door 1 Drawer","1 Door 1 Drawer"),
-    #                                         ('2_DOOR_1_DRAWER',"2 Door 1 Drawer","2 Door 1 Drawer"),
-    #                                         ('SLIDING_DOORS',"Sliding Doors","Sliding Doors"),
-    #                                         ('DRAWERS',"Drawers","Drawers")],
-    #                                 update=update_exterior)
-
-    # interior: bpy.props.EnumProperty(name="Interior",
-    #                                  items=[('OPEN',"Open","Open"),
-    #                                         ('SHELVES',"Shelves","Shelves"),
-    #                                         ('ROLLOUTS',"Rollouts","Rollouts"),
-    #                                         ('DIVISIONS',"Divisions","Divisions"),
-    #                                         ('CUBBIES',"Cubbies","Cubbies")],
-    #                                  update=update_interior)
-
-    door_swing: bpy.props.EnumProperty(name="Door Swing",
-                                       items=[('LEFT',"Left Swing","Left Swing"),
-                                              ('RIGHT',"Right Swing","Right Swing"),
-                                              ('TOP',"Top Swing","Top Swing")])
-
-    drawer_qty: bpy.props.EnumProperty(name="Drawer Quantity",
-                                       items=[('1',"1","1"),
-                                              ('2',"2","2"),
-                                              ('3',"3","3"),
-                                              ('4',"4","4"),
-                                              ('5',"5","5"),
-                                              ('6',"6","6")])
-
     cabinet = None
 
     def reset_variables(self):
         #BLENDER CRASHES IF TAB IS SET TO EXTERIOR
+        #THIS IS BECAUSE POPUP DIALOGS CANNOT DISPLAY UILISTS ON INVOKE
         self.product_tabs = 'MAIN'
         self.cabinet = None
 
@@ -673,9 +643,13 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             left_finished_end = carcass.get_prompt("Left Finished End")
             right_finished_end = carcass.get_prompt("Right Finished End")
             finished_back = carcass.get_prompt("Finished Back")
+            finished_top = carcass.get_prompt("Finished Top")
+            finished_bottom = carcass.get_prompt("Finished Bottom")
             if finished_back and left_finished_end and right_finished_end:
-                home_builder_pointers.update_side_material(carcass.left_side,left_finished_end.get_value(),finished_back.get_value())
-                home_builder_pointers.update_side_material(carcass.right_side,right_finished_end.get_value(),finished_back.get_value())
+                home_builder_pointers.update_side_material(carcass.left_side,left_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
+                home_builder_pointers.update_side_material(carcass.right_side,right_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
+                home_builder_pointers.update_top_material(carcass.top,finished_back.get_value(),finished_top.get_value())
+                home_builder_pointers.update_bottom_material(carcass.bottom,finished_back.get_value(),finished_bottom.get_value())
                 home_builder_pointers.update_cabinet_back_material(carcass.back,finished_back.get_value())
 
     def update_fillers(self,context):
@@ -781,6 +755,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             left_finished_end = carcass.get_prompt("Left Finished End")
             right_finished_end = carcass.get_prompt("Right Finished End")
             finished_back = carcass.get_prompt("Finished Back")
+            finished_top = carcass.get_prompt("Finished Top")
+            finished_bottom = carcass.get_prompt("Finished Bottom")
             toe_kick_height = carcass.get_prompt("Toe Kick Height")
             toe_kick_setback = carcass.get_prompt("Toe Kick Setback")
             add_bottom_light = carcass.get_prompt("Add Bottom Light")
@@ -798,11 +774,13 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 row.prop(toe_kick_height,'distance_value',text="Height")
                 row.prop(toe_kick_setback,'distance_value',text="Setback")   
 
-            if left_finished_end and right_finished_end and finished_back:
+            if left_finished_end and right_finished_end and finished_back and finished_top and finished_bottom:
                 row = box.row()
-                row.label(text="Finished Sides:")
+                row.label(text="Finish:")
                 row.prop(left_finished_end,'checkbox_value',text="Left")
                 row.prop(right_finished_end,'checkbox_value',text="Right")
+                row.prop(finished_top,'checkbox_value',text="Top")
+                row.prop(finished_bottom,'checkbox_value',text="Bottom")
                 row.prop(finished_back,'checkbox_value',text="Back")
 
             if add_bottom_light and add_top_light and add_side_light:
@@ -898,10 +876,6 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             self.draw_carcass_prompts(prompt_box,context)
 
         if self.product_tabs == 'EXTERIOR':
-            # row = prompt_box.row(align=True)
-            # row.prop(self,'exterior')
-            # row.operator('home_builder.update_prompts',text="",icon='FILE_REFRESH')
-
             for carcass in reversed(self.cabinet.carcasses):
                 if carcass.exterior:
                     box = prompt_box.box()

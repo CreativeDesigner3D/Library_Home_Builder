@@ -164,6 +164,20 @@ def add_carcass_part(assembly):
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
+def add_carcass_bottom(assembly):
+    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
+    home_builder_utils.add_bevel(part)
+    home_builder_pointers.assign_carcass_bottom_pointers(part)
+    home_builder_pointers.assign_materials_to_assembly(part)
+    return part
+
 def add_double_sided_part(assembly):
     part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))

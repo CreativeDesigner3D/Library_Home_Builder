@@ -110,7 +110,7 @@ def assign_materials_to_assembly(assembly):
         if child.type == 'MESH':
             assign_materials_to_object(child)
 
-def update_side_material(assembly,is_finished_end,is_finished_back):
+def update_side_material(assembly,is_finished_end,is_finished_back,is_finished_top,is_finished_bottom):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
             for pointer in child.pyclone.pointers:
@@ -123,7 +123,49 @@ def update_side_material(assembly,is_finished_end,is_finished_back):
                     if is_finished_back:
                         pointer.pointer_name = "Exposed Cabinet Edges" 
                     else:
-                        pointer.pointer_name = "Wood Core Edges"              
+                        pointer.pointer_name = "Wood Core Edges"          
+                if pointer.name == 'W1':
+                    if is_finished_bottom:
+                        pointer.pointer_name = "Exposed Cabinet Edges" 
+                    else:
+                        pointer.pointer_name = "Wood Core Edges"     
+                if pointer.name == 'W2':
+                    if is_finished_top:
+                        pointer.pointer_name = "Exposed Cabinet Edges" 
+                    else:
+                        pointer.pointer_name = "Wood Core Edges"    
+    assign_materials_to_assembly(assembly)
+
+def update_top_material(assembly,is_finished_back,is_finished_top):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Bottom':
+                    if is_finished_top:
+                        pointer.pointer_name = "Exposed Cabinet Surfaces" 
+                    else:
+                        pointer.pointer_name = "Wood Core Surfaces"
+                if pointer.name == 'L1':
+                    if is_finished_back:
+                        pointer.pointer_name = "Exposed Cabinet Edges" 
+                    else:
+                        pointer.pointer_name = "Wood Core Edges"           
+    assign_materials_to_assembly(assembly)
+
+def update_bottom_material(assembly,is_finished_back,is_finished_bottom):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Bottom':
+                    if is_finished_bottom:
+                        pointer.pointer_name = "Exposed Cabinet Surfaces" 
+                    else:
+                        pointer.pointer_name = "Wood Core Surfaces"
+                if pointer.name == 'L1':
+                    if is_finished_back:
+                        pointer.pointer_name = "Exposed Cabinet Edges" 
+                    else:
+                        pointer.pointer_name = "Wood Core Edges"           
     assign_materials_to_assembly(assembly)
 
 def update_cabinet_back_material(assembly,is_finished_back):
@@ -154,6 +196,23 @@ def assign_carcass_pointers(assembly):
                     pointer.pointer_name = "Wood Core Edges"
                 if pointer.name == 'W2':
                     pointer.pointer_name = "Wood Core Edges"     
+
+def assign_carcass_bottom_pointers(assembly):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Top':
+                    pointer.pointer_name = "Interior Cabinet Surfaces"
+                if pointer.name == 'Bottom':
+                    pointer.pointer_name = "Exposed Cabinet Surfaces"
+                if pointer.name == 'L1':
+                    pointer.pointer_name = "Wood Core Edges"
+                if pointer.name == 'L2':
+                    pointer.pointer_name = "Exposed Cabinet Edges"
+                if pointer.name == 'W1':
+                    pointer.pointer_name = "Wood Core Edges"
+                if pointer.name == 'W2':
+                    pointer.pointer_name = "Wood Core Edges"    
 
 def assign_door_pointers(assembly):
     for child in assembly.obj_bp.children:
