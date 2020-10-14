@@ -154,3 +154,18 @@ def hide_empties(obj):
         obj.hide_viewport = True
     for child in obj.children:
         hide_empties(child)    
+
+def update_assembly_id_props(assembly,parent_assembly):
+    for child in assembly.obj_bp.children:
+        update_id_props(child,parent_assembly.obj_bp)
+
+def update_id_props(obj,parent_obj):
+    if "PROMPT_ID" in parent_obj:
+        obj["PROMPT_ID"] = parent_obj["PROMPT_ID"]
+    if "MENU_ID" in parent_obj:
+        obj["MENU_ID"] = parent_obj["MENU_ID"]   
+
+def update_object_and_children_id_props(obj,parent_obj):
+    update_id_props(obj,parent_obj)
+    for child in obj.children:
+        update_object_and_children_id_props(child,obj)        

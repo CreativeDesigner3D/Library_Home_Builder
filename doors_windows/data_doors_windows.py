@@ -34,12 +34,12 @@ def get_door_panel(door_panel_category,door_panel_name):
     else:
         return path.join(ASSET_DIR, door_panel_category,door_panel_name + ".blend") 
 
-def get_door_handle(door_handle_name):
+def get_door_handle(door_handle_category,door_handle_name):
     ASSET_DIR = home_builder_paths.get_entry_door_handle_path()
     if door_handle_name == "":
         return path.join(ASSET_DIR,"Generic","Entry Door Handle 1.blend") 
     else:
-        return path.join(ASSET_DIR, door_handle_name + ".blend") 
+        return path.join(ASSET_DIR, door_handle_category,door_handle_name + ".blend") 
 
 class Standard_Door(pc_types.Assembly):
 
@@ -59,15 +59,46 @@ class Standard_Door(pc_types.Assembly):
         door_frame.dim_y('depth',[depth])
         door_frame.dim_z('height',[height])  
         home_builder_pointers.assign_pointer_to_assembly(door_frame,"Entry Door Frame")
+        home_builder_utils.update_assembly_id_props(door_frame,self)
 
-    def add_doors(self,door_panel_category="",door_panel_name="",door_handle_name=""):
+    def add_door_handle(self,door_panel,door_handle_category="",door_handle_name=""):
+        door_panel_width = door_panel.obj_x.pyclone.get_var('location.x','door_panel_width')
+        door_thickness = door_panel.obj_y.pyclone.get_var('location.y','door_thickness')
+        handle_vertical_location = self.get_prompt("Handle Vertical Location").get_var('handle_vertical_location')
+        entry_door_swing = self.get_prompt("Entry Door Swing").get_var('entry_door_swing')
+        handle_location_from_edge = self.get_prompt("Handle Location From Edge").get_var('handle_location_from_edge')
+
+        door_handle_center = door_panel.add_empty('Door Handle Center')
+        door_handle_center.empty_display_size = .001
+        door_handle_center.pyclone.loc_y('door_thickness/2',[door_thickness])
+
+        door_handle_obj = home_builder_utils.get_object(get_door_handle(door_handle_category,door_handle_name))
+        door_handle_obj["IS_ENTRY_DOOR_HANDLE"] = True
+        door_panel.add_object(door_handle_obj)
+        
+        door_handle_obj.pyclone.loc_y(value=0)
+        door_handle_obj.pyclone.loc_z('handle_vertical_location',[handle_vertical_location])
+        if "Left" in door_panel.obj_bp.name:
+            door_handle_obj.pyclone.loc_x('door_panel_width-handle_location_from_edge',[door_panel_width,handle_location_from_edge])
+            door_handle_obj.pyclone.hide('IF(entry_door_swing==1,True,False)',[entry_door_swing])
+        else:
+            door_handle_obj.pyclone.rot_y(value=math.radians(180))
+            door_handle_obj.pyclone.loc_x('door_panel_width+handle_location_from_edge',[door_panel_width,handle_location_from_edge])
+            door_handle_obj.pyclone.hide('IF(entry_door_swing==0,True,False)',[entry_door_swing])
+        home_builder_pointers.assign_pointer_to_object(door_handle_obj,"Entry Door Handle")  
+
+        mirror = door_handle_obj.modifiers.new('Mirror','MIRROR')
+        mirror.mirror_object = door_handle_center
+        mirror.use_axis[0] = False
+        mirror.use_axis[1] = True
+        mirror.use_axis[2] = False
+
+    def add_doors(self,door_panel_category="",door_panel_name="",door_handle_category="",door_handle_name=""):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')        
         door_reveal = self.get_prompt("Door Reveal").get_var('door_reveal')
         door_thickness = self.get_prompt("Door Thickness").get_var('door_thickness')
-        handle_vertical_location = self.get_prompt("Handle Vertical Location").get_var('handle_vertical_location')
-        handle_location_from_edge = self.get_prompt("Handle Location From Edge").get_var('handle_location_from_edge')
         entry_door_swing = self.get_prompt("Entry Door Swing").get_var('entry_door_swing')
         door_frame_width = self.get_prompt("Door Frame Width").get_var('door_frame_width')
         door_frame_reveal = self.get_prompt("Door Frame Reveal").get_var('door_frame_reveal')
@@ -91,26 +122,8 @@ class Standard_Door(pc_types.Assembly):
         hide = l_door_panel.get_prompt("Hide")
         hide.set_formula('IF(entry_door_swing==1,True,False)',[entry_door_swing]) 
 
-        l_door_panel_width = l_door_panel.obj_x.pyclone.get_var('location.x','l_door_panel_width')
-        l_door_thickness = l_door_panel.obj_y.pyclone.get_var('location.y','l_door_thickness')
-
-        door_handle_center = l_door_panel.add_empty('Door Handle Center')
-        door_handle_center.empty_display_size = .001
-        door_handle_center.pyclone.loc_y('l_door_thickness/2',[l_door_thickness])
-
-        l_door_handle_obj = home_builder_utils.get_object(get_door_handle(door_handle_name))
-        l_door_panel.add_object(l_door_handle_obj)
-        l_door_handle_obj.pyclone.loc_x('l_door_panel_width-handle_location_from_edge',[l_door_panel_width,handle_location_from_edge])
-        l_door_handle_obj.pyclone.loc_y(value=0)
-        l_door_handle_obj.pyclone.loc_z('handle_vertical_location',[handle_vertical_location])
-        l_door_handle_obj.pyclone.hide('IF(entry_door_swing==1,True,False)',[entry_door_swing])
-        home_builder_pointers.assign_pointer_to_object(l_door_handle_obj,"Entry Door Handle")  
-
-        mirror = l_door_handle_obj.modifiers.new('Mirror','MIRROR')
-        mirror.mirror_object = door_handle_center
-        mirror.use_axis[0] = False
-        mirror.use_axis[1] = True
-        mirror.use_axis[2] = False
+        self.add_door_handle(l_door_panel,door_handle_category,door_handle_name)
+        home_builder_utils.update_assembly_id_props(l_door_panel,self)
 
         #RIGHT DOOR
         r_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_category,door_panel_name)))
@@ -128,32 +141,13 @@ class Standard_Door(pc_types.Assembly):
         hide = r_door_panel.get_prompt("Hide")
         hide.set_formula('IF(entry_door_swing==0,True,False)',[entry_door_swing]) 
 
-        r_door_panel_width = r_door_panel.obj_x.pyclone.get_var('location.x','r_door_panel_width')
-        r_door_thickness = r_door_panel.obj_y.pyclone.get_var('location.y','r_door_thickness')
-
-        door_handle_center = r_door_panel.add_empty('Door Handle Center')
-        door_handle_center.empty_display_size = .001
-        door_handle_center.pyclone.loc_y('r_door_thickness/2',[r_door_thickness])
-
-        r_door_handle_obj = home_builder_utils.get_object(get_door_handle(door_handle_name))
-        r_door_panel.add_object(r_door_handle_obj)
-        r_door_handle_obj.pyclone.loc_x('r_door_panel_width+handle_location_from_edge',[r_door_panel_width,handle_location_from_edge])
-        r_door_handle_obj.pyclone.loc_y(value=0)
-        r_door_handle_obj.pyclone.loc_z('handle_vertical_location',[handle_vertical_location])
-        r_door_handle_obj.pyclone.rot_y(value=math.radians(180))
-        r_door_handle_obj.pyclone.hide('IF(entry_door_swing==0,True,False)',[entry_door_swing])
-        home_builder_pointers.assign_pointer_to_object(r_door_handle_obj,"Entry Door Handle")  
-
-        mirror = r_door_handle_obj.modifiers.new('Mirror','MIRROR')
-        mirror.mirror_object = door_handle_center
-        mirror.use_axis[0] = False
-        mirror.use_axis[1] = True
-        mirror.use_axis[2] = False
+        self.add_door_handle(r_door_panel,door_handle_category,door_handle_name)
+        home_builder_utils.update_assembly_id_props(r_door_panel,self)
 
     def draw_assembly(self):
         self.create_assembly("Door")
         self.obj_bp["IS_DOOR_BP"] = True
-        self.obj_bp["PROMPT_ID"] = "home_builder.window_door_prompts" 
+        self.obj_bp["PROMPT_ID"] = "home_builder.door_prompts" 
         self.obj_bp["MENU_ID"] = "home_builder_MT_cabinet_menu"
 
         self.add_prompt("Entry Door Swing",'COMBOBOX',0,["Left","Right","Double"])
@@ -207,6 +201,8 @@ class Standard_Window(pc_types.Assembly):
     def draw_assembly(self):
         self.create_assembly("Window")
         self.obj_bp["IS_WINDOW_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.window_prompts" 
+        self.obj_bp["MENU_ID"] = "home_builder_MT_cabinet_menu"
 
         Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
         Window_Frame_Width = self.add_prompt("Window Frame Width",'DISTANCE',pc_unit.inch(3))

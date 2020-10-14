@@ -100,7 +100,7 @@ def assign_pointer_to_assembly(assembly,pointer_name):
 def assign_materials_to_object(obj):
     props = home_builder_utils.get_scene_props(bpy.context.scene)
     for index, pointer in enumerate(obj.pyclone.pointers):
-        if index <= len(obj.material_slots) and pointer.pointer_name in props.material_pointers:
+        if index + 1 <= len(obj.material_slots) and pointer.pointer_name in props.material_pointers:
             p = props.material_pointers[pointer.pointer_name]
             slot = obj.material_slots[index]
             slot.material = home_builder_utils.get_material(p.category,p.item_name)

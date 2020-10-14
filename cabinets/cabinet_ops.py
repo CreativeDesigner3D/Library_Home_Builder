@@ -16,21 +16,6 @@ from .. import home_builder_pointers
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 from mathutils import Vector
 
-def update_assembly_cabinet_id_props(assembly,parent_assembly):
-    for child in assembly.obj_bp.children:
-        update_cabinet_id_props(child,parent_assembly.obj_bp)
-
-def update_cabinet_id_props(obj,parent_obj):
-    if "PROMPT_ID" in parent_obj:
-        obj["PROMPT_ID"] = parent_obj["PROMPT_ID"]
-    if "MENU_ID" in parent_obj:
-        obj["MENU_ID"] = parent_obj["MENU_ID"]   
-
-def update_object_and_children_id_props(obj,parent_obj):
-    update_cabinet_id_props(obj,parent_obj)
-    for child in obj.children:
-        update_object_and_children_id_props(child,obj)
-
 class home_builder_OT_place_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.place_cabinet"
     bl_label = "Place Cabinet"
@@ -174,7 +159,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
                 calculator.calculate()
                 self.calculators.append(calculator)
 
-        update_cabinet_id_props(obj,self.cabinet.obj_bp)
+        home_builder_utils.update_id_props(obj,self.cabinet.obj_bp)
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':
@@ -657,10 +642,10 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         right_adjustment_width = self.cabinet.get_prompt("Right Adjustment Width")
         if left_adjustment_width.get_value() > 0 and self.cabinet.left_filler is None:
             self.cabinet.add_left_filler()
-            update_assembly_cabinet_id_props(self.cabinet.left_filler,self.cabinet)
+            home_builder_utils.update_assembly_id_props(self.cabinet.left_filler,self.cabinet)
         if right_adjustment_width.get_value() > 0 and self.cabinet.right_filler is None:
             self.cabinet.add_right_filler()   
-            update_assembly_cabinet_id_props(self.cabinet.right_filler,self.cabinet)          
+            home_builder_utils.update_assembly_id_props(self.cabinet.right_filler,self.cabinet)          
         if left_adjustment_width.get_value() == 0 and self.cabinet.left_filler is not None:
             pc_utils.delete_object_and_children(self.cabinet.left_filler.obj_bp)
             self.cabinet.left_filler = None
@@ -898,7 +883,7 @@ class home_builder_OT_change_cabinet_exterior(bpy.types.Operator):
                         carcass = data_cabinet_carcass.Carcass(carcass_bp)
                         new_exterior = data_cabinet_exteriors.get_class_from_name(self.exterior)
                         carcass.add_insert(new_exterior)
-                        update_object_and_children_id_props(new_exterior.obj_bp,carcass.obj_bp)
+                        home_builder_utils.update_object_and_children_id_props(new_exterior.obj_bp,carcass.obj_bp)
                         new_exterior.update_calculators()
                         new_exteriors.append(new_exterior.obj_bp)
                     pc_utils.delete_object_and_children(exterior)        
@@ -1031,7 +1016,7 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
             data_to.objects = data_from.objects
 
         for obj in data_to.objects:
-            update_cabinet_id_props(obj,self.cabinet.obj_bp)
+            home_builder_utils.update_id_props(obj,self.cabinet.obj_bp)
             self.faucet = obj
 
         self.sink.add_object(self.faucet)
@@ -1045,7 +1030,7 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
         sink_path = os.path.join(root_path,self.sink_category,self.sink_name + ".blend")
         self.sink = pc_types.Assembly(filepath=sink_path)
         self.sink.obj_bp["IS_SINK_BP"] = True
-        update_assembly_cabinet_id_props(self.sink,self.cabinet)
+        home_builder_utils.update_assembly_id_props(self.sink,self.cabinet)
         return self.sink
 
     def get_assemblies(self,context):
@@ -1189,7 +1174,7 @@ class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
         cooktop_path = os.path.join(root_path,self.cooktop_category,self.cooktop_name + ".blend")
         self.cooktop = pc_types.Assembly(filepath=cooktop_path)
         self.cooktop.obj_bp["IS_COOKTOP_BP"] = True
-        update_assembly_cabinet_id_props(self.cooktop,self.cabinet)
+        home_builder_utils.update_assembly_id_props(self.cooktop,self.cabinet)
         return self.cooktop
 
     def get_range_hood(self,context):
@@ -1197,7 +1182,7 @@ class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
         range_hood_path = os.path.join(root_path,self.range_hood_category,self.range_hood_name + ".blend")
         self.range_hood = pc_types.Assembly(self.cabinet.add_assembly_from_file(filepath=range_hood_path))
         self.range_hood.obj_bp["IS_RANGE_HOOD_BP"] = True
-        update_assembly_cabinet_id_props(self.range_hood,self.cabinet)
+        home_builder_utils.update_assembly_id_props(self.range_hood,self.cabinet)
         return self.range_hood
 
     def get_assemblies(self,context):
@@ -1452,7 +1437,7 @@ class home_builder_OT_dishwasher_prompts(bpy.types.Operator):
                 new_dishwasher_appliance.dim_y('depth',[depth])
                 new_dishwasher_appliance.dim_z('height',[height])
 
-                update_assembly_cabinet_id_props(new_dishwasher_appliance,self.product)
+                home_builder_utils.update_assembly_id_props(new_dishwasher_appliance,self.product)
 
                 pc_utils.delete_object_and_children(self.dishwasher_appliance.obj_bp)
 
@@ -1529,7 +1514,7 @@ class home_builder_OT_refrigerator_prompts(bpy.types.Operator):
                 new_refrigerator_appliance.dim_y('depth',[depth])
                 new_refrigerator_appliance.dim_z('height',[height])
 
-                update_assembly_cabinet_id_props(new_refrigerator_appliance,self.product)
+                home_builder_utils.update_assembly_id_props(new_refrigerator_appliance,self.product)
 
                 pc_utils.delete_object_and_children(self.refrigerator_appliance.obj_bp)
 
