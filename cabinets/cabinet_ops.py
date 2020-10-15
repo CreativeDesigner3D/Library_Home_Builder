@@ -1243,84 +1243,97 @@ class home_builder_OT_cabinet_cooktop_options(bpy.types.Operator):
         self.draw_range_hood_prompts(split.box(),context)
 
 
+class Appliance_Prompts(bpy.types.Operator):
+
+    def update_product_size(self,assembly):
+        if 'IS_MIRROR' in assembly.obj_x and assembly.obj_x['IS_MIRROR']:
+            assembly.obj_x.location.x = -self.width
+        else:
+            assembly.obj_x.location.x = self.width
+
+        if 'IS_MIRROR' in assembly.obj_y and assembly.obj_y['IS_MIRROR']:
+            assembly.obj_y.location.y = -self.depth
+        else:
+            assembly.obj_y.location.y = self.depth
+        
+        if 'IS_MIRROR' in assembly.obj_z and assembly.obj_z['IS_MIRROR']:
+            assembly.obj_z.location.z = -self.height
+        else:
+            assembly.obj_z.location.z = self.height
+
+    def draw_product_size(self,assembly,layout,context):
+        unit_system = context.scene.unit_settings.system
+
+        box = layout.box()
+        row = box.row()
+        
+        col = row.column(align=True)
+        row1 = col.row(align=True)
+        if pc_utils.object_has_driver(assembly.obj_x) or assembly.obj_x.lock_location[0]:
+            x = math.fabs(assembly.obj_x.location.x)
+            value = str(bpy.utils.units.to_string(unit_system,'LENGTH',x))
+            row1.label(text='Width: ' + value)
+        else:
+            row1.label(text='Width:')
+            row1.prop(self,'width',text="")
+            row1.prop(assembly.obj_x,'hide_viewport',text="")
+        
+        row1 = col.row(align=True)
+        if pc_utils.object_has_driver(assembly.obj_z) or assembly.obj_z.lock_location[2]:
+            z = math.fabs(assembly.obj_z.location.z)
+            value = str(bpy.utils.units.to_string(unit_system,'LENGTH',z))            
+            row1.label(text='Height: ' + value)
+        else:
+            row1.label(text='Height:')
+            row1.prop(self,'height',text="")
+            row1.prop(assembly.obj_z,'hide_viewport',text="")
+        
+        row1 = col.row(align=True)
+        if pc_utils.object_has_driver(assembly.obj_y) or assembly.obj_y.lock_location[1]:
+            y = math.fabs(assembly.obj_y.location.y)
+            value = str(bpy.utils.units.to_string(unit_system,'LENGTH',y))                 
+            row1.label(text='Depth: ' + value)
+        else:
+            row1.label(text='Depth:')
+            row1.prop(self,'depth',text="")
+            row1.prop(assembly.obj_y,'hide_viewport',text="")
+            
+        if len(assembly.obj_bp.constraints) > 0:
+            col = row.column(align=True)
+            col.label(text="Location:")
+            col.operator('home_builder.disconnect_constraint',text='Disconnect Constraint',icon='CONSTRAINT').obj_name = assembly.obj_bp.name
+        else:
+            col = row.column(align=True)
+            col.label(text="Location X:")
+            col.label(text="Location Y:")
+            col.label(text="Location Z:")
+        
+            col = row.column(align=True)
+            col.prop(assembly.obj_bp,'location',text="")
+        
+        row = box.row()
+        row.label(text='Rotation Z:')
+        row.prop(assembly.obj_bp,'rotation_euler',index=2,text="")  
+
+
 def update_range(self,context):
-    if self.appliance_bp_name not in bpy.data.objects:
-        return
-
-    obj = bpy.data.objects[self.appliance_bp_name]
-    bp = home_builder_utils.get_appliance_bp(obj)
-
-    appliance = pc_types.Assembly(bp)    
-    range_assembly = None
-
-    for child in appliance.obj_bp.children:
-        if "IS_RANGE_BP" in child and child["IS_RANGE_BP"]:
-            range_assembly = pc_types.Assembly(child)
-
-    root_path = home_builder_paths.get_range_path()
-    range_path = os.path.join(root_path,self.range_category,self.range_name + ".blend")
-    range_bp = appliance.add_assembly_from_file(range_path)
-
-    new_range_assembly = pc_types.Assembly(range_bp)
-    new_range_assembly.obj_bp["IS_RANGE_BP"] = True
-    new_range_assembly.obj_x.empty_display_size = pc_unit.inch(.5)
-    new_range_assembly.obj_y.empty_display_size = pc_unit.inch(.5)
-    new_range_assembly.obj_z.empty_display_size = pc_unit.inch(.5)
-    new_range_assembly.obj_x.hide_viewport = True
-    new_range_assembly.obj_y.hide_viewport = True
-    new_range_assembly.obj_z.hide_viewport = True
-
-    appliance.dim_x(value=new_range_assembly.obj_x.location.x)
-    appliance.dim_y(value=new_range_assembly.obj_y.location.y)
-    appliance.dim_z(value=new_range_assembly.obj_z.location.z)
-
-    if range_assembly:
-        pc_utils.delete_object_and_children(range_assembly.obj_bp)
+    self.range_changed = True
 
 def update_range_hood(self,context):
-    if self.appliance_bp_name not in bpy.data.objects:
-        return
+    self.range_hood_changed = True
 
-    obj = bpy.data.objects[self.appliance_bp_name]
-    bp = home_builder_utils.get_appliance_bp(obj)
-
-    appliance = pc_types.Assembly(bp)    
-    range_hood_assembly = None
-
-    for child in appliance.obj_bp.children:
-        if "IS_RANGE_HOOD_BP" in child and child["IS_RANGE_HOOD_BP"]:
-            range_hood_assembly = pc_types.Assembly(child)
-
-    if self.add_range_hood:
-        root_path = home_builder_paths.get_range_hood_path()
-        range_path = os.path.join(root_path,self.range_hood_category,self.range_hood_name + ".blend")
-        range_bp = appliance.add_assembly_from_file(range_path)
-
-        new_range_hood_assembly = pc_types.Assembly(range_bp)
-        new_range_hood_assembly.obj_bp["IS_RANGE_HOOD_BP"] = True
-        new_range_hood_assembly.obj_x.empty_display_size = pc_unit.inch(.5)
-        new_range_hood_assembly.obj_y.empty_display_size = pc_unit.inch(.5)
-        new_range_hood_assembly.obj_z.empty_display_size = pc_unit.inch(.5)
-        new_range_hood_assembly.obj_x.hide_viewport = True
-        new_range_hood_assembly.obj_y.hide_viewport = True
-        new_range_hood_assembly.obj_z.hide_viewport = True
-
-        a_width = appliance.obj_x.location.x
-        a_height = appliance.obj_z.location.z
-
-        rh_width = new_range_hood_assembly.obj_x.location.x
-        new_range_hood_assembly.loc_x(value = (a_width/2)-(rh_width/2))
-        new_range_hood_assembly.loc_z(value = a_height+pc_unit.inch(36))
-
-    if range_hood_assembly:
-        pc_utils.delete_object_and_children(range_hood_assembly.obj_bp)
-
-class home_builder_OT_range_prompts(bpy.types.Operator):
+class home_builder_OT_range_prompts(Appliance_Prompts):
     bl_idname = "home_builder.range_prompts"
     bl_label = "Range Prompts"
 
     appliance_bp_name: bpy.props.StringProperty(name="Appliance BP Name",default="")
-    add_range_hood: bpy.props.BoolProperty(name="Add Range Hood",default=False,update=update_range_hood)
+    add_range_hood: bpy.props.BoolProperty(name="Add Range Hood",default=False)
+    range_changed: bpy.props.BoolProperty(name="Range Changed",default=False)
+    range_hood_changed: bpy.props.BoolProperty(name="Range Changed",default=False)
+
+    width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
+    height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
+    depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
     range_category: bpy.props.EnumProperty(name="Range Category",
         items=home_builder_enums.enum_range_categories,
@@ -1337,37 +1350,63 @@ class home_builder_OT_range_prompts(bpy.types.Operator):
         update=update_range_hood)
 
     product = None
-    range_appliance = None
-    range_hood_appliance = None
-    previous_range_appliance = None
-    previous_range_hood_appliance = None
 
-    def reset_variables(self):
+    def reset_variables(self,context):
         self.product = None
-        self.range_appliance = None
-        self.range_hood_appliance = None
+        home_builder_enums.update_range_category(self,context)
+        home_builder_enums.update_range_hood_category(self,context)
 
     def check(self, context):
-        
-        return True             
+        self.update_product_size(self.product)
+        self.update_range(context)
+        self.update_range_hood(context)
+        self.product.update_range_hood_location()
+        return True
+
+    def update_range(self,context):
+        if self.range_changed:
+            self.range_changed = False
+
+            if self.product.range_appliance:
+                pc_utils.delete_object_and_children(self.product.range_appliance.obj_bp)                
+
+            self.product.add_range(self.range_category,self.range_name)
+            self.width = self.product.range_appliance.obj_x.location.x
+            self.depth = math.fabs(self.product.range_appliance.obj_y.location.y)
+            self.height = self.product.range_appliance.obj_z.location.z
+            context.view_layer.objects.active = self.product.obj_bp
+            home_builder_utils.hide_empties(self.product.obj_bp)
+            self.get_assemblies(context)
+
+    def update_range_hood(self,context):
+        if self.range_hood_changed:
+            self.range_hood_changed = False
+            add_range_hood = self.product.get_prompt("Add Range Hood")
+            add_range_hood.set_value(self.add_range_hood)
+            if self.product.range_hood_appliance:
+                pc_utils.delete_object_and_children(self.product.range_hood_appliance.obj_bp)   
+
+            if self.add_range_hood:
+                self.product.add_range_hood(self.range_hood_category,self.range_hood_name)
+                home_builder_utils.hide_empties(self.product.obj_bp)
+            context.view_layer.objects.active = self.product.obj_bp
+            self.get_assemblies(context)
 
     def execute(self, context):
         return {'FINISHED'}
 
     def get_assemblies(self,context):
-        self.carcass = None
-        self.countertop = None
-
-        for child in self.product.obj_bp.children:
-            if "IS_RANGE_BP" in child and child["IS_RANGE_BP"]:
-                self.range_appliance = pc_types.Assembly(child)
+        bp = home_builder_utils.get_appliance_bp(context.object)
+        self.product = data_appliances.Range(bp)
 
     def invoke(self,context,event):
-        self.reset_variables()
-        bp = home_builder_utils.get_appliance_bp(context.object)
-        self.product = pc_types.Assembly(bp)
-        self.appliance_bp_name = self.product.obj_bp.name
+        self.reset_variables(context)
         self.get_assemblies(context)
+        add_range_hood = self.product.get_prompt("Add Range Hood")
+        self.add_range_hood = add_range_hood.get_value()        
+        self.depth = math.fabs(self.product.obj_y.location.y)
+        self.height = math.fabs(self.product.obj_z.location.z)
+        self.width = math.fabs(self.product.obj_x.location.x)        
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
 
@@ -1375,24 +1414,21 @@ class home_builder_OT_range_prompts(bpy.types.Operator):
         layout.label(text="")
         box = layout.box()
         box.prop(self,'range_category',text="",icon='FILE_FOLDER')  
-        if len(self.range_name) > 0:
-            box.template_icon_view(self,"range_name",show_labels=True)  
+        box.template_icon_view(self,"range_name",show_labels=True)  
 
     def draw_range_hood_prompts(self,layout,context):
-        layout.prop(self,'add_range_hood')
+        layout.prop(self,'add_range_hood',text="Add Range Hood")
         
         if not self.add_range_hood:
             return False
-
-        if self.add_range_hood:
+        else:
             box = layout.box()
             box.prop(self,'range_hood_category',text="",icon='FILE_FOLDER')  
-            if len(self.range_hood_name) > 0:
-                box.template_icon_view(self,"range_hood_name",show_labels=True)  
+            box.template_icon_view(self,"range_hood_name",show_labels=True)  
 
     def draw(self, context):
         layout = self.layout
-
+        self.draw_product_size(self.product,layout,context)
         split = layout.split()
         self.draw_range_prompts(split.column(),context)
         self.draw_range_hood_prompts(split.column(),context)
