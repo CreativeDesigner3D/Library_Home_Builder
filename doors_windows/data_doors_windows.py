@@ -8,38 +8,44 @@ from .. import home_builder_pointers
 from .. import home_builder_paths
 from .. import home_builder_parts
 
-def get_default_window_frame():
-    ASSET_DIR = home_builder_paths.get_window_frame_path()
-    return path.join(ASSET_DIR,"Generic","Window Frame.blend")
-
-def get_default_window_insert():
-    ASSET_DIR = home_builder_paths.get_window_insert_path()
-    return path.join(ASSET_DIR,"Generic","Window Insert 1.blend")
-
 def get_default_door_jamb():
     ASSET_DIR = home_builder_paths.get_entry_door_jamb_path()
     return path.join(ASSET_DIR,"Generic","Door Jamb.blend") 
+
+def get_window_frame(category,assembly_name):
+    ASSET_DIR = home_builder_paths.get_window_frame_path()
+    if assembly_name == "":
+        return path.join(ASSET_DIR,"Generic","Simple Window Frame.blend") 
+    else:
+        return path.join(ASSET_DIR, category, assembly_name + ".blend")       
+
+def get_window_insert(category,assembly_name):
+    ASSET_DIR = home_builder_paths.get_window_insert_path()
+    if assembly_name == "":
+        return path.join(ASSET_DIR,"Generic","Glass Panel.blend")
+    else:
+        return path.join(ASSET_DIR, category, assembly_name + ".blend")    
 
 def get_door_frame(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_entry_door_frame_path()
     if assembly_name == "":
         return path.join(ASSET_DIR,"Generic","Door Frame Square.blend") 
     else:
-        return path.join(ASSET_DIR, category,assembly_name + ".blend")     
+        return path.join(ASSET_DIR, category, assembly_name + ".blend")     
 
 def get_door_panel(door_panel_category,door_panel_name):
     ASSET_DIR = home_builder_paths.get_entry_door_panel_path()
     if door_panel_name == "":
         return path.join(ASSET_DIR,"Generic","Door Panel Slab.blend") 
     else:
-        return path.join(ASSET_DIR, door_panel_category,door_panel_name + ".blend") 
+        return path.join(ASSET_DIR, door_panel_category, door_panel_name + ".blend") 
 
 def get_door_handle(door_handle_category,door_handle_name):
     ASSET_DIR = home_builder_paths.get_entry_door_handle_path()
     if door_handle_name == "":
         return path.join(ASSET_DIR,"Generic","Entry Door Handle 1.blend") 
     else:
-        return path.join(ASSET_DIR, door_handle_category,door_handle_name + ".blend") 
+        return path.join(ASSET_DIR, door_handle_category, door_handle_name + ".blend") 
 
 class Standard_Door(pc_types.Assembly):
 
@@ -198,6 +204,58 @@ class Standard_Door(pc_types.Assembly):
 
 class Standard_Window(pc_types.Assembly):
 
+    def add_window_frame(self,category="",assembly_name=""):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+
+        window_frame = pc_types.Assembly(self.add_assembly_from_file(get_window_frame(category,assembly_name)))
+        self.add_assembly(window_frame)
+        window_frame.obj_bp["IS_WINDOW_FRAME"] = True
+        window_frame.set_name("Window Frame")
+        window_frame.loc_x(value=0)
+        window_frame.loc_y(value=0)
+        window_frame.loc_z(value=0)
+        window_frame.dim_x('width',[width])
+        window_frame.dim_y('depth',[depth])
+        window_frame.dim_z('height',[height])  
+        home_builder_pointers.assign_pointer_to_assembly(window_frame,"Entry Door Frame")
+
+        left_window_frame_width = window_frame.get_prompt("Left Window Frame Width").get_value()
+        right_window_frame_width = window_frame.get_prompt("Right Window Frame Width").get_value()
+        top_window_frame_width = window_frame.get_prompt("Top Window Frame Width").get_value()
+        bottom_window_frame_width = window_frame.get_prompt("Bottom Window Frame Width").get_value()
+
+        self.get_prompt("Left Window Frame Width").set_value(left_window_frame_width)
+        self.get_prompt("Right Window Frame Width").set_value(right_window_frame_width)
+        self.get_prompt("Top Window Frame Width").set_value(top_window_frame_width)
+        self.get_prompt("Bottom Window Frame Width").set_value(bottom_window_frame_width)
+
+        home_builder_utils.update_assembly_id_props(window_frame,self)
+
+    def add_window_insert(self,category="",assembly_name=""):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')        
+        left_window_frame_width = self.get_prompt("Left Window Frame Width").get_var("left_window_frame_width")
+        right_window_frame_width = self.get_prompt("Right Window Frame Width").get_var("right_window_frame_width")
+        top_window_frame_width = self.get_prompt("Top Window Frame Width").get_var("top_window_frame_width")
+        bottom_window_frame_width = self.get_prompt("Bottom Window Frame Width").get_var("bottom_window_frame_width")
+                
+        window_insert = pc_types.Assembly(self.add_assembly_from_file(get_window_insert(category,assembly_name)))
+        self.add_assembly(window_insert)
+        window_insert.obj_bp["IS_WINDOW_INSERT"] = True
+        window_insert.set_name("Window Insert")
+        window_insert.loc_x('left_window_frame_width',[left_window_frame_width])
+        window_insert.loc_y(value = 0)
+        window_insert.loc_z('bottom_window_frame_width',[bottom_window_frame_width])
+        window_insert.dim_x('width-left_window_frame_width-right_window_frame_width',[width,left_window_frame_width,right_window_frame_width])
+        window_insert.dim_y('depth',[depth])
+        window_insert.dim_z('height-top_window_frame_width-bottom_window_frame_width',[height,top_window_frame_width,bottom_window_frame_width])
+        home_builder_pointers.assign_materials_to_assembly(window_insert)
+
+        home_builder_utils.update_assembly_id_props(window_insert,self)
+
     def draw_assembly(self):
         self.create_assembly("Window")
         self.obj_bp["IS_WINDOW_BP"] = True
@@ -205,7 +263,10 @@ class Standard_Window(pc_types.Assembly):
         self.obj_bp["MENU_ID"] = "home_builder_MT_cabinet_menu"
 
         Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
-        Window_Frame_Width = self.add_prompt("Window Frame Width",'DISTANCE',pc_unit.inch(3))
+        self.add_prompt("Left Window Frame Width",'DISTANCE',pc_unit.inch(3))
+        self.add_prompt("Right Window Frame Width",'DISTANCE',pc_unit.inch(3))
+        self.add_prompt("Top Window Frame Width",'DISTANCE',pc_unit.inch(3))
+        self.add_prompt("Bottom Window Frame Width",'DISTANCE',pc_unit.inch(3))
 
         self.obj_x.location.x = pc_unit.inch(36) #Length
         self.obj_y.location.y = pc_unit.inch(6)  #Depth
@@ -226,46 +287,5 @@ class Standard_Window(pc_types.Assembly):
         hole.dim_y('depth+(boolean_overhang_var*2)',[depth,boolean_overhang_var])
         hole.dim_z('height',[height])
 
-        window_frame = pc_types.Assembly(self.add_assembly_from_file(get_default_window_frame()))
-        self.add_assembly(window_frame)
-        window_frame.set_name("Window Frame")
-        window_frame.loc_x(value=0)
-        window_frame.loc_y(value=0)
-        window_frame.loc_z(value=0)
-        window_frame.dim_x('width',[width])
-        window_frame.dim_y('depth',[depth])
-        window_frame.dim_z('height',[height])  
-        home_builder_pointers.assign_pointer_to_assembly(window_frame,"Entry Door Frame")
-
-        Window_Frame_Width = window_frame.get_prompt("Window Frame Width")
-
-        if Window_Frame_Width:
-            window_frame_width = window_frame.get_prompt("Window Frame Width").get_var('window_frame_width')
-        else:
-            window_frame_width = self.get_prompt("Window Frame Width").get_var('window_frame_width')
-
-        glass = pc_types.Assembly()
-        glass.create_assembly("Glass")
-        glass.create_cube("Glass")
-        self.add_assembly(glass)
-        glass.loc_x(value=0)
-        glass.loc_y('depth/2',[depth])
-        glass.loc_z(value=0)
-        glass.dim_x('width',[width])
-        glass.dim_y(value=pc_unit.inch(.25))
-        glass.dim_z('height',[height])  
-        home_builder_pointers.assign_pointer_to_assembly(glass,"Glass")
-
-        glass_thickness = glass.obj_y.pyclone.get_var('location.y','glass_thickness')
-        glass_setback = glass.obj_bp.pyclone.get_var('location.y','glass_setback')
-
-        window_insert = pc_types.Assembly(self.add_assembly_from_file(get_default_window_insert()))
-        self.add_assembly(window_frame)
-        window_insert.set_name("Window Insert")
-        window_insert.loc_x(value=0)
-        window_insert.loc_y('glass_setback-.01',[glass_setback])
-        window_insert.loc_z(value=0)
-        window_insert.dim_x('width',[width])
-        window_insert.dim_y('glass_thickness+.02',[glass_thickness])
-        window_insert.dim_z('height',[height])
-        home_builder_pointers.assign_materials_to_assembly(window_insert)
+        self.add_window_frame()
+        self.add_window_insert()

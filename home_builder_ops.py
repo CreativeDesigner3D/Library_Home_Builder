@@ -902,9 +902,26 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
         if scene_props.asset_tabs == 'SINKS':
             return home_builder_paths.get_sink_path()     
         if scene_props.asset_tabs == 'WINDOW_FRAMES':
-            return home_builder_paths.get_window_frame_path()     
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Window Frame")      
+            assembly.obj_bp.location.z = pc_unit.inch(48)
+            assembly.obj_x.location.x = pc_unit.inch(36)
+            assembly.obj_y.location.y = pc_unit.inch(6)
+            assembly.obj_z.location.z = pc_unit.inch(48)
+            assembly.obj_bp.select_set(True)                  
+            assembly.add_prompt("Left Window Frame Width",'DISTANCE',pc_unit.inch(3))
+            assembly.add_prompt("Right Window Frame Width",'DISTANCE',pc_unit.inch(3))
+            assembly.add_prompt("Top Window Frame Width",'DISTANCE',pc_unit.inch(3))
+            assembly.add_prompt("Bottom Window Frame Width",'DISTANCE',pc_unit.inch(3))  
+            context.view_layer.objects.active = assembly.obj_bp              
         if scene_props.asset_tabs == 'WINDOW_INSERTS':
-            return home_builder_paths.get_window_insert_path()         
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Window Insert")      
+            assembly.obj_bp.location.z = pc_unit.inch(48)
+            assembly.obj_x.location.x = pc_unit.inch(36)
+            assembly.obj_y.location.y = pc_unit.inch(6)
+            assembly.obj_z.location.z = pc_unit.inch(48)
+            assembly.obj_bp.select_set(True)               
         return {'FINISHED'}
 
 classes = (
