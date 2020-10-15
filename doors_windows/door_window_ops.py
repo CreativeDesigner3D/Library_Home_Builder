@@ -615,33 +615,15 @@ class home_builder_OT_window_prompts(bpy.types.Operator):
         row.prop(self.assembly.obj_bp,'location',index=2,text="Z")
 
     def draw_prompts(self,layout,context):
-        pass
-        # door_reveal = self.assembly.get_prompt("Door Reveal")
-        # handle_vertical_location = self.assembly.get_prompt("Handle Vertical Location")
-        # handle_location_from_edge = self.assembly.get_prompt("Handle Location From Edge")
-        # entry_door_swing = self.assembly.get_prompt("Entry Door Swing")
-        # outswing = self.assembly.get_prompt("Outswing")
-        # open_door = self.assembly.get_prompt("Open Door")
+        window_quantity = self.assembly.get_prompt("Window Quantity")
+        x_offset = self.assembly.get_prompt("X Offset")
 
-        # if open_door and outswing and entry_door_swing:
-        #     box = layout.box()
-        #     box.label(text="Door Swing")
-        #     row = box.row()
-        #     open_door.draw(row,allow_edit=False)
-        #     row = box.row(align=True)
-        #     row.label(text="Door Swing")
-        #     row.prop_enum(self, "door_swing", 'LEFT') 
-        #     row.prop_enum(self, "door_swing", 'RIGHT') 
-        #     row.prop_enum(self, "door_swing", 'DOUBLE')
-        #     outswing.draw(row,allow_edit=False)     
-
-        # if handle_vertical_location and handle_location_from_edge:
-        #     box = layout.box()
-        #     box.label(text="Door Hardware")
-        #     row = box.row()
-        #     row.label(text="Pull Location:")
-        #     row.prop(handle_vertical_location,'distance_value',text="Vertical")  
-        #     row.prop(handle_location_from_edge,'distance_value',text="From Edge")  
+        if window_quantity and x_offset:
+            box = layout.box()
+            box.label(text="Window Quantity")
+            row = box.row()
+            row.prop(window_quantity,'quantity_value',text="Quantity")  
+            row.prop(x_offset,'distance_value',text="Offset")  
 
     def draw_window_frame(self,layout,context):
         layout.prop(self,'window_frame_category',text="")
@@ -654,7 +636,7 @@ class home_builder_OT_window_prompts(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         self.draw_product_size(layout,context)
-        # self.draw_prompts(layout,context)
+        self.draw_prompts(layout,context)
         box = layout.box()
         row = box.row(align=True)
         row.prop(self,'window_tabs',expand=True)

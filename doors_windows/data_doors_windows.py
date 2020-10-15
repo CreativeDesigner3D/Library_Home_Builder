@@ -232,6 +232,7 @@ class Standard_Window(pc_types.Assembly):
         self.get_prompt("Bottom Window Frame Width").set_value(bottom_window_frame_width)
 
         home_builder_utils.update_assembly_id_props(window_frame,self)
+        self.add_array_modifier(window_frame)
 
     def add_window_insert(self,category="",assembly_name=""):
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -255,6 +256,20 @@ class Standard_Window(pc_types.Assembly):
         home_builder_pointers.assign_materials_to_assembly(window_insert)
 
         home_builder_utils.update_assembly_id_props(window_insert,self)
+        self.add_array_modifier(window_insert)
+
+    def add_array_modifier(self,assembly):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        qty = self.get_prompt("Window Quantity").get_var("qty")
+        x_offset = self.get_prompt("X Offset").get_var("x_offset")
+
+        for child in assembly.obj_bp.children:
+            if child.type != 'EMPTY':
+                array = child.modifiers.new('Quantity','ARRAY')   
+                array.use_constant_offset = True
+                array.use_relative_offset = False
+                child.pyclone.modifier(array,'count',-1,'qty',[qty])
+                child.pyclone.modifier(array,'constant_offset_displace',0,'width+x_offset',[width,x_offset])
 
     def draw_assembly(self):
         self.create_assembly("Window")
@@ -267,6 +282,8 @@ class Standard_Window(pc_types.Assembly):
         self.add_prompt("Right Window Frame Width",'DISTANCE',pc_unit.inch(3))
         self.add_prompt("Top Window Frame Width",'DISTANCE',pc_unit.inch(3))
         self.add_prompt("Bottom Window Frame Width",'DISTANCE',pc_unit.inch(3))
+        self.add_prompt("Window Quantity",'QUANTITY',1)
+        self.add_prompt("X Offset",'DISTANCE',pc_unit.inch(10))
 
         self.obj_x.location.x = pc_unit.inch(36) #Length
         self.obj_y.location.y = pc_unit.inch(6)  #Depth
@@ -286,6 +303,7 @@ class Standard_Window(pc_types.Assembly):
         hole.dim_x('width',[width])
         hole.dim_y('depth+(boolean_overhang_var*2)',[depth,boolean_overhang_var])
         hole.dim_z('height',[height])
+        self.add_array_modifier(hole)
 
         self.add_window_frame()
         self.add_window_insert()
