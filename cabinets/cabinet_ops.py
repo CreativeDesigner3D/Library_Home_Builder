@@ -1433,72 +1433,70 @@ class home_builder_OT_range_prompts(Appliance_Prompts):
         self.draw_range_prompts(split.column(),context)
         self.draw_range_hood_prompts(split.column(),context)
 
-def update_appliance(self,context):
-    self.appliance_changed = True
+def update_dishwasher(self,context):
+    self.dishwasher_changed = True
 
 
-class home_builder_OT_dishwasher_prompts(bpy.types.Operator):
+class home_builder_OT_dishwasher_prompts(Appliance_Prompts):
     bl_idname = "home_builder.dishwasher_prompts"
     bl_label = "Dishwasher Prompts"
 
-    appliance_changed: bpy.props.BoolProperty(name="Applianced Changed")
+    appliance_bp_name: bpy.props.StringProperty(name="Appliance BP Name",default="")
+    dishwasher_changed: bpy.props.BoolProperty(name="Range Changed",default=False)
+
+    width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
+    height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
+    depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
     dishwasher_category: bpy.props.EnumProperty(name="Dishwasher Category",
         items=home_builder_enums.enum_dishwasher_categories,
         update=home_builder_enums.update_dishwasher_category)
     dishwasher_name: bpy.props.EnumProperty(name="Dishwasher Name",
         items=home_builder_enums.enum_dishwasher_names,
-        update=update_appliance)
+        update=update_dishwasher)
 
     product = None
-    dishwasher_appliance = None
 
-    def reset_variables(self):
+    def reset_variables(self,context):
         self.product = None
-        self.dishwasher_appliance = None
+        home_builder_enums.update_dishwasher_category(self,context)
 
     def check(self, context):
-        if self.appliance_changed:
-            ASSET_DIR = home_builder_paths.get_dishwasher_path()
-            assembly_path = os.path.join(ASSET_DIR,self.dishwasher_category,self.dishwasher_name + ".blend")
-            if os.path.exists(assembly_path):
-                new_dishwasher_appliance = pc_types.Assembly(self.product.add_assembly_from_file(assembly_path))
-                new_dishwasher_appliance.obj_bp["IS_DISHWASHER_BP"] = True            
-
-                width = self.product.obj_x.pyclone.get_var('location.x','width')
-                height = self.product.obj_z.pyclone.get_var('location.z','height')
-                depth = self.product.obj_y.pyclone.get_var('location.y','depth')
-
-                new_dishwasher_appliance.dim_x('width',[width])
-                new_dishwasher_appliance.dim_y('depth',[depth])
-                new_dishwasher_appliance.dim_z('height',[height])
-
-                home_builder_utils.update_assembly_id_props(new_dishwasher_appliance,self.product)
-
-                pc_utils.delete_object_and_children(self.dishwasher_appliance.obj_bp)
-
-                self.dishwasher_appliance = new_dishwasher_appliance
-
+        self.update_product_size(self.product)
+        self.update_dishwasher(context)
         return True
+
+    def update_dishwasher(self,context):
+        if self.dishwasher_changed:
+            self.dishwasher_changed = False
+
+            if self.product:
+                pc_utils.delete_object_and_children(self.product.dishwasher.obj_bp)                
+
+            self.product.add_dishwasher(self.dishwasher_category,self.dishwasher_name)
+            self.width = self.product.obj_x.location.x
+            self.depth = math.fabs(self.product.obj_y.location.y)
+            self.height = self.product.obj_z.location.z
+            context.view_layer.objects.active = self.product.obj_bp
+            home_builder_utils.hide_empties(self.product.obj_bp)
+            self.get_assemblies(context)
 
     def execute(self, context):
         return {'FINISHED'}
 
     def get_assemblies(self,context):
-        self.carcass = None
-        self.countertop = None
-
-        for child in self.product.obj_bp.children:
-            if "IS_DISHWASHER_BP" in child and child["IS_DISHWASHER_BP"]:
-                self.dishwasher_appliance = pc_types.Assembly(child)
+        bp = home_builder_utils.get_appliance_bp(context.object)
+        self.product = data_appliances.Dishwasher(bp)
 
     def invoke(self,context,event):
-        self.reset_variables()
-        bp = home_builder_utils.get_appliance_bp(context.object)
-        self.product = pc_types.Assembly(bp)
+        self.reset_variables(context)
         self.get_assemblies(context)
+     
+        self.depth = math.fabs(self.product.obj_y.location.y)
+        self.height = math.fabs(self.product.obj_z.location.z)
+        self.width = math.fabs(self.product.obj_x.location.x)        
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=500)
+        return wm.invoke_props_dialog(self, width=350)
 
     def draw_dishwasher_prompts(self,layout,context):
         layout.label(text="")
@@ -1506,86 +1504,113 @@ class home_builder_OT_dishwasher_prompts(bpy.types.Operator):
         box.prop(self,'dishwasher_category',text="",icon='FILE_FOLDER')  
         box.template_icon_view(self,"dishwasher_name",show_labels=True)  
 
+    def draw_countertop_prompts(self,layout,context):
+        ctop_front = self.product.get_prompt("Countertop Overhang Front")
+        ctop_back = self.product.get_prompt("Countertop Overhang Back")
+        ctop_left = self.product.get_prompt("Countertop Overhang Left")
+        ctop_right = self.product.get_prompt("Countertop Overhang Right")
+        ctop_left = self.product.get_prompt("Countertop Overhang Left")   
+
+        col = layout.column(align=True)
+        box = col.box()      
+   
+        # if left_adjustment_width and right_adjustment_width:
+        #     row = box.row()
+        #     row.label(text="Filler Amount:")
+        #     row.prop(left_adjustment_width,'distance_value',text="Left")
+        #     row.prop(right_adjustment_width,'distance_value',text="Right")
+
+        if ctop_front and ctop_back and ctop_left and ctop_right:
+            row = box.row()
+            row.label(text="Countertop Overhang:")     
+            row = box.row()  
+            row.prop(ctop_front,'distance_value',text="Front")      
+            row.prop(ctop_back,'distance_value',text="Rear")  
+            row.prop(ctop_left,'distance_value',text="Left")  
+            row.prop(ctop_right,'distance_value',text="Right")            
+
     def draw(self, context):
         layout = self.layout
-        #TODO: DRAW SIZE
-        #TODO: COUNTERTOP PROMPTS
+        self.draw_product_size(self.product,layout,context)
+        self.draw_countertop_prompts(layout,context)
         split = layout.split()
         self.draw_dishwasher_prompts(split.column(),context)
 
 
-class home_builder_OT_refrigerator_prompts(bpy.types.Operator):
+def update_refrigerator(self,context):
+    self.refrigerator_changed = True
+
+
+class home_builder_OT_refrigerator_prompts(Appliance_Prompts):
     bl_idname = "home_builder.refrigerator_prompts"
     bl_label = "Refrigerator Prompts"
 
-    appliance_changed: bpy.props.BoolProperty(name="Applianced Changed")
+    appliance_bp_name: bpy.props.StringProperty(name="Appliance BP Name",default="")
+    refrigerator_changed: bpy.props.BoolProperty(name="Refrigerator Changed",default=False)
+
+    width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
+    height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
+    depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
     refrigerator_category: bpy.props.EnumProperty(name="Refrigerator Category",
         items=home_builder_enums.enum_refrigerator_categories,
         update=home_builder_enums.update_refrigerator_category)
     refrigerator_name: bpy.props.EnumProperty(name="Refrigerator Name",
         items=home_builder_enums.enum_refrigerator_names,
-        update=update_appliance)
+        update=update_refrigerator)
 
     product = None
-    refrigerator_appliance = None
 
-    def reset_variables(self):
+    def reset_variables(self,context):
         self.product = None
-        self.refrigerator_appliance = None
+        home_builder_enums.update_refrigerator_category(self,context)
 
     def check(self, context):
-        if self.appliance_changed:
-            ASSET_DIR = home_builder_paths.get_refrigerator_path()
-            assembly_path = os.path.join(ASSET_DIR,self.refrigerator_category,self.refrigerator_name + ".blend")
-            if os.path.exists(assembly_path):
-                new_refrigerator_appliance = pc_types.Assembly(self.product.add_assembly_from_file(assembly_path))
-                new_refrigerator_appliance.obj_bp["IS_REFRIGERATOR_BP"] = True            
+        self.update_product_size(self.product)
+        self.update_refrigerator(context)
+        return True
 
-                width = self.product.obj_x.pyclone.get_var('location.x','width')
-                height = self.product.obj_z.pyclone.get_var('location.z','height')
-                depth = self.product.obj_y.pyclone.get_var('location.y','depth')
+    def update_refrigerator(self,context):
+        if self.refrigerator_changed:
+            self.refrigerator_changed = False
 
-                new_refrigerator_appliance.dim_x('width',[width])
-                new_refrigerator_appliance.dim_y('depth',[depth])
-                new_refrigerator_appliance.dim_z('height',[height])
+            if self.product:
+                pc_utils.delete_object_and_children(self.product.refrigerator.obj_bp)                
 
-                home_builder_utils.update_assembly_id_props(new_refrigerator_appliance,self.product)
-
-                pc_utils.delete_object_and_children(self.refrigerator_appliance.obj_bp)
-
-                self.refrigerator_appliance = new_refrigerator_appliance        
-        return True             
+            self.product.add_refrigerator(self.refrigerator_category,self.refrigerator_name)
+            self.width = self.product.obj_x.location.x
+            self.depth = math.fabs(self.product.obj_y.location.y)
+            self.height = self.product.obj_z.location.z
+            context.view_layer.objects.active = self.product.obj_bp
+            home_builder_utils.hide_empties(self.product.obj_bp)
+            self.get_assemblies(context)
 
     def execute(self, context):
         return {'FINISHED'}
 
     def get_assemblies(self,context):
-        self.carcass = None
-
-        for child in self.product.obj_bp.children:
-            if "IS_REFRIGERATOR_BP" in child and child["IS_REFRIGERATOR_BP"]:
-                self.refrigerator_appliance = pc_types.Assembly(child)
+        bp = home_builder_utils.get_appliance_bp(context.object)
+        self.product = data_appliances.Refrigerator(bp)
 
     def invoke(self,context,event):
-        self.reset_variables()
-        bp = home_builder_utils.get_appliance_bp(context.object)
-        self.product = pc_types.Assembly(bp)
+        self.reset_variables(context)
         self.get_assemblies(context)
+     
+        self.depth = math.fabs(self.product.obj_y.location.y)
+        self.height = math.fabs(self.product.obj_z.location.z)
+        self.width = math.fabs(self.product.obj_x.location.x)        
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=500)
+        return wm.invoke_props_dialog(self, width=350)
 
     def draw_refrigerator_prompts(self,layout,context):
         layout.label(text="")
         box = layout.box()
         box.prop(self,'refrigerator_category',text="",icon='FILE_FOLDER')  
-        box.template_icon_view(self,"refrigerator_name",show_labels=True)  
+        box.template_icon_view(self,"refrigerator_name",show_labels=True)          
 
     def draw(self, context):
         layout = self.layout
-        #TODO: DRAW SIZE
-        #TODO: DRAW HANDLE LOCATION
-        #TODO: COUNTERTOP PROMPTS
+        self.draw_product_size(self.product,layout,context)
         split = layout.split()
         self.draw_refrigerator_prompts(split.column(),context)
 
