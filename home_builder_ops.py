@@ -854,18 +854,56 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
 
     def execute(self, context):
         scene_props = home_builder_utils.get_scene_props(context.scene)
+
         if scene_props.asset_tabs == 'BUILT_IN_APPLIANCES':
-            return home_builder_paths.get_built_in_appliances_path()
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Built In Appliance")
+            assembly.obj_x.location.x = pc_unit.inch(30)
+            assembly.obj_y.location.y = pc_unit.inch(20)
+            assembly.obj_z.location.z = pc_unit.inch(30)
+            assembly.obj_bp.select_set(True)
+            context.view_layer.objects.active = assembly.obj_bp   
+
         if scene_props.asset_tabs == 'CABINET_DOORS':
-            return home_builder_paths.get_cabinet_door_path()
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Cabinet Door")
+            assembly.obj_x.location.x = pc_unit.inch(30)
+            assembly.obj_y.location.y = pc_unit.inch(18)
+            assembly.obj_z.location.z = pc_unit.inch(.75)
+            assembly.obj_bp.select_set(True)
+            assembly.add_prompt("Hide",'CHECKBOX',False)
+            context.view_layer.objects.active = assembly.obj_bp
+
         if scene_props.asset_tabs == 'CABINET_PARTS':
-            return home_builder_paths.get_cabinet_parts_path()
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Cabinet Part")
+            assembly.obj_x.location.x = pc_unit.inch(30)
+            assembly.obj_y.location.y = pc_unit.inch(20)
+            assembly.obj_z.location.z = pc_unit.inch(.75)
+            assembly.obj_bp.select_set(True)
+            context.view_layer.objects.active = assembly.obj_bp  
+
         if scene_props.asset_tabs == 'CABINET_PULLS':
-            return home_builder_paths.get_pull_path()
+            pass #OBJ
+
         if scene_props.asset_tabs == 'COOKTOPS':
-            return home_builder_paths.get_cooktop_path()
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Cooktop")
+            assembly.obj_x.location.x = pc_unit.inch(30)
+            assembly.obj_y.location.y = -pc_unit.inch(20)
+            assembly.obj_z.location.z = -pc_unit.inch(10)
+            assembly.obj_bp.select_set(True)
+            context.view_layer.objects.active = assembly.obj_bp  
+
         if scene_props.asset_tabs == 'DISHWASHERS':
-            return home_builder_paths.get_dishwasher_path()
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Dishwasher")
+            assembly.obj_x.location.x = pc_unit.inch(24)
+            assembly.obj_y.location.y = -pc_unit.inch(23)
+            assembly.obj_z.location.z = pc_unit.inch(34)
+            assembly.obj_bp.select_set(True)
+            context.view_layer.objects.active = assembly.obj_bp
+
         if scene_props.asset_tabs == 'ENTRY_DOOR_FRAMES':
             assembly = pc_types.Assembly()
             assembly.create_assembly("Entry Door Frame")
@@ -875,22 +913,63 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
             assembly.obj_bp.select_set(True)
             assembly.add_prompt("Door Frame Width",'DISTANCE',pc_unit.inch(3))
             context.view_layer.objects.active = assembly.obj_bp
+
         if scene_props.asset_tabs == 'ENTRY_DOOR_HANDLES':
-            return home_builder_paths.get_entry_door_handle_path()
+            pass #OBJ
+
         if scene_props.asset_tabs == 'ENTRY_DOOR_PANELS':
-            return home_builder_paths.get_entry_door_panel_path()
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Entry Door Panel")
+            assembly.obj_x.location.x = pc_unit.inch(36)
+            assembly.obj_y.location.y = pc_unit.inch(6)
+            assembly.obj_z.location.z = pc_unit.inch(90)
+            assembly.obj_bp.select_set(True)
+            assembly.add_prompt("Hide",'CHECKBOX',False)
+            context.view_layer.objects.active = assembly.obj_bp
+
         if scene_props.asset_tabs == 'FAUCETS':
-            return home_builder_paths.get_faucet_path()
+            pass #OBJ
+
         if scene_props.asset_tabs == 'MATERIALS':
-            return home_builder_paths.get_material_path()
+            pass #MATERIAL
+
         if scene_props.asset_tabs == 'RANGE_HOODS':
-            return home_builder_paths.get_range_hood_path()
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Range Hoods")
+            assembly.obj_x.location.x = pc_unit.inch(30)
+            assembly.obj_y.location.y = -pc_unit.inch(14)
+            assembly.obj_z.location.z = pc_unit.inch(20)
+            assembly.obj_bp.location.z = pc_unit.inch(70)
+            assembly.obj_bp.select_set(True)
+            context.view_layer.objects.active = assembly.obj_bp   
+
         if scene_props.asset_tabs == 'RANGES':
-            return home_builder_paths.get_range_path()             
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Range")
+            assembly.obj_x.location.x = pc_unit.inch(30)
+            assembly.obj_y.location.y = -pc_unit.inch(14)
+            assembly.obj_z.location.z = pc_unit.inch(20)
+            assembly.obj_bp.select_set(True)
+            context.view_layer.objects.active = assembly.obj_bp     
+               
         if scene_props.asset_tabs == 'REFRIGERATORS':
-            return home_builder_paths.get_refrigerator_path()     
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Refrigerator")
+            assembly.obj_x.location.x = pc_unit.inch(36)
+            assembly.obj_y.location.y = -pc_unit.inch(25)
+            assembly.obj_z.location.z = pc_unit.inch(84)
+            assembly.obj_bp.select_set(True)
+            context.view_layer.objects.active = assembly.obj_bp  
+
         if scene_props.asset_tabs == 'SINKS':
-            return home_builder_paths.get_sink_path()     
+            assembly = pc_types.Assembly()
+            assembly.create_assembly("Sinks")
+            assembly.obj_x.location.x = pc_unit.inch(30)
+            assembly.obj_y.location.y = -pc_unit.inch(20)
+            assembly.obj_z.location.z = -pc_unit.inch(10)
+            assembly.obj_bp.select_set(True)
+            context.view_layer.objects.active = assembly.obj_bp  
+
         if scene_props.asset_tabs == 'WINDOW_FRAMES':
             assembly = pc_types.Assembly()
             assembly.create_assembly("Window Frame")      
@@ -903,7 +982,8 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
             assembly.add_prompt("Right Window Frame Width",'DISTANCE',pc_unit.inch(3))
             assembly.add_prompt("Top Window Frame Width",'DISTANCE',pc_unit.inch(3))
             assembly.add_prompt("Bottom Window Frame Width",'DISTANCE',pc_unit.inch(3))  
-            context.view_layer.objects.active = assembly.obj_bp              
+            context.view_layer.objects.active = assembly.obj_bp         
+
         if scene_props.asset_tabs == 'WINDOW_INSERTS':
             assembly = pc_types.Assembly()
             assembly.create_assembly("Window Insert")      
@@ -912,6 +992,7 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
             assembly.obj_y.location.y = pc_unit.inch(6)
             assembly.obj_z.location.z = pc_unit.inch(48)
             assembly.obj_bp.select_set(True)               
+
         return {'FINISHED'}
 
 
