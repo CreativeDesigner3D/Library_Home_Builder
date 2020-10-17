@@ -19,6 +19,7 @@ from bpy.props import (StringProperty,
 
 from .pc_lib import pc_unit, pc_utils, pc_types
 from .cabinets import data_cabinet_carcass
+from .cabinets import data_cabinet_parts
 from .cabinets import cabinet_utils
 from . import home_builder_pointers
 from . import home_builder_utils
@@ -343,34 +344,23 @@ class home_builder_OT_update_cabinet_doors(bpy.types.Operator):
 
     def execute(self, context):
         door_panel_bps = []
+        scene_props = home_builder_utils.get_scene_props(context.scene)
 
         for obj in bpy.data.objects:
             if "IS_CABINET_DOOR_PANEL" in obj and obj["IS_CABINET_DOOR_PANEL"]:
                 door_panel_bps.append(obj)
 
-        for exterior_bp in door_panel_bps:
-            pc_utils.delete_object_and_children(exterior_bp)
+        for door_panel_bp in door_panel_bps:
+            props = home_builder_utils.get_object_props(door_panel_bp)
+            pointer = scene_props.cabinet_door_pointers[props.pointer_name]
 
-            # cabinet_bp = home_builder_utils.get_cabinet_bp(exterior_bp)
-            # carcass = None
-            # for child in cabinet_bp.children:
-            #     carcass_bp = home_builder_utils.get_carcass_bp(child)
-            #     if carcass_bp:
-            #         carcass = data_cabinet_carcass.Carcass(child) 
-            #         break
+            old_door_panel = pc_types.Assembly(door_panel_bp)
+            old_door_panel_parent = pc_types.Assembly(door_panel_bp.parent)
+            new_door = data_cabinet_parts.add_door_part(old_door_panel_parent,pointer)
 
-            # if carcass:
-            #     cabinet = pc_types.Assembly(cabinet_bp)
-            #     old_exterior = pc_types.Assembly(exterior_bp)
-
-            #     exterior_prompt_dict = old_exterior.get_prompt_dict()
-            #     exterior = cabinet_utils.get_exterior_from_name(exterior_bp["EXTERIOR_NAME"])
-            #     exterior.prompts = exterior_prompt_dict
-            #     new_exterior = carcass.add_insert(cabinet,exterior)
-            #     new_exterior.update_calculators()
-                
-
-            # pc_utils.delete_object_and_children(exterior_bp)
+            home_builder_utils.update_assembly_id_props(new_door,old_door_panel_parent)
+            home_builder_utils.replace_assembly(old_door_panel,new_door)
+            home_builder_utils.hide_empties(new_door.obj_bp)
 
         return {'FINISHED'}
 
@@ -400,7 +390,6 @@ class home_builder_OT_update_cabinet_doors(bpy.types.Operator):
                 new_exterior = carcass.add_insert(cabinet,exterior)
                 new_exterior.update_calculators()
                 
-
             pc_utils.delete_object_and_children(exterior_bp)
 
         return {'FINISHED'}

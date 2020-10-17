@@ -169,3 +169,42 @@ def update_object_and_children_id_props(obj,parent_obj):
     update_id_props(obj,parent_obj)
     for child in obj.children:
         update_object_and_children_id_props(child,obj)        
+
+def replace_assembly(old_assembly,new_assembly):
+    copy_drivers(old_assembly.obj_bp,new_assembly.obj_bp)
+    copy_drivers(old_assembly.obj_x,new_assembly.obj_x)
+    copy_drivers(old_assembly.obj_y,new_assembly.obj_y)
+    copy_drivers(old_assembly.obj_z,new_assembly.obj_z)
+    copy_drivers(old_assembly.obj_prompts,new_assembly.obj_prompts)
+    pc_utils.delete_object_and_children(old_assembly.obj_bp)
+
+def copy_drivers(old_obj,new_obj):
+    new_obj.location = old_obj.location
+    new_obj.rotation_euler = old_obj.rotation_euler
+    if old_obj.animation_data:
+        for driver in old_obj.animation_data.drivers:
+            newdriver = None
+            try:
+                newdriver = new_obj.driver_add(driver.data_path,driver.array_index)
+            except Exception:
+                try:
+                    newdriver = new_obj.driver_add(driver.data_path)
+                except Exception:
+                    print("Unable to Copy Prompt Driver", driver.data_path)
+            if newdriver:
+                newdriver.driver.expression = driver.driver.expression
+                newdriver.driver.type = driver.driver.type
+                for var in driver.driver.variables:
+                    if var.name not in newdriver.driver.variables:
+                        newvar = newdriver.driver.variables.new()
+                        newvar.name = var.name
+                        newvar.type = var.type
+                        for index, target in enumerate(var.targets):
+                            newtarget = newvar.targets[index]
+                            if target.id is old_obj:
+                                newtarget.id = new_obj #CHECK SELF REFERENCE FOR PROMPTS
+                            else:
+                                newtarget.id = target.id
+                            newtarget.transform_space = target.transform_space
+                            newtarget.transform_type = target.transform_type
+                            newtarget.data_path = target.data_path
