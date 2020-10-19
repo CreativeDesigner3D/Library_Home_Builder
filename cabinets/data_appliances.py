@@ -72,6 +72,8 @@ class Range(pc_types.Assembly):
 
         self.update_range_hood_location()
 
+        home_builder_utils.update_assembly_id_props(self.range_hood_appliance,self)
+
     def add_range(self,category="",assembly_name=""):
         width = self.obj_x.pyclone.get_var('location.x','width')
         height = self.obj_z.pyclone.get_var('location.z','height')
