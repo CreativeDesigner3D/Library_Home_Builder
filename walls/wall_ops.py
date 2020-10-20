@@ -367,10 +367,10 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
 
         box = layout.box()
         box.label(text="Brick Options")        
-        brick_length.draw(box)
-        brick_height.draw(box)
-        mortar_thickness.draw(box)
-        mortar_inset.draw(box)
+        brick_length.draw(box,allow_edit=False)
+        brick_height.draw(box,allow_edit=False)
+        mortar_thickness.draw(box,allow_edit=False)
+        mortar_inset.draw(box,allow_edit=False)
 
     def draw_framed_wall_props(self,layout,context):
         stud_spacing_distance = self.current_wall.get_prompt("Stud Spacing Distance")
@@ -378,8 +378,8 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
 
         box = layout.box()
         box.label(text="Framing Wall Options")        
-        stud_spacing_distance.draw(box)
-        material_thickness.draw(box)
+        stud_spacing_distance.draw(box,allow_edit=False)
+        material_thickness.draw(box,allow_edit=False)
 
     def draw(self, context):
         layout = self.layout
