@@ -74,7 +74,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
 
-    def position_cabinet(self,mouse_location,selected_obj):
+    def position_cabinet(self,mouse_location,selected_obj,event):
         cabinet_bp = home_builder_utils.get_cabinet_bp(selected_obj)
         if not cabinet_bp:
             cabinet_bp = home_builder_utils.get_appliance_bp(selected_obj)
@@ -128,6 +128,12 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.location.y = mouse_location[1]
 
         else:
+
+            if event.type == 'LEFT_ARROW' and event.value == 'PRESS':
+                self.cabinet.obj_bp.rotation_euler.z -= math.radians(90)
+            if event.type == 'RIGHT_ARROW' and event.value == 'PRESS':
+                self.cabinet.obj_bp.rotation_euler.z += math.radians(90)   
+                             
             self.cabinet.obj_bp.location.x = mouse_location[0]
             self.cabinet.obj_bp.location.y = mouse_location[1]
 
@@ -232,7 +238,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
         selected_point, selected_obj = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
 
-        self.position_cabinet(selected_point,selected_obj)
+        self.position_cabinet(selected_point,selected_obj,event)
 
         if self.event_is_place_first_point(event):
             self.confirm_placement(context)
