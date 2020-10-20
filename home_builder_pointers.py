@@ -32,11 +32,11 @@ def get_default_material_pointers():
     pointers.append(("Morter","Concrete","Concrete Plain Ground 2"))
     pointers.append(("Floor","Wood Flooring","Provincial Oak Hardwood"))
 
-    #DOORS
-    pointers.append(("Entry Doors","Wood","Painted Wood White"))
+    #DOORS WINDOWS
     pointers.append(("Entry Door Frame","Wood","Painted Wood White"))
     pointers.append(("Entry Door Panels","Wood","Painted Wood White"))
     pointers.append(("Entry Door Handle","Metal","Polished Chrome"))
+    pointers.append(("Window Metal Frame","Metal","Polished Chrome"))
 
     return pointers
 
