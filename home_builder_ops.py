@@ -590,9 +590,9 @@ class home_builder_OT_archipack_not_enabled(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class home_builder_OT_create_thumnails_for_selected_assets(Operator):
-    bl_idname = "home_builder.create_thumnails_for_selected_assets"
-    bl_label = "Create Thumnails for Selected Assets"
+class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
+    bl_idname = "home_builder.create_thumbnails_for_selected_assets"
+    bl_label = "Create Thumbnails for Selected Assets"
     bl_description = "This will create thumbnails for the selected assets"
     bl_options = {'UNDO'}
     
@@ -939,7 +939,7 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
             assembly.obj_x.location.x = pc_unit.inch(30)
             assembly.obj_y.location.y = -pc_unit.inch(14)
             assembly.obj_z.location.z = pc_unit.inch(20)
-            assembly.obj_bp.location.z = pc_unit.inch(70)
+            # assembly.obj_bp.location.z = pc_unit.inch(70)
             assembly.obj_bp.select_set(True)
             context.view_layer.objects.active = assembly.obj_bp   
 
@@ -973,7 +973,7 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
         if scene_props.asset_tabs == 'WINDOW_FRAMES':
             assembly = pc_types.Assembly()
             assembly.create_assembly("Window Frame")      
-            assembly.obj_bp.location.z = pc_unit.inch(48)
+            # assembly.obj_bp.location.z = pc_unit.inch(48)
             assembly.obj_x.location.x = pc_unit.inch(36)
             assembly.obj_y.location.y = pc_unit.inch(6)
             assembly.obj_z.location.z = pc_unit.inch(48)
@@ -987,7 +987,7 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
         if scene_props.asset_tabs == 'WINDOW_INSERTS':
             assembly = pc_types.Assembly()
             assembly.create_assembly("Window Insert")      
-            assembly.obj_bp.location.z = pc_unit.inch(48)
+            # assembly.obj_bp.location.z = pc_unit.inch(48)
             assembly.obj_x.location.x = pc_unit.inch(36)
             assembly.obj_y.location.y = pc_unit.inch(6)
             assembly.obj_z.location.z = pc_unit.inch(48)
@@ -1148,7 +1148,7 @@ classes = (
     home_builder_OT_message,
     home_builder_OT_archipack_not_enabled,
     home_builder_OT_save_asset_to_library,
-    home_builder_OT_create_thumnails_for_selected_assets,
+    home_builder_OT_create_thumbnails_for_selected_assets,
     home_builder_OT_open_browser_window,
     home_builder_OT_create_new_asset,
     home_builder_OT_light_prompts,
