@@ -801,7 +801,7 @@ class home_builder_OT_save_asset_to_library(Operator):
         asset.name = self.get_asset(context).name
         asset.asset_path = file_path
 
-        bpy.ops.home_builder.create_thumnails_for_selected_assets()
+        bpy.ops.home_builder.create_thumbnails_for_selected_assets()
         return {'FINISHED'}
 
     def get_asset(self,context):
