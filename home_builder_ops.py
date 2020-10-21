@@ -1148,12 +1148,14 @@ class home_builder_OT_floor_prompts(bpy.types.Operator):
                     self.mapping_node = node
 
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=350)
+        return wm.invoke_props_dialog(self, width=150)
         
     def draw(self, context):
         layout = self.layout
-        col = layout.column()
+        box = layout.box()
+        col = box.column()
         if self.mapping_node:
+            col.label(text="Texture Mapping")
             col.prop(self.mapping_node.inputs[1],'default_value',text="Location")
             col.prop(self.mapping_node.inputs[2],'default_value',text="Rotation")
             col.prop(self.mapping_node.inputs[3],'default_value',text="Scale")
