@@ -1,4 +1,5 @@
 import bpy
+from os import path
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import common_prompts
 from . import data_cabinet_parts
@@ -7,14 +8,47 @@ from . import data_countertops
 from . import cabinet_utils
 from .. import home_builder_utils
 from .. import home_builder_pointers
+from .. import home_builder_paths
 import time
 import math
+
+def get_sink(category,assembly_name):
+    ASSET_DIR = home_builder_paths.get_sink_path()
+    if assembly_name == "":
+        return path.join(ASSET_DIR,"Generic","Generic Sink.blend")  
+    else:
+        return path.join(ASSET_DIR, category, assembly_name + ".blend")
+
+def get_faucet(category,assembly_name):
+    ASSET_DIR = home_builder_paths.get_faucet_path()
+    if assembly_name == "":
+        return path.join(ASSET_DIR,"Generic","Generic Faucet.blend")  
+    else:
+        return path.join(ASSET_DIR, category, assembly_name + ".blend")
+
+def get_cooktop(category,assembly_name):
+    ASSET_DIR = home_builder_paths.get_cooktop_path()
+    if assembly_name == "":
+        return path.join(ASSET_DIR,"Generic","Generic Cooktop.blend")  
+    else:
+        return path.join(ASSET_DIR, category, assembly_name + ".blend")
+
+def get_range_hood(category,assembly_name):
+    ASSET_DIR = home_builder_paths.get_range_hood_path()
+    if assembly_name == "":
+        return path.join(ASSET_DIR,"Generic","Generic Range Hood.blend")  
+    else:
+        return path.join(ASSET_DIR, category, assembly_name + ".blend")   
 
 class Cabinet(pc_types.Assembly):
 
     left_filler = None
     right_filler = None
     countertop = None
+    sink_appliance = None
+    faucet_appliance = None
+    cooktop_appliance = None
+    range_hood_appliance = None
     carcasses = []
 
     def __init__(self,obj_bp=None):
@@ -27,10 +61,107 @@ class Cabinet(pc_types.Assembly):
                 if "IS_RIGHT_FILLER_BP" in child:
                     self.right_filler = pc_types.Assembly(child)     
                 if "IS_COUNTERTOP_BP" in child:
-                    self.countertop = pc_types.Assembly(child)                    
+                    self.countertop = pc_types.Assembly(child)     
+                if "IS_SINK_BP" in child:
+                    self.sink_appliance = pc_types.Assembly(child)  
+                    for sink_child in self.sink_appliance.obj_bp.children:
+                        if "IS_FAUCET_BP" in sink_child:
+                            for faucet_child in sink_child.children:
+                                self.faucet_appliance = faucet_child
+                if "IS_COOKTOP_BP" in child:
+                    self.cooktop_appliance = pc_types.Assembly(child)    
+                if "IS_RANGE_HOOD_BP" in child:
+                    self.range_hood_appliance = pc_types.Assembly(child)                                                                                                   
                 if "IS_CARCASS_BP" in child:
                     carcass = data_cabinet_carcass.Carcass(child)
                     self.carcasses.append(carcass)
+
+    def update_range_hood_location(self):
+        if self.range_hood_appliance:
+            self.range_hood_appliance.obj_bp.location.x = (self.obj_x.location.x/2) - (self.range_hood_appliance.obj_x.location.x)/2
+            self.range_hood_appliance.obj_bp.location.z = pc_unit.inch(70)
+
+    def add_sink(self,category="",assembly_name=""):
+        self.sink_appliance = pc_types.Assembly(self.add_assembly_from_file(get_sink(category,assembly_name)))
+        self.sink_appliance.obj_bp["IS_SINK_BP"] = True
+
+        cabinet_width = self.obj_x.pyclone.get_var('location.x','cabinet_width')
+        cabinet_depth = self.obj_y.pyclone.get_var('location.y','cabinet_depth')
+        cabinet_height = self.obj_z.pyclone.get_var('location.z','cabinet_height')
+        countertop_height = self.countertop.obj_z.pyclone.get_var('location.z','countertop_height')
+        sink_width = self.sink_appliance.obj_x.location.x
+        sink_depth = self.sink_appliance.obj_y.location.y
+
+        self.sink_appliance.loc_x('(cabinet_width/2)-' + str(sink_width/2),[cabinet_width])
+        self.sink_appliance.loc_y('(cabinet_depth/2)-' + str(sink_depth/2),[cabinet_depth])
+        self.sink_appliance.loc_z('cabinet_height+countertop_height',[cabinet_height,countertop_height])
+
+        for child in self.sink_appliance.obj_bp.children:
+            if child.type == 'MESH':   
+                if 'IS_BOOLEAN' in child and child['IS_BOOLEAN'] == True:   
+                    bool_obj = child
+                    break
+
+        home_builder_utils.assign_boolean_to_child_assemblies(self.countertop,bool_obj)
+        for carcass in self.carcasses:
+            home_builder_utils.assign_boolean_to_child_assemblies(carcass,bool_obj)
+
+        home_builder_utils.update_assembly_id_props(self.sink_appliance,self)
+
+    def add_faucet(self,category="",object_name=""):
+        if self.sink_appliance:
+            self.faucet_appliance = self.add_object_from_file(get_faucet(category,object_name))
+            self.faucet_appliance["IS_FAUCET"] = True
+
+            faucet_bp = None
+
+            for child in self.sink_appliance.obj_bp.children:
+                if "IS_FAUCET_BP" in child and child["IS_FAUCET_BP"]:
+                    faucet_bp = child
+
+            self.faucet_appliance.parent = faucet_bp
+
+    def add_cooktop(self,category="",assembly_name=""):
+        self.cooktop_appliance = pc_types.Assembly(self.add_assembly_from_file(get_cooktop(category,assembly_name)))
+        self.cooktop_appliance.obj_bp["IS_COOKTOP_BP"] = True
+
+        cabinet_width = self.obj_x.pyclone.get_var('location.x','cabinet_width')
+        cabinet_depth = self.obj_y.pyclone.get_var('location.y','cabinet_depth')
+        cabinet_height = self.obj_z.pyclone.get_var('location.z','cabinet_height')
+        countertop_height = self.countertop.obj_z.pyclone.get_var('location.z','countertop_height')
+        cooktop_width = self.cooktop_appliance.obj_x.location.x
+        cooktop_depth = self.cooktop_appliance.obj_y.location.y
+
+        self.cooktop_appliance.loc_x('(cabinet_width/2)-' + str(cooktop_width/2),[cabinet_width])
+        self.cooktop_appliance.loc_y('(cabinet_depth/2)-' + str(cooktop_depth/2),[cabinet_depth])
+        self.cooktop_appliance.loc_z('cabinet_height+countertop_height',[cabinet_height,countertop_height])
+
+        for child in self.cooktop_appliance.obj_bp.children:
+            if child.type == 'MESH':   
+                if 'IS_BOOLEAN' in child and child['IS_BOOLEAN'] == True:   
+                    bool_obj = child
+                    break
+
+        home_builder_utils.assign_boolean_to_child_assemblies(self.countertop,bool_obj)
+        for carcass in self.carcasses:
+            home_builder_utils.assign_boolean_to_child_assemblies(carcass,bool_obj)
+
+        home_builder_utils.update_assembly_id_props(self.cooktop_appliance,self)
+
+    def add_range_hood(self,category="",assembly_name=""):
+        self.range_hood_appliance = pc_types.Assembly(self.add_assembly_from_file(get_range_hood(category,assembly_name)))
+        self.range_hood_appliance.obj_bp["IS_RANGE_HOOD_BP"] = True
+        self.range_hood_appliance.obj_x.empty_display_size = pc_unit.inch(.5)
+        self.range_hood_appliance.obj_y.empty_display_size = pc_unit.inch(.5)
+        self.range_hood_appliance.obj_z.empty_display_size = pc_unit.inch(.5)
+
+        if not self.range_hood_appliance.obj_x.lock_location[0]:
+            width = self.obj_x.pyclone.get_var('location.x','width')
+            self.range_hood_appliance.dim_x('width',[width])
+
+        self.update_range_hood_location()
+
+        home_builder_utils.update_assembly_id_props(self.range_hood_appliance,self)
 
     def add_left_filler(self):
         depth = self.obj_y.pyclone.get_var('location.y','depth')

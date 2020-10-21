@@ -19,7 +19,7 @@ def get_range(category,assembly_name):
 def get_range_hood(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_range_hood_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"Generic","Generic Range.blend")  
+        return path.join(ASSET_DIR,"Generic","Generic Range Hood.blend")  
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")       
         

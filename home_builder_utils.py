@@ -170,6 +170,18 @@ def update_object_and_children_id_props(obj,parent_obj):
     for child in obj.children:
         update_object_and_children_id_props(child,obj)        
 
+def assign_boolean_to_child_assemblies(assembly,bool_obj):
+    #TODO: DELETE OLD BOOLEAN MODIFIERS
+    bool_obj.hide_viewport = True
+    bool_obj.hide_render = True
+    bool_obj.display_type = 'WIRE'  
+    for child in assembly.obj_bp.children:
+        for nchild in child.children:
+            if nchild.type == 'MESH':       
+                mod = nchild.modifiers.new(bool_obj.name,'BOOLEAN')
+                mod.object = bool_obj
+                mod.operation = 'DIFFERENCE'
+
 def replace_assembly(old_assembly,new_assembly):
     copy_drivers(old_assembly.obj_bp,new_assembly.obj_bp)
     copy_drivers(old_assembly.obj_x,new_assembly.obj_x)

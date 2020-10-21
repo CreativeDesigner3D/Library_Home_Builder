@@ -16,6 +16,30 @@ from .. import home_builder_pointers
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 from mathutils import Vector
 
+def update_range(self,context):
+    self.range_changed = True
+
+def update_range_hood(self,context):
+    self.range_hood_changed = True
+
+def update_exterior(self,context):
+    self.exterior_changed = True
+
+def update_dishwasher(self,context):
+    self.dishwasher_changed = True
+
+def update_refrigerator(self,context):
+    self.refrigerator_changed = True
+
+def update_sink(self,context):
+    self.sink_changed = True
+
+def update_faucet(self,context):
+    self.faucet_changed = True
+
+def update_cooktop(self,context):
+    self.cooktop_changed = True
+
 class home_builder_OT_place_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.place_cabinet"
     bl_label = "Place Cabinet"
@@ -607,6 +631,38 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
     cabinet = None
 
+    sink_changed: bpy.props.BoolProperty(name="Sink Changed",default=False)
+    sink_category: bpy.props.EnumProperty(name="Sink Category",
+        items=home_builder_enums.enum_sink_categories,
+        update=home_builder_enums.update_sink_category)
+    sink_name: bpy.props.EnumProperty(name="Sink Name",
+        items=home_builder_enums.enum_sink_names,
+        update=update_sink)
+
+    faucet_changed: bpy.props.BoolProperty(name="Faucet Changed",default=False)
+    faucet_category: bpy.props.EnumProperty(name="Faucet Category",
+        items=home_builder_enums.enum_faucet_categories,
+        update=home_builder_enums.update_faucet_category)
+    faucet_name: bpy.props.EnumProperty(name="Faucet Name",
+        items=home_builder_enums.enum_faucet_names,
+        update=update_faucet)
+
+    cooktop_changed: bpy.props.BoolProperty(name="Cooktop Changed",default=False)
+    cooktop_category: bpy.props.EnumProperty(name="Cooktop Category",
+        items=home_builder_enums.enum_cooktop_categories,
+        update=home_builder_enums.update_cooktop_category)
+    cooktop_name: bpy.props.EnumProperty(name="Cooktop Name",
+        items=home_builder_enums.enum_cooktop_names,
+        update=update_cooktop)
+
+    range_hood_changed: bpy.props.BoolProperty(name="Range Hood Changed",default=False)
+    range_hood_category: bpy.props.EnumProperty(name="Range Hood Category",
+        items=home_builder_enums.enum_range_hood_categories,
+        update=home_builder_enums.update_range_hood_category)
+    range_hood_name: bpy.props.EnumProperty(name="Range Hood Name",
+        items=home_builder_enums.enum_range_hood_names,
+        update=update_range_hood)
+
     def reset_variables(self):
         #BLENDER CRASHES IF TAB IS SET TO EXTERIOR
         #THIS IS BECAUSE POPUP DIALOGS CANNOT DISPLAY UILISTS ON INVOKE
@@ -659,13 +715,86 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             pc_utils.delete_object_and_children(self.cabinet.right_filler.obj_bp)
             self.cabinet.right_filler = None   
 
+    def update_range_hood(self,context):
+        if self.range_hood_changed:
+            self.range_hood_changed = False
+            add_range_hood = self.cabinet.get_prompt("Add Range Hood")
+            if self.cabinet.range_hood_appliance:
+                pc_utils.delete_object_and_children(self.cabinet.range_hood_appliance.obj_bp)   
+
+            if add_range_hood.get_value():
+                self.cabinet.add_range_hood(self.range_hood_category,self.range_hood_name)
+                home_builder_utils.hide_empties(self.cabinet.obj_bp)
+            context.view_layer.objects.active = self.cabinet.obj_bp
+            self.get_assemblies(context)
+
+    def update_sink(self,context):
+        if self.sink_changed:
+            self.sink_changed = False
+            add_sink = self.cabinet.get_prompt("Add Sink")
+            if self.cabinet.sink_appliance:
+                pc_utils.delete_object_and_children(self.cabinet.sink_appliance.obj_bp)   
+
+            if add_sink.get_value():
+                self.cabinet.add_sink(self.sink_category,self.sink_name)
+                home_builder_utils.hide_empties(self.cabinet.obj_bp)
+            context.view_layer.objects.active = self.cabinet.obj_bp
+            self.get_assemblies(context)
+
+    def update_cooktop(self,context):
+        if self.cooktop_changed:
+            self.cooktop_changed = False
+            add_cooktop = self.cabinet.get_prompt("Add Cooktop")
+            if self.cabinet.cooktop_appliance:
+                pc_utils.delete_object_and_children(self.cabinet.cooktop_appliance.obj_bp)   
+
+            if add_cooktop.get_value():
+                self.cabinet.add_cooktop(self.cooktop_category,self.cooktop_name)
+                home_builder_utils.hide_empties(self.cabinet.obj_bp)
+            context.view_layer.objects.active = self.cabinet.obj_bp
+            self.get_assemblies(context)
+
+    def update_faucet(self,context):
+        if self.faucet_changed:
+            self.faucet_changed = False
+            add_faucet = self.cabinet.get_prompt("Add Faucet")
+            if self.cabinet.faucet_appliance:
+                pc_utils.delete_object_and_children(self.cabinet.faucet_appliance)   
+
+            if add_faucet.get_value():
+                self.cabinet.add_faucet(self.faucet_category,self.faucet_name)
+                home_builder_utils.hide_empties(self.cabinet.obj_bp)
+            context.view_layer.objects.active = self.cabinet.obj_bp
+            self.get_assemblies(context)
+
     def check(self, context):
         self.update_product_size()
         self.update_fillers(context)
+        self.update_sink(context)
+        self.update_range_hood(context)
+        self.update_cooktop(context)
+        self.update_faucet(context)        
         self.update_materials(context)
+        self.cabinet.update_range_hood_location()
         return True
 
     def execute(self, context):
+        add_faucet = self.cabinet.get_prompt("Add Faucet")
+        add_cooktop = self.cabinet.get_prompt("Add Cooktop")
+        add_sink = self.cabinet.get_prompt("Add Sink")
+        add_range_hood = self.cabinet.get_prompt("Add Range Hood")
+        if add_faucet:
+            if self.cabinet.faucet_appliance and not add_faucet.get_value():
+                pc_utils.delete_object_and_children(self.cabinet.faucet_appliance)   
+        if add_cooktop:
+            if self.cabinet.cooktop_appliance and not add_cooktop.get_value():
+                pc_utils.delete_object_and_children(self.cabinet.cooktop_appliance.obj_bp)   
+        if add_sink:
+            if self.cabinet.sink_appliance and not add_sink.get_value():
+                pc_utils.delete_object_and_children(self.cabinet.sink_appliance.obj_bp)   
+        if add_range_hood:
+            if self.cabinet.range_hood_appliance and not add_range_hood.get_value():
+                pc_utils.delete_object_and_children(self.cabinet.range_hood_appliance.obj_bp)                       
         return {'FINISHED'}
 
     def get_calculators(self,obj):
@@ -676,16 +805,63 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
     def invoke(self,context,event):
         self.reset_variables()
-        bp = home_builder_utils.get_cabinet_bp(context.object)
-        if not bp:
-            bp = home_builder_utils.get_appliance_bp(context.object)
-        self.cabinet = data_cabinets.Cabinet(bp)
+        self.get_assemblies(context)
         self.cabinet_name = self.cabinet.obj_bp.name
         self.depth = math.fabs(self.cabinet.obj_y.location.y)
         self.height = math.fabs(self.cabinet.obj_z.location.z)
         self.width = math.fabs(self.cabinet.obj_x.location.x)
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_cabinet_bp(context.object)
+        self.cabinet = data_cabinets.Cabinet(bp)
+
+    def draw_sink_prompts(self,layout,context):
+        add_sink = self.cabinet.get_prompt("Add Sink")
+
+        if not add_sink:
+            return False
+
+        layout.prop(add_sink,'checkbox_value',text="Add Sink")
+        if add_sink.get_value():
+            layout.prop(self,'sink_category',text="",icon='FILE_FOLDER')  
+            if len(self.sink_name) > 0:
+                layout.template_icon_view(self,"sink_name",show_labels=True)  
+
+    def draw_faucet_prompts(self,layout,context):
+        add_faucet = self.cabinet.get_prompt("Add Faucet")
+
+        if not add_faucet:
+            return False
+
+        layout.prop(add_faucet,'checkbox_value',text="Add Faucet")
+        if add_faucet.get_value():
+            layout.prop(self,'faucet_category',text="",icon='FILE_FOLDER')  
+            if len(self.sink_name) > 0:
+                layout.template_icon_view(self,"faucet_name",show_labels=True)  
+
+    def draw_cooktop_prompts(self,layout,context):
+        add_cooktop = self.cabinet.get_prompt("Add Cooktop")
+
+        if not add_cooktop:
+            return False
+
+        layout.prop(add_cooktop,'checkbox_value',text="Add Cooktop")
+        if add_cooktop.get_value():
+            layout.prop(self,'cooktop_category',text="",icon='FILE_FOLDER')
+            layout.template_icon_view(self,"cooktop_name",show_labels=True)
+
+    def draw_range_hood_prompts(self,layout,context):
+        add_range_hood = self.cabinet.get_prompt("Add Range Hood")
+
+        if not add_range_hood:
+            return False
+
+        layout.prop(add_range_hood,'checkbox_value',text="Add Range Hood")
+        if add_range_hood.get_value():
+            layout.prop(self,'range_hood_category',text="",icon='FILE_FOLDER')  
+            layout.template_icon_view(self,"range_hood_name",show_labels=True)
 
     def draw_product_size(self,layout,context):
         unit_system = context.scene.unit_settings.system
@@ -786,7 +962,9 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         left_adjustment_width = self.cabinet.get_prompt("Left Adjustment Width")       
         right_adjustment_width = self.cabinet.get_prompt("Right Adjustment Width")    
         add_sink = self.cabinet.get_prompt("Add Sink")
+        add_faucet = self.cabinet.get_prompt("Add Faucet")
         add_cooktop = self.cabinet.get_prompt("Add Cooktop")
+        add_range_hood = self.cabinet.get_prompt("Add Range Hood")        
         ctop_front = self.cabinet.get_prompt("Countertop Overhang Front")
         ctop_back = self.cabinet.get_prompt("Countertop Overhang Back")
         ctop_left = self.cabinet.get_prompt("Countertop Overhang Left")
@@ -817,16 +995,19 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             row.prop(ctop_left,'distance_value',text="Left")  
             row.prop(ctop_right,'distance_value',text="Right")    
 
-        if add_sink or add_cooktop:
+        if add_sink and add_faucet:
             box = layout.box()
-            box.operator_context = 'INVOKE_AREA'
-            row = box.row()
-            row.label(text="Cabinet Appliances:")  
+            box.label(text="Cabinet Sink Selection")
+            split = box.split()
+            self.draw_sink_prompts(split.column(),context)
+            self.draw_faucet_prompts(split.column(),context)
 
-            if add_sink:
-                row.operator('home_builder.cabinet_sink_options',text="Sink Options")
-            if add_cooktop:
-                row.operator('home_builder.cabinet_cooktop_options',text="Cooktop Options")
+        if add_cooktop and add_range_hood:
+            box = layout.box()
+            box.label(text="Cabinet Cooktop Selection")
+            split = box.split()
+            self.draw_cooktop_prompts(split.column(),context)
+            self.draw_range_hood_prompts(split.column(),context)
 
     def draw(self, context):
         layout = self.layout
@@ -859,10 +1040,6 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                     box = prompt_box.box()
                     box.label(text=carcass.interior.obj_bp.name)
                     carcass.interior.draw_prompts(box,context)
-
-
-def update_exterior(self,context):
-    self.exterior_changed = True
 
 
 class home_builder_OT_change_cabinet_exterior(bpy.types.Operator):
@@ -984,6 +1161,7 @@ class home_builder_OT_cabinet_sink_options(bpy.types.Operator):
                 if 'IS_BOOLEAN' in child and child['IS_BOOLEAN'] == True:   
                     bool_obj = child  
                     bool_obj.hide_viewport = True
+                    bool_obj.hide_render = True
                     bool_obj.display_type = 'WIRE'                        
 
         if bool_obj:
@@ -1322,11 +1500,7 @@ class Appliance_Prompts(bpy.types.Operator):
         row.prop(assembly.obj_bp,'rotation_euler',index=2,text="")  
 
 
-def update_range(self,context):
-    self.range_changed = True
 
-def update_range_hood(self,context):
-    self.range_hood_changed = True
 
 class home_builder_OT_range_prompts(Appliance_Prompts):
     bl_idname = "home_builder.range_prompts"
@@ -1439,9 +1613,6 @@ class home_builder_OT_range_prompts(Appliance_Prompts):
         self.draw_range_prompts(split.column(),context)
         self.draw_range_hood_prompts(split.column(),context)
 
-def update_dishwasher(self,context):
-    self.dishwasher_changed = True
-
 
 class home_builder_OT_dishwasher_prompts(Appliance_Prompts):
     bl_idname = "home_builder.dishwasher_prompts"
@@ -1541,10 +1712,6 @@ class home_builder_OT_dishwasher_prompts(Appliance_Prompts):
         self.draw_countertop_prompts(layout,context)
         split = layout.split()
         self.draw_dishwasher_prompts(split.column(),context)
-
-
-def update_refrigerator(self,context):
-    self.refrigerator_changed = True
 
 
 class home_builder_OT_refrigerator_prompts(Appliance_Prompts):
