@@ -188,6 +188,7 @@ class home_builder_OT_draw_floor_plane(bpy.types.Operator):
         bpy.ops.mesh.flip_normals()
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.select_all(action='DESELECT')
+        obj_plane["PROMPT_ID"] = "home_builder.floor_prompts"
 
         #SET CONTEXT
         context.view_layer.objects.active = obj_plane
@@ -1127,6 +1128,39 @@ class home_builder_OT_light_prompts(bpy.types.Operator):
     def execute(self, context):
         return {'FINISHED'}
 
+
+class home_builder_OT_floor_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.floor_prompts"
+    bl_label = "Floor Prompts"
+    
+    mapping_node = None
+
+    def check(self, context):
+        return True
+
+    def invoke(self,context,event):
+        self.mapping_node = None
+        floor = context.object
+        for slot in floor.material_slots:
+            mat = slot.material
+            for node in mat.node_tree.nodes:
+                if node.type == 'MAPPING':
+                    self.mapping_node = node
+
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=350)
+        
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        if self.mapping_node:
+            col.prop(self.mapping_node.inputs[1],'default_value',text="Location")
+            col.prop(self.mapping_node.inputs[2],'default_value',text="Rotation")
+            col.prop(self.mapping_node.inputs[3],'default_value',text="Scale")
+
+    def execute(self, context):
+        return {'FINISHED'}
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -1152,6 +1186,7 @@ classes = (
     home_builder_OT_open_browser_window,
     home_builder_OT_create_new_asset,
     home_builder_OT_light_prompts,
+    home_builder_OT_floor_prompts,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
