@@ -216,6 +216,15 @@ class Assembly:
         obj_bp.parent = self.obj_bp
         return obj_bp
 
+    def add_object_from_file(self,filepath):
+        with bpy.data.libraries.load(filepath, False, False) as (data_from, data_to):
+            data_to.objects = data_from.objects
+
+        for obj in data_to.objects:
+            self.coll.objects.link(obj)
+            obj.parent = self.obj_bp
+            return obj
+
     def set_name(self,name):
         self.obj_bp.name = name
 
