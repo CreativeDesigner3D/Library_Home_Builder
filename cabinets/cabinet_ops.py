@@ -133,7 +133,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
                 self.cabinet.obj_bp.rotation_euler.z -= math.radians(90)
             if event.type == 'RIGHT_ARROW' and event.value == 'PRESS':
                 self.cabinet.obj_bp.rotation_euler.z += math.radians(90)   
-                             
+
             self.cabinet.obj_bp.location.x = mouse_location[0]
             self.cabinet.obj_bp.location.y = mouse_location[1]
 
@@ -1644,7 +1644,7 @@ class home_builder_MT_cabinet_menu(bpy.types.Menu):
             layout.separator()
 
         layout.operator('home_builder.part_prompts',text="Part Prompts - " + obj_bp.name,icon='WINDOW')
-        layout.operator('home_builder.hardlock_part_size',icon='FILE_REFRESH')
+        layout.operator('home_builder.edit_part',icon='EDITMODE_HLT')
         layout.separator()
         layout.operator('home_builder.delete_cabinet',icon='X')
 
@@ -1698,19 +1698,9 @@ class home_builder_OT_update_prompts(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class home_builder_OT_hardlock_part_size(bpy.types.Operator):
-    bl_idname = "home_builder.hardlock_part_size"
-    bl_label = "Hardlock Part Size"
-
-    @classmethod
-    def poll(cls, context):
-        obj_bp = pc_utils.get_assembly_bp(context.object)
-        for child in obj_bp.children:
-            if child.type == 'MESH':
-                for mod in child.modifiers:
-                    if mod.type == 'HOOK':
-                        return  True      
-        return False
+class home_builder_OT_edit_part(bpy.types.Operator):
+    bl_idname = "home_builder.edit_part"
+    bl_label = "Edit Part"
 
     def execute(self, context):
         obj_bps = []
@@ -1723,6 +1713,8 @@ class home_builder_OT_hardlock_part_size(bpy.types.Operator):
             for child in obj_bp.children:
                 if child.type == 'MESH':
                     home_builder_utils.apply_hook_modifiers(context,child)
+
+        bpy.ops.object.editmode_toggle()
         return {'FINISHED'}
 
 
@@ -1845,7 +1837,7 @@ def register():
     bpy.utils.register_class(home_builder_OT_delete_cabinet)    
     bpy.utils.register_class(home_builder_OT_delete_part)    
     bpy.utils.register_class(home_builder_OT_part_prompts)    
-    bpy.utils.register_class(home_builder_OT_hardlock_part_size)  
+    bpy.utils.register_class(home_builder_OT_edit_part)  
     bpy.utils.register_class(home_builder_OT_update_cabinet_lighting)  
     bpy.utils.register_class(home_builder_OT_update_prompts)  
     bpy.utils.register_class(home_builder_OT_move_cabinet)  
@@ -1866,7 +1858,7 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_delete_cabinet)        
     bpy.utils.unregister_class(home_builder_OT_delete_part)      
     bpy.utils.unregister_class(home_builder_OT_part_prompts) 
-    bpy.utils.unregister_class(home_builder_OT_hardlock_part_size)   
+    bpy.utils.unregister_class(home_builder_OT_edit_part)   
     bpy.utils.unregister_class(home_builder_OT_update_cabinet_lighting)  
     bpy.utils.unregister_class(home_builder_OT_update_prompts)  
     bpy.utils.unregister_class(home_builder_OT_move_cabinet)  
