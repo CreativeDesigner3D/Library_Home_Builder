@@ -185,6 +185,10 @@ class Stacked_Cabinet(Cabinet):
     category_name = "Cabinets"
     
     width = pc_unit.inch(18)
+    height = pc_unit.inch(84)
+    depth = pc_unit.inch(25)
+    bottom_cabinet_height = pc_unit.inch(50)
+    z_loc = 0
 
     top_carcass = None
     bottom_carcass = None
@@ -226,16 +230,18 @@ class Stacked_Cabinet(Cabinet):
         common_prompts.add_cabinet_prompts(self)
         common_prompts.add_filler_prompts(self)
         common_prompts.add_stacked_cabinet_prompts(self)
-        
+        bottom_cabinet_height = self.get_prompt("Bottom Cabinet Height")
+        bottom_cabinet_height.set_value(self.bottom_cabinet_height)
+
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
         left_adjment_width = self.get_prompt("Left Adjustment Width").get_var('left_adjment_width')
         right_adjment_width = self.get_prompt("Right Adjustment Width").get_var('right_adjment_width')
-        bottom_cabinet_height = self.get_prompt("Bottom Cabinet Height").get_var('bottom_cabinet_height')
+        bottom_cabinet_height = bottom_cabinet_height.get_var('bottom_cabinet_height')
 
         self.bottom_carcass = self.add_assembly(self.bottom_carcass)
-        self.bottom_carcass.set_name('Base Carcass')
+        self.bottom_carcass.set_name('Bottom Carcass')
         self.bottom_carcass.loc_x('left_adjment_width',[left_adjment_width])
         self.bottom_carcass.loc_y(value=0)
         self.bottom_carcass.loc_z(value=0)
@@ -253,5 +259,10 @@ class Stacked_Cabinet(Cabinet):
         self.top_carcass.dim_z('height-bottom_cabinet_height',[height,bottom_cabinet_height])
 
         self.obj_x.location.x = self.width
-        self.obj_y.location.y = -props.tall_cabinet_depth
-        self.obj_z.location.z = props.tall_cabinet_height
+        self.obj_y.location.y = -self.depth
+        self.obj_z.location.z = self.height
+        self.obj_bp.location.z = self.z_loc
+
+    def render(self):
+        self.pre_draw()
+        self.draw()

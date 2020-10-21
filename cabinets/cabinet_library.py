@@ -1,3 +1,4 @@
+import bpy
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinets
 from . import data_cabinet_exteriors
@@ -5,6 +6,7 @@ from . import data_cabinet_interiors
 from . import data_cabinet_carcass
 from . import data_appliances
 from . import data_cabinet_splitter
+from .. import home_builder_utils
 
 class Base_Door_Cabinet(data_cabinets.Standard_Cabinet):
 
@@ -108,9 +110,30 @@ class Splitter_Cabinet(data_cabinets.Standard_Cabinet):
 class Stacked_Cabinet(data_cabinets.Stacked_Cabinet):
 
     def __init__(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        self.height = props.tall_cabinet_height
+        self.depth = props.tall_cabinet_depth
         self.top_carcass = data_cabinet_carcass.Upper_Advanced()
         self.top_carcass.interior = data_cabinet_interiors.Shelves()
         self.top_carcass.exterior = data_cabinet_exteriors.Doors()
         self.bottom_carcass = data_cabinet_carcass.Base_Advanced()
         self.bottom_carcass.interior = data_cabinet_interiors.Shelves()
         self.bottom_carcass.exterior = data_cabinet_exteriors.Doors()        
+
+class Upper_Stacked_Cabinet(data_cabinets.Stacked_Cabinet):
+
+    def __init__(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        self.width = pc_unit.inch(36)
+        self.height = props.upper_cabinet_height + pc_unit.inch(20)
+        self.depth = props.upper_cabinet_depth
+        self.bottom_cabinet_height = props.upper_cabinet_height
+        self.z_loc = props.height_above_floor - props.upper_cabinet_height
+        self.top_carcass = data_cabinet_carcass.Upper_Advanced()
+        self.top_carcass.interior = data_cabinet_interiors.Shelves()
+        self.top_carcass.exterior = data_cabinet_exteriors.Doors()
+        self.top_carcass.exterior.door_swing = 2
+        self.bottom_carcass = data_cabinet_carcass.Upper_Advanced()
+        self.bottom_carcass.interior = data_cabinet_interiors.Shelves()
+        self.bottom_carcass.exterior = data_cabinet_exteriors.Doors()    
+        self.bottom_carcass.exterior.door_swing = 2

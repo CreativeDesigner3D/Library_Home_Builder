@@ -484,37 +484,22 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.write("        if obj.type == 'MESH':\n")
         file.write("            obj.select_set(True)\n")
 
-        #CLEAR FILE
-        file.write("for mat in bpy.data.materials:\n")
-        file.write("    bpy.data.materials.remove(mat,do_unlink=True)\n")
-        file.write("for obj in bpy.data.objects:\n")
-        file.write("    bpy.data.objects.remove(obj,do_unlink=True)\n")   
 
         #DRAW ASSET
         file.write("item = eval('Library_Home_Builder." + asset.package_name + "." + asset.module_name + "." + asset.class_name + "()')" + "\n")
-        file.write("if hasattr(item,'draw'):\n")
-        file.write("    item.draw()\n")
-        file.write("if hasattr(item,'draw_door'):\n")
-        file.write("    item.draw_door()\n")      
-        file.write("if hasattr(item,'draw_wall'):\n")
-        file.write("    item.draw_wall()\n")          
+        # file.write("if hasattr(item,'draw'):\n")
+        # file.write("    item.draw()\n")
+        # file.write("if hasattr(item,'draw_door'):\n")
+        # file.write("    item.draw_door()\n")      
+        # file.write("if hasattr(item,'draw_wall'):\n")
+        # file.write("    item.draw_wall()\n")          
         file.write("if hasattr(item,'render'):\n")
         file.write("    item.render()\n")
 
-        #ADD CAMERA
-        file.write("if bpy.context.scene.camera is None:\n")
-        file.write("    bpy.ops.object.camera_add()\n")
-        file.write("bpy.context.scene.camera = bpy.context.object\n")
-        file.write("bpy.context.scene.camera.rotation_euler = (1.1093,0,.8149)\n")
-
+        #VIEW ASSET
         file.write("bpy.ops.object.select_all(action='DESELECT')\n")
         file.write("select_objects()\n")
         file.write("bpy.ops.view3d.camera_to_view_selected()\n")
-
-        #ADD LIGHTING
-        file.write("bpy.ops.object.light_add(type='SUN')\n")
-        file.write("bpy.context.object.data.energy = 1.5\n")
-        file.write("bpy.context.object.rotation_euler = (1.1093,0,.8149)\n")
 
         #RENDER
         file.write("render = bpy.context.scene.render\n")
@@ -530,12 +515,15 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.close()
         return os.path.join(bpy.app.tempdir,'thumb_temp.py')
 
+    def get_thumbnail_path(self):
+        return os.path.join(home_builder_paths.get_library_path(),"thumbnail.blend")
+
     def execute(self, context):
         wm_props = home_builder_utils.get_wm_props(context.window_manager)
         for asset in wm_props.assets:
             if asset.is_selected:
                 script = self.create_item_thumbnail_script(asset)
-                subprocess.call(bpy.app.binary_path + ' -b --python "' + script + '"') 
+                subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path() + '" -b --python "' + script + '"') 
         return {'FINISHED'}
 
 
