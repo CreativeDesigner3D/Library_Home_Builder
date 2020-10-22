@@ -973,6 +973,10 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         row.label(text='Rotation Z:')
         row.prop(self.cabinet.obj_bp,'rotation_euler',index=2,text="")  
 
+        row = box.row()
+        row.label(text='Height from Floor:')
+        row.prop(self.cabinet.obj_bp,'location',index=2,text="")          
+
     def draw_carcass_prompts(self,layout,context):
         for carcass in self.cabinet.carcasses:
             left_finished_end = carcass.get_prompt("Left Finished End")
