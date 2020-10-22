@@ -104,6 +104,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             cabinet_bp = home_builder_utils.get_appliance_bp(selected_obj)
 
         wall_bp = home_builder_utils.get_wall_bp(selected_obj)
+
         if cabinet_bp:
             self.selected_cabinet = pc_types.Assembly(cabinet_bp)
 
@@ -120,25 +121,28 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             rot = self.selected_cabinet.obj_bp.rotation_euler.z
             x_loc = 0
             y_loc = 0
+
             if wall_bp:
                 self.current_wall = pc_types.Assembly(wall_bp)
                 rot += self.current_wall.obj_bp.rotation_euler.z      
-
-            if dist_to_bp < dist_to_x:
-                self.placement = 'LEFT'
-                add_x_loc = 0
-                add_y_loc = 0
-                # if sel_product.obj_bp.mv.placement_type == 'Corner':
-                #     rot += math.radians(90)
-                #     add_x_loc = math.cos(rot) * sel_product.obj_y.location.y
-                #     add_y_loc = math.sin(rot) * sel_product.obj_y.location.y
-                x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * self.cabinet.obj_x.location.x + add_x_loc
-                y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * self.cabinet.obj_x.location.x + add_y_loc
-
+            if self.has_height_collision(self.selected_cabinet):
+                if dist_to_bp < dist_to_x:
+                    self.placement = 'LEFT'
+                    add_x_loc = 0
+                    add_y_loc = 0
+                    # if sel_product.obj_bp.mv.placement_type == 'Corner':
+                    #     rot += math.radians(90)
+                    #     add_x_loc = math.cos(rot) * sel_product.obj_y.location.y
+                    #     add_y_loc = math.sin(rot) * sel_product.obj_y.location.y
+                    x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * self.cabinet.obj_x.location.x + add_x_loc
+                    y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * self.cabinet.obj_x.location.x + add_y_loc
+                else:
+                    self.placement = 'RIGHT'
+                    x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] + math.cos(rot) * self.selected_cabinet.obj_x.location.x
+                    y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] + math.sin(rot) * self.selected_cabinet.obj_x.location.x
             else:
-                self.placement = 'RIGHT'
-                x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] + math.cos(rot) * self.selected_cabinet.obj_x.location.x
-                y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] + math.sin(rot) * self.selected_cabinet.obj_x.location.x
+                x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * ((self.cabinet.obj_x.location.x/2) - (self.selected_cabinet.obj_x.location.x/2))
+                y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * ((self.cabinet.obj_x.location.x/2) - (self.selected_cabinet.obj_x.location.x/2))                
 
             self.cabinet.obj_bp.rotation_euler.z = rot
             self.cabinet.obj_bp.location.x = x_loc
@@ -173,6 +177,24 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.draw()
         self.cabinet.set_name(filename)
         self.set_child_properties(self.cabinet.obj_bp)
+
+    def has_height_collision(self,assembly):
+        cab1_z_1 = self.cabinet.obj_bp.matrix_world[2][3]
+        cab1_z_2 = self.cabinet.obj_z.matrix_world[2][3]
+        cab2_z_1 = assembly.obj_bp.matrix_world[2][3]
+        cab2_z_2 = assembly.obj_z.matrix_world[2][3]
+        
+        if cab1_z_1 >= cab2_z_1 and cab1_z_1 <= cab2_z_2:
+            return True
+            
+        if cab1_z_2 >= cab2_z_1 and cab1_z_2 <= cab2_z_2:
+            return True
+    
+        if cab2_z_1 >= cab1_z_1 and cab2_z_1 <= cab1_z_2:
+            return True
+            
+        if cab2_z_2 >= cab1_z_1 and cab2_z_2 <= cab1_z_2:
+            return True
 
     def set_child_properties(self,obj):
         if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
@@ -252,6 +274,9 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
 
         context.area.tag_redraw()
+        #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
+        self.cabinet.obj_z.empty_display_size = .001
+        self.cabinet.obj_z.hide_viewport = False
 
         for calculator in self.calculators:
             calculator.calculate()
