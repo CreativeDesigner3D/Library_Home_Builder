@@ -932,7 +932,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             row1.label(text='Width:')
             row1.prop(self,'width',text="")
             row1.prop(self.cabinet.obj_x,'hide_viewport',text="")
-        
+            row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.cabinet.obj_x.name
+
         row1 = col.row(align=True)
         if pc_utils.object_has_driver(self.cabinet.obj_z):
             z = math.fabs(self.cabinet.obj_z.location.z)
@@ -942,6 +943,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             row1.label(text='Height:')
             row1.prop(self,'height',text="")
             row1.prop(self.cabinet.obj_z,'hide_viewport',text="")
+            row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.cabinet.obj_z.name
         
         row1 = col.row(align=True)
         if pc_utils.object_has_driver(self.cabinet.obj_y):
@@ -952,6 +954,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             row1.label(text='Depth:')
             row1.prop(self,'depth',text="")
             row1.prop(self.cabinet.obj_y,'hide_viewport',text="")
+            row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.cabinet.obj_y.name
             
         if len(self.cabinet.obj_bp.constraints) > 0:
             col = row.column(align=True)

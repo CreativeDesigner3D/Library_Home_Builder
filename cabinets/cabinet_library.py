@@ -113,6 +113,7 @@ class Stacked_Cabinet(data_cabinets.Stacked_Cabinet):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.height = props.tall_cabinet_height
         self.depth = props.tall_cabinet_depth
+        self.bottom_cabinet_height = props.tall_cabinet_height - props.stacked_top_cabinet_height
         self.top_carcass = data_cabinet_carcass.Upper_Advanced()
         self.top_carcass.interior = data_cabinet_interiors.Shelves()
         self.top_carcass.exterior = data_cabinet_exteriors.Doors()
@@ -125,10 +126,10 @@ class Upper_Stacked_Cabinet(data_cabinets.Stacked_Cabinet):
     def __init__(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.width = pc_unit.inch(36)
-        self.height = props.upper_cabinet_height + pc_unit.inch(20)
+        self.height = props.upper_stacked_cabinet_height
         self.depth = props.upper_cabinet_depth
-        self.bottom_cabinet_height = props.upper_cabinet_height
-        self.z_loc = props.height_above_floor - props.upper_cabinet_height
+        self.bottom_cabinet_height = props.upper_stacked_cabinet_height - props.stacked_top_cabinet_height
+        self.z_loc = props.height_above_floor - props.upper_stacked_cabinet_height
         self.top_carcass = data_cabinet_carcass.Upper_Advanced()
         self.top_carcass.interior = data_cabinet_interiors.Shelves()
         self.top_carcass.exterior = data_cabinet_exteriors.Doors()

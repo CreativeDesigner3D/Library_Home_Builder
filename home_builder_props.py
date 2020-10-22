@@ -254,6 +254,16 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                 default=pc_unit.inch(36.0),
                                                 unit='LENGTH')
 
+    upper_stacked_cabinet_height: bpy.props.FloatProperty(name="Upper Stacked Cabinet Height",
+                                                description="Default Height for Stacked Upper Cabinet Height",
+                                                default=pc_unit.inch(46.0),
+                                                unit='LENGTH')
+
+    stacked_top_cabinet_height: bpy.props.FloatProperty(name="Stacked Top Cabinet Height",
+                                                description="Default Height for the Top Cabinet on Stacked Cabinets",
+                                                default=pc_unit.inch(12.0),
+                                                unit='LENGTH')
+
     height_above_floor: bpy.props.FloatProperty(name="Height Above Floor",
                                                  description="Default height above floor for upper cabinets",
                                                  default=pc_unit.inch(84.0),
@@ -482,7 +492,17 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row = box.row(align=True)
             row.label(text="Upper:")
             row.prop(self,"upper_inside_corner_size",text="")
+
+            box = prop_col.box()
+            box.label(text="Stacked Cabinet Sizes:")
             
+            row = box.row(align=True)
+            row.label(text="Upper Total Height:")
+            row.prop(self,"upper_stacked_cabinet_height",text="")
+            row = box.row(align=True)
+            row.label(text="Top Cabinet Height:")
+            row.prop(self,"stacked_top_cabinet_height",text="")
+
             box = prop_col.box()
             box.label(text="Upper Placement:")
             row = box.row(align=True)
