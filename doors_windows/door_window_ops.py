@@ -19,11 +19,11 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
     assembly = None
     obj = None
     exclude_objects = []
-    window_z_location = 0
+    # window_z_location = 0
 
     def execute(self, context):
-        props = home_builder_utils.get_scene_props(context.scene)
-        self.window_z_location = props.window_height_from_floor
+        # props = home_builder_utils.get_scene_props(context.scene)
+        # self.window_z_location = props.window_height_from_floor
         self.create_drawing_plane(context)
         self.create_assembly(context)
         context.window_manager.modal_handler_add(self)
@@ -86,17 +86,19 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
             mod.object = obj_bool
             mod.operation = 'DIFFERENCE'
 
-    def parent_window_to_wall(self,obj_wall_bp):
+    def parent_to_wall(self,obj_wall_bp):
+        z_loc = self.assembly.obj_bp.location.z
         x_loc = pc_utils.calc_distance((self.assembly.obj_bp.location.x,self.assembly.obj_bp.location.y,0),
                                        (obj_wall_bp.matrix_local[0][3],obj_wall_bp.matrix_local[1][3],0))
         self.assembly.obj_bp.location = (0,0,0)
         self.assembly.obj_bp.rotation_euler = (0,0,0)
         self.assembly.obj_bp.parent = obj_wall_bp
-        self.assembly.obj_bp.location.x = x_loc      
-        if "IS_WINDOW_BP" in self.assembly.obj_bp:
-            self.assembly.obj_bp.location.z = self.window_z_location  
-        else:
-            self.assembly.obj_bp.location.z = 0  
+        self.assembly.obj_bp.location.x = x_loc
+        self.assembly.obj_bp.location.z = z_loc
+        # if "IS_WINDOW_BP" in self.assembly.obj_bp:
+        #     self.assembly.obj_bp.location.z = self.window_z_location  
+        # else:
+        #     self.assembly.obj_bp.location.z = 0  
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -110,7 +112,7 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
         if self.event_is_place_first_point(event):
             self.add_boolean_modifier(selected_obj)
             if selected_obj.parent:
-                self.parent_window_to_wall(selected_obj.parent)
+                self.parent_to_wall(selected_obj.parent)
             if hasattr(self.assembly,'add_doors'):
                 self.assembly.add_doors()
             self.set_placed_properties(self.assembly.obj_bp)
@@ -166,10 +168,10 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
                 self.assembly.obj_bp.rotation_euler.z = wall_bp.rotation_euler.z
                 self.assembly.obj_bp.location.x = selected_point[0]
                 self.assembly.obj_bp.location.y = selected_point[1]
-                if "IS_WINDOW_BP" in self.assembly.obj_bp:
-                    self.assembly.obj_bp.location.z = self.window_z_location
-                else:
-                    self.assembly.obj_bp.location.z = 0
+                # if "IS_WINDOW_BP" in self.assembly.obj_bp:
+                #     self.assembly.obj_bp.location.z = self.window_z_location
+                # else:
+                #     self.assembly.obj_bp.location.z = 0
 
     def cancel_drop(self,context):
         pc_utils.delete_object_and_children(self.assembly.obj_bp)

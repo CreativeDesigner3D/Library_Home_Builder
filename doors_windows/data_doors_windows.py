@@ -49,6 +49,10 @@ def get_door_handle(door_handle_category,door_handle_name):
 
 class Standard_Door(pc_types.Assembly):
 
+    width = pc_unit.inch(36)
+    height = pc_unit.inch(70)
+    depth = pc_unit.inch(6)
+
     def add_frame(self,door_frame_category="",door_frame_name=""):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
@@ -168,9 +172,9 @@ class Standard_Door(pc_types.Assembly):
         self.add_prompt("Door Rotation",'ANGLE',120)
         Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
         
-        self.obj_x.location.x = pc_unit.inch(36) #Length
-        self.obj_y.location.y = pc_unit.inch(6)  #Depth
-        self.obj_z.location.z = pc_unit.inch(70)
+        self.obj_x.location.x = self.width
+        self.obj_y.location.y = self.depth
+        self.obj_z.location.z = self.height
 
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
@@ -200,9 +204,15 @@ class Standard_Door(pc_types.Assembly):
         home_builder_pointers.assign_pointer_to_assembly(door_jamb,"Entry Door Frame")
 
         self.add_frame()
+        self.set_prompts()
         
 
 class Standard_Window(pc_types.Assembly):
+
+    width = pc_unit.inch(36)
+    height = pc_unit.inch(40)
+    depth = pc_unit.inch(6)
+    z_loc = pc_unit.inch(0)
 
     def add_window_frame(self,category="",assembly_name=""):
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -272,6 +282,8 @@ class Standard_Window(pc_types.Assembly):
                 child.pyclone.modifier(array,'constant_offset_displace',0,'width+x_offset',[width,x_offset])
 
     def draw_assembly(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+    
         self.create_assembly("Window")
         self.obj_bp["IS_WINDOW_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.window_prompts" 
@@ -285,9 +297,10 @@ class Standard_Window(pc_types.Assembly):
         self.add_prompt("Window Quantity",'QUANTITY',1)
         self.add_prompt("X Offset",'DISTANCE',pc_unit.inch(10))
 
-        self.obj_x.location.x = pc_unit.inch(36) #Length
-        self.obj_y.location.y = pc_unit.inch(6)  #Depth
-        self.obj_z.location.z = pc_unit.inch(40)
+        self.obj_x.location.x = self.width
+        self.obj_y.location.y = self.depth
+        self.obj_z.location.z = self.height
+        self.obj_bp.location.z = props.window_height_from_floor  
 
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
