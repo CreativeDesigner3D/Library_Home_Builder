@@ -424,12 +424,13 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
 
-    def position_cabinet(self,mouse_location,selected_obj):
+    def position_cabinet(self,mouse_location,selected_obj,event):
         cabinet_bp = home_builder_utils.get_cabinet_bp(selected_obj)
         if not cabinet_bp:
             cabinet_bp = home_builder_utils.get_appliance_bp(selected_obj)
 
         wall_bp = home_builder_utils.get_wall_bp(selected_obj)
+
         if cabinet_bp:
             self.selected_cabinet = pc_types.Assembly(cabinet_bp)
 
@@ -446,25 +447,28 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
             rot = self.selected_cabinet.obj_bp.rotation_euler.z
             x_loc = 0
             y_loc = 0
+
             if wall_bp:
                 self.current_wall = pc_types.Assembly(wall_bp)
                 rot += self.current_wall.obj_bp.rotation_euler.z      
-
-            if dist_to_bp < dist_to_x:
-                self.placement = 'LEFT'
-                add_x_loc = 0
-                add_y_loc = 0
-                # if sel_product.obj_bp.mv.placement_type == 'Corner':
-                #     rot += math.radians(90)
-                #     add_x_loc = math.cos(rot) * sel_product.obj_y.location.y
-                #     add_y_loc = math.sin(rot) * sel_product.obj_y.location.y
-                x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * self.cabinet.obj_x.location.x + add_x_loc
-                y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * self.cabinet.obj_x.location.x + add_y_loc
-
+            if self.has_height_collision(self.selected_cabinet):
+                if dist_to_bp < dist_to_x:
+                    self.placement = 'LEFT'
+                    add_x_loc = 0
+                    add_y_loc = 0
+                    # if sel_product.obj_bp.mv.placement_type == 'Corner':
+                    #     rot += math.radians(90)
+                    #     add_x_loc = math.cos(rot) * sel_product.obj_y.location.y
+                    #     add_y_loc = math.sin(rot) * sel_product.obj_y.location.y
+                    x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * self.cabinet.obj_x.location.x + add_x_loc
+                    y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * self.cabinet.obj_x.location.x + add_y_loc
+                else:
+                    self.placement = 'RIGHT'
+                    x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] + math.cos(rot) * self.selected_cabinet.obj_x.location.x
+                    y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] + math.sin(rot) * self.selected_cabinet.obj_x.location.x
             else:
-                self.placement = 'RIGHT'
-                x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] + math.cos(rot) * self.selected_cabinet.obj_x.location.x
-                y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] + math.sin(rot) * self.selected_cabinet.obj_x.location.x
+                x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * ((self.cabinet.obj_x.location.x/2) - (self.selected_cabinet.obj_x.location.x/2))
+                y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * ((self.cabinet.obj_x.location.x/2) - (self.selected_cabinet.obj_x.location.x/2))                
 
             self.cabinet.obj_bp.rotation_euler.z = rot
             self.cabinet.obj_bp.location.x = x_loc
@@ -478,6 +482,12 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.location.y = mouse_location[1]
 
         else:
+
+            if event.type == 'LEFT_ARROW' and event.value == 'PRESS':
+                self.cabinet.obj_bp.rotation_euler.z -= math.radians(90)
+            if event.type == 'RIGHT_ARROW' and event.value == 'PRESS':
+                self.cabinet.obj_bp.rotation_euler.z += math.radians(90)   
+
             self.cabinet.obj_bp.location.x = mouse_location[0]
             self.cabinet.obj_bp.location.y = mouse_location[1]
 
@@ -488,6 +498,24 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
         self.cabinet.obj_bp.constraints.clear()
         self.cabinet.obj_bp.parent = None
         self.set_child_properties(self.cabinet.obj_bp)
+
+    def has_height_collision(self,assembly):
+        cab1_z_1 = self.cabinet.obj_bp.matrix_world[2][3]
+        cab1_z_2 = self.cabinet.obj_z.matrix_world[2][3]
+        cab2_z_1 = assembly.obj_bp.matrix_world[2][3]
+        cab2_z_2 = assembly.obj_z.matrix_world[2][3]
+        
+        if cab1_z_1 >= cab2_z_1 and cab1_z_1 <= cab2_z_2:
+            return True
+            
+        if cab1_z_2 >= cab2_z_1 and cab1_z_2 <= cab2_z_2:
+            return True
+    
+        if cab2_z_1 >= cab1_z_1 and cab2_z_1 <= cab1_z_2:
+            return True
+            
+        if cab2_z_2 >= cab1_z_1 and cab2_z_2 <= cab1_z_2:
+            return True
 
     def set_child_properties(self,obj):
         if obj.name != self.drawing_plane.name:
@@ -558,7 +586,7 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
 
         selected_point, selected_obj = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
 
-        self.position_cabinet(selected_point,selected_obj)
+        self.position_cabinet(selected_point,selected_obj,event)
 
         if self.event_is_place_first_point(event):
             self.confirm_placement(context)
