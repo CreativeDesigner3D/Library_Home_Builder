@@ -1509,17 +1509,21 @@ class home_builder_OT_refrigerator_prompts(Appliance_Prompts):
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=350)
 
-    def draw_refrigerator_prompts(self,layout,context):
-        layout.label(text="")
+    def draw_refrigerator_selection(self,layout,context):
         box = layout.box()
         box.prop(self,'refrigerator_category',text="",icon='FILE_FOLDER')  
         box.template_icon_view(self,"refrigerator_name",show_labels=True)          
 
+    def draw_refrigerator_prompts(self,layout,context):
+        box = layout.box()
+        y_loc = self.product.get_prompt("Refrigerator Y Location")
+        y_loc.draw(box,allow_edit=False)
+
     def draw(self, context):
         layout = self.layout
         self.draw_product_size(self.product,layout,context)
-        split = layout.split()
-        self.draw_refrigerator_prompts(split.column(),context)
+        self.draw_refrigerator_prompts(layout,context)
+        self.draw_refrigerator_selection(layout,context)
 
 
 class home_builder_MT_cabinet_menu(bpy.types.Menu):

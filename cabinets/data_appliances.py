@@ -156,7 +156,10 @@ class Refrigerator(pc_types.Assembly):
         else:
             height = self.obj_z.pyclone.get_var('location.z','height')
             self.refrigerator.dim_z('height',[height])   
-        
+
+        y_loc = self.get_prompt("Refrigerator Y Location").get_var('y_loc')
+
+        self.refrigerator.loc_y('-y_loc',[y_loc])   
         home_builder_utils.update_assembly_id_props(self.refrigerator,self)
 
     def draw(self):
@@ -166,6 +169,8 @@ class Refrigerator(pc_types.Assembly):
         self.obj_bp["IS_APPLIANCE_BP"] = True    
         self.obj_bp["PROMPT_ID"] = "home_builder.refrigerator_prompts"  
         self.obj_y['IS_MIRROR'] = True
+
+        self.add_prompt("Refrigerator Y Location",'DISTANCE',pc_unit.inch(1))
 
         self.add_refrigerator()
 
