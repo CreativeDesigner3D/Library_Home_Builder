@@ -1551,7 +1551,7 @@ class home_builder_MT_cabinet_menu(bpy.types.Menu):
         layout.operator('home_builder.part_prompts',text="Part Prompts - " + obj_bp.name,icon='WINDOW')
         layout.operator('home_builder.edit_part',icon='EDITMODE_HLT')
         layout.separator()
-        layout.operator('home_builder.delete_cabinet',icon='X')
+        layout.operator('home_builder.delete_assembly',text="Delete Cabinet",icon='X').obj_name = cabinet_bp.name
 
 
 class home_builder_OT_delete_cabinet(bpy.types.Operator):

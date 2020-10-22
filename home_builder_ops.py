@@ -1151,6 +1151,17 @@ class home_builder_OT_floor_prompts(bpy.types.Operator):
     def execute(self, context):
         return {'FINISHED'}
 
+class home_builder_OT_delete_assembly(bpy.types.Operator):
+    bl_idname = "home_builder.delete_assembly"
+    bl_label = "Delete Assembly"
+    
+    obj_name: StringProperty(name="Object Name")
+
+    def execute(self, context):
+        obj_bp = bpy.data.objects[self.obj_name]
+        pc_utils.delete_object_and_children(obj_bp)
+        return {'FINISHED'}
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -1177,6 +1188,7 @@ classes = (
     home_builder_OT_create_new_asset,
     home_builder_OT_light_prompts,
     home_builder_OT_floor_prompts,
+    home_builder_OT_delete_assembly,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
