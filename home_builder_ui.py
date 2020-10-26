@@ -69,10 +69,10 @@ class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
         path = props.get_active_category_path()
         layout = self.layout
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator('home_builder.save_asset_to_library')
-        layout.operator('home_builder.create_thumbnails_for_selected_assets')
-        layout.operator('home_builder.open_browser_window').path = path
-        layout.operator('home_builder.create_new_asset')
+        layout.operator('home_builder.save_asset_to_library',icon='BACK')
+        layout.operator('home_builder.create_thumbnails_for_selected_assets',icon='FILE_IMAGE')
+        layout.operator('home_builder.open_browser_window',icon='FILEBROWSER').path = path
+        layout.operator('home_builder.create_new_asset',icon='ADD')
 
 
 class HOME_BUILDER_UL_assets(bpy.types.UIList):
