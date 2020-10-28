@@ -97,6 +97,8 @@ class Cabinet(pc_types.Assembly):
         self.sink_appliance.loc_z('cabinet_height+countertop_height',[cabinet_height,countertop_height])
 
         for child in self.sink_appliance.obj_bp.children:
+            if child.hide_render:
+                child.hide_viewport = True
             if child.type == 'MESH':   
                 if 'IS_BOOLEAN' in child and child['IS_BOOLEAN'] == True:   
                     bool_obj = child
