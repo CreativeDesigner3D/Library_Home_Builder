@@ -597,6 +597,7 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
         file.write("import bpy\n")
         file.write("import os\n")
         file.write("import sys\n")
+        file.write("import Library_Home_Builder\n")
 
         file.write("path = r'" + os.path.join(os.path.dirname(asset.asset_path),asset.name)  + "'\n")
 
@@ -607,6 +608,7 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
 
         file.write("for obj in data_to.objects:\n")
         file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+        file.write("    Library_Home_Builder.home_builder_pointers.assign_materials_to_object(obj)\n")
         file.write("    obj.select_set(True)\n")
 
         file.write("bpy.ops.view3d.camera_to_view_selected()\n")
@@ -918,17 +920,17 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
             assembly = pc_types.Assembly()
             assembly.create_assembly("Entry Door Panel")
             assembly.obj_x.location.x = pc_unit.inch(36)
-            assembly.obj_y.location.y = pc_unit.inch(6)
+            assembly.obj_y.location.y = pc_unit.inch(1.5)
             assembly.obj_z.location.z = pc_unit.inch(90)
             assembly.obj_bp.select_set(True)
             assembly.add_prompt("Hide",'CHECKBOX',False)
-            dim_y = assembly.obj_y.pyclone.get_var('location.y','dim_y')
-            y1 = assembly.add_empty('Y1')
-            y1.empty_display_size = .01
-            y1.pyclone.loc_y('IF(dim_y>0,0,dim_y)',[dim_y])
-            y2 = assembly.add_empty('Y2')
-            y2.empty_display_size = .01
-            y2.pyclone.loc_y('IF(dim_y>0,dim_y,0)',[dim_y])                
+            dim_x = assembly.obj_x.pyclone.get_var('location.x','dim_x')
+            x1 = assembly.add_empty('X1')
+            x1.empty_display_size = .01
+            x1.pyclone.loc_x('IF(dim_x>0,0,dim_x)',[dim_x])
+            x2 = assembly.add_empty('X2')
+            x2.empty_display_size = .01
+            x2.pyclone.loc_x('IF(dim_x>0,dim_x,0)',[dim_x])                
             context.view_layer.objects.active = assembly.obj_bp
 
         if scene_props.asset_tabs == 'FAUCETS':
