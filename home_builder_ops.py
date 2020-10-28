@@ -675,6 +675,7 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
                     script = self.create_item_thumbnail_script(asset)
                 subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path(asset) + '" -b --python "' + script + '"') 
                 # subprocess.call(bpy.app.binary_path + ' -b --python "' + script + '"') 
+        scene_props.asset_tabs = scene_props.asset_tabs
         return {'FINISHED'}
 
 
@@ -861,6 +862,13 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
             assembly.obj_z.location.z = pc_unit.inch(.75)
             assembly.obj_bp.select_set(True)
             assembly.add_prompt("Hide",'CHECKBOX',False)
+            dim_y = assembly.obj_y.pyclone.get_var('location.y','dim_y')
+            y1 = assembly.add_empty('Y1')
+            y1.empty_display_size = .01
+            y1.pyclone.loc_y('IF(dim_y>0,0,dim_y)',[dim_y])
+            y2 = assembly.add_empty('Y2')
+            y2.empty_display_size = .01
+            y2.pyclone.loc_y('IF(dim_y>0,dim_y,0)',[dim_y])            
             context.view_layer.objects.active = assembly.obj_bp
 
         if scene_props.asset_tabs == 'CABINET_PARTS':
@@ -914,6 +922,13 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
             assembly.obj_z.location.z = pc_unit.inch(90)
             assembly.obj_bp.select_set(True)
             assembly.add_prompt("Hide",'CHECKBOX',False)
+            dim_y = assembly.obj_y.pyclone.get_var('location.y','dim_y')
+            y1 = assembly.add_empty('Y1')
+            y1.empty_display_size = .01
+            y1.pyclone.loc_y('IF(dim_y>0,0,dim_y)',[dim_y])
+            y2 = assembly.add_empty('Y2')
+            y2.empty_display_size = .01
+            y2.pyclone.loc_y('IF(dim_y>0,dim_y,0)',[dim_y])                
             context.view_layer.objects.active = assembly.obj_bp
 
         if scene_props.asset_tabs == 'FAUCETS':
@@ -957,6 +972,9 @@ class home_builder_OT_create_new_asset(bpy.types.Operator):
             assembly.obj_y.location.y = -pc_unit.inch(20)
             assembly.obj_z.location.z = -pc_unit.inch(10)
             assembly.obj_bp.select_set(True)
+            faucet_bp = assembly.add_empty('Faucet BP')
+            faucet_bp.empty_display_size = .01    
+            faucet_bp["IS_FAUCET_BP"] = True        
             context.view_layer.objects.active = assembly.obj_bp  
 
         if scene_props.asset_tabs == 'WINDOW_FRAMES':
