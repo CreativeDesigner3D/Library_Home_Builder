@@ -128,7 +128,7 @@ class Standard_Door(pc_types.Assembly):
         l_door_panel.dim_x('IF(entry_door_swing==2,(width-(door_frame_width*2)-(door_reveal*3)-(door_frame_reveal*2))/2,width-(door_frame_width*2)-(door_reveal*2)-(door_frame_reveal*2))',[width,entry_door_swing,door_frame_width,door_reveal,door_frame_reveal])
         l_door_panel.dim_y('door_thickness',[door_thickness])
         l_door_panel.dim_z('height-door_frame_width-door_reveal-door_frame_reveal',[height,door_frame_width,door_reveal,door_frame_reveal])       
-        home_builder_pointers.assign_pointer_to_assembly(l_door_panel,"Entry Door Panels")  
+        home_builder_pointers.assign_materials_to_assembly(l_door_panel)
         hide = l_door_panel.get_prompt("Hide")
         hide.set_formula('IF(entry_door_swing==1,True,False)',[entry_door_swing]) 
 
@@ -147,7 +147,7 @@ class Standard_Door(pc_types.Assembly):
         r_door_panel.dim_x('IF(entry_door_swing==2,(width-(door_frame_width*2)-(door_reveal*3)-(door_frame_reveal*2))/2,width-(door_frame_width*2)-(door_reveal*2)-(door_frame_reveal*2))*-1',[width,entry_door_swing,door_frame_width,door_reveal,door_frame_reveal])
         r_door_panel.dim_y('door_thickness',[door_thickness])
         r_door_panel.dim_z('height-door_frame_width-door_reveal-door_frame_reveal',[height,door_frame_width,door_reveal,door_frame_reveal])      
-        home_builder_pointers.assign_pointer_to_assembly(r_door_panel,"Entry Door Panels")  
+        home_builder_pointers.assign_materials_to_assembly(r_door_panel)
         hide = r_door_panel.get_prompt("Hide")
         hide.set_formula('IF(entry_door_swing==0,True,False)',[entry_door_swing]) 
 

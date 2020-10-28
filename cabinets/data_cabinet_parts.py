@@ -145,8 +145,6 @@ def add_door_part(assembly,pointer):
     part.obj_y.empty_display_size = .001
     part.obj_z.empty_display_size = .001
     part.obj_prompts.empty_display_size = .001
-    home_builder_utils.add_bevel(part)
-    home_builder_pointers.assign_door_pointers(part)
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 

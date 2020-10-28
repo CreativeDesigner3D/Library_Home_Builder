@@ -119,7 +119,6 @@ class Cabinet_Exterior(pc_types.Assembly):
         hide = door.get_prompt("Hide") 
         if is_left_door:
             hide.set_formula('IF(door_swing==1,True,False)',[door_swing])
-            home_builder_utils.flip_normals(door)
         else:
             hide.set_formula('IF(door_swing==0,True,False)',[door_swing])
         return door
