@@ -520,9 +520,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
             box = prop_col.box()
             box.label(text="Cabinet Base Assembly:")
             
-            row = box.row(align=True)
-            row.label(text="Base Assembly Type")
-            row.prop(self,"base_assembly_type",text="")
+            # row = box.row(align=True)
+            # row.label(text="Base Assembly Type")
+            # row.prop(self,"base_assembly_type",text="")
 
             row = box.row(align=True)
             row.label(text="Base Assembly Size")
@@ -532,10 +532,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
             box = prop_col.box()
             box.label(text="Cabinet Countertop:")
             
-            row = box.row(align=True)
-            row.label(text="Backsplash")
-            row.prop(self,"add_backsplash",text="")
-            row.prop(self,"countertop_backsplash_height",text="Height")
+            # row = box.row(align=True)
+            # row.label(text="Backsplash")
+            # row.prop(self,"add_backsplash",text="")
+            # row.prop(self,"countertop_backsplash_height",text="Height")
 
             row = box.row(align=True)
             row.label(text="Overhang")
@@ -543,22 +543,22 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.prop(self,"countertop_rear_overhang",text="Rear")
             row.prop(self,"countertop_side_overhang",text="Side")
 
-            box = prop_col.box()
-            row = box.row(align=True)
-            row.label(text="Cabinet Lighting:")
-            row.operator('home_builder.update_cabinet_lighting',text="",icon='FILE_REFRESH',emboss=False)
-            row = box.row(align=True)
-            row.prop(self,"add_toe_kick_lighting",text="Toe Kick")
-            row.prop(self,"add_under_cabinet_lighting",text="Under Cabinet")
-            row.prop(self,"add_top_inside_lighting",text="Inside Top")
-            row.prop(self,"add_side_inside_lighting",text="Inside Sides")
-            row = box.row(align=True)
-            row.label(text="Cabinet Lighting Location:")            
-            row.prop(self,"lighting_dim_from_front",text="Dim From Front")
-            row.prop(self,"lighting_dim_from_sides",text="Dim From Sides")
-            row = box.row(align=True)
-            row.label(text="Cabinet Lighting Size:")              
-            row.prop(self,"cabinet_lighting_width",text="Width")
+            # box = prop_col.box()
+            # row = box.row(align=True)
+            # row.label(text="Cabinet Lighting:")
+            # row.operator('home_builder.update_cabinet_lighting',text="",icon='FILE_REFRESH',emboss=False)
+            # row = box.row(align=True)
+            # row.prop(self,"add_toe_kick_lighting",text="Toe Kick")
+            # row.prop(self,"add_under_cabinet_lighting",text="Under Cabinet")
+            # row.prop(self,"add_top_inside_lighting",text="Inside Top")
+            # row.prop(self,"add_side_inside_lighting",text="Inside Sides")
+            # row = box.row(align=True)
+            # row.label(text="Cabinet Lighting Location:")            
+            # row.prop(self,"lighting_dim_from_front",text="Dim From Front")
+            # row.prop(self,"lighting_dim_from_sides",text="Dim From Sides")
+            # row = box.row(align=True)
+            # row.label(text="Cabinet Lighting Size:")              
+            # row.prop(self,"cabinet_lighting_width",text="Width")
 
         if self.default_tabs == 'DOOR_SIZES':
             box = prop_col.box()
@@ -656,7 +656,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         right_row.scale_y = 1.3
         right_row.operator('home_builder.update_scene_pulls',text="Update Pulls",icon='FILE_REFRESH')
         right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
-        
+
         box = right_col.box()
         col = box.column(align=True)
         for pull in self.pull_pointers:
