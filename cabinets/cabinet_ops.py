@@ -986,9 +986,9 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             finished_bottom = carcass.get_prompt("Finished Bottom")
             toe_kick_height = carcass.get_prompt("Toe Kick Height")
             toe_kick_setback = carcass.get_prompt("Toe Kick Setback")
-            add_bottom_light = carcass.get_prompt("Add Bottom Light")
-            add_top_light = carcass.get_prompt("Add Top Light")
-            add_side_light = carcass.get_prompt("Add Side Light")
+            # add_bottom_light = carcass.get_prompt("Add Bottom Light")
+            # add_top_light = carcass.get_prompt("Add Top Light")
+            # add_side_light = carcass.get_prompt("Add Side Light")
   
             col = layout.column(align=True)
             box = col.box()
@@ -1010,12 +1010,12 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                 row.prop(finished_bottom,'checkbox_value',text="Bottom")
                 row.prop(finished_back,'checkbox_value',text="Back")
 
-            if add_bottom_light and add_top_light and add_side_light:
-                row = box.row()
-                row.label(text="Cabinet Lighting:")   
-                row.prop(add_bottom_light,'checkbox_value',text="Bottom")
-                row.prop(add_top_light,'checkbox_value',text="Top")
-                row.prop(add_side_light,'checkbox_value',text="Side")  
+            # if add_bottom_light and add_top_light and add_side_light:
+            #     row = box.row()
+            #     row.label(text="Cabinet Lighting:")   
+            #     row.prop(add_bottom_light,'checkbox_value',text="Bottom")
+            #     row.prop(add_top_light,'checkbox_value',text="Top")
+            #     row.prop(add_side_light,'checkbox_value',text="Side")  
 
     def draw_cabinet_prompts(self,layout,context):
         bottom_cabinet_height = self.cabinet.get_prompt("Bottom Cabinet Height")    

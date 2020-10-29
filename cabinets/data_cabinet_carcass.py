@@ -484,7 +484,7 @@ class Base_Advanced(Carcass):
         common_prompts.add_thickness_prompts(self)
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_base_assembly_prompts(self)
-        common_prompts.add_cabinet_lighting_prompts(self)
+        # common_prompts.add_cabinet_lighting_prompts(self)
         
         carcass_type = self.get_prompt("Carcass Type")
         carcass_type.set_value("Base")
@@ -518,7 +518,7 @@ class Tall_Advanced(Carcass):
         common_prompts.add_thickness_prompts(self)
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_base_assembly_prompts(self)
-        common_prompts.add_cabinet_lighting_prompts(self)
+        # common_prompts.add_cabinet_lighting_prompts(self)
 
         carcass_type = self.get_prompt("Carcass Type")
         carcass_type.set_value("Tall")
@@ -550,7 +550,7 @@ class Upper_Advanced(Carcass):
         common_prompts.add_cabinet_prompts(self)
         common_prompts.add_thickness_prompts(self)
         common_prompts.add_carcass_prompts(self)
-        common_prompts.add_cabinet_lighting_prompts(self)
+        # common_prompts.add_cabinet_lighting_prompts(self)
 
         carcass_type = self.get_prompt("Carcass Type")
         carcass_type.set_value("Upper")
