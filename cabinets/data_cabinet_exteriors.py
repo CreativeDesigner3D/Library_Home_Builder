@@ -13,10 +13,10 @@ exterior_selection = [('SELECT_EXTERIOR',"Select Exterior","Select Exterior"),
                       ('LEFT_SWING_DOOR',"Left Swing Doors","Left Swing Doors"),
                       ('RIGHT_SWING_DOOR',"Right Swing Doors","Right Swing Doors"),
                       ('DOUBLE_DOORS',"Double Doors","Double Doors"),
-                      ('2_DOOR_2_DRAWER',"2 Door 2 Drawer","2 Door 2 Drawer"),
-                      ('1_DOOR_1_DRAWER',"1 Door 1 Drawer","1 Door 1 Drawer"),
-                      ('2_DOOR_1_DRAWER',"2 Door 1 Drawer","2 Door 1 Drawer"),
-                      ('SLIDING_DOORS',"Sliding Doors","Sliding Doors"),
+                    #   ('2_DOOR_2_DRAWER',"2 Door 2 Drawer","2 Door 2 Drawer"),
+                    #   ('1_DOOR_1_DRAWER',"1 Door 1 Drawer","1 Door 1 Drawer"),
+                    #   ('2_DOOR_1_DRAWER',"2 Door 1 Drawer","2 Door 1 Drawer"),
+                    #   ('SLIDING_DOORS',"Sliding Doors","Sliding Doors"),
                       ('1_DRAWERS',"1 Drawer","1 Drawer"),
                       ('2_DRAWERS',"2 Drawers","2 Drawers"),
                       ('3_DRAWERS',"3 Drawers","3 Drawers"),
@@ -138,7 +138,6 @@ class Cabinet_Exterior(pc_types.Assembly):
         pull_empty.parent = container.obj_bp
         pull_empty.empty_display_size = .01
         pull_path = path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
-        print('PULL PATH',pull_path)
         pull_obj = home_builder_utils.get_object(pull_path) 
         container.add_object(pull_obj)
         pull_obj.parent = pull_empty
@@ -177,7 +176,7 @@ class Cabinet_Exterior(pc_types.Assembly):
             pull_obj.pyclone.hide('IF(door_swing==0,True,False)',[door_swing])
 
         pull_obj['IS_CABINET_PULL'] = True
-        home_builder_pointers.assign_pointer_to_object(pull_obj,"Pull Finish")  
+        home_builder_pointers.assign_pointer_to_object(pull_obj,"Cabinet Pull Finish")  
         if self.carcass_type == 'Base':
             home_builder_utils.get_object_props(pull_obj).pointer_name = "Base Cabinet Pulls"
         if self.carcass_type == 'Tall':
@@ -211,7 +210,7 @@ class Doors(Cabinet_Exterior):
     
     def set_pull_props(self,obj):
         obj['IS_CABINET_PULL'] = True
-        home_builder_pointers.assign_pointer_to_object(obj,"Pull Finish")  
+        home_builder_pointers.assign_pointer_to_object(obj,"Cabinet Pull Finish")  
         if self.carcass_type == 'Base':
             home_builder_utils.get_object_props(obj).pointer_name = "Base Cabinet Pulls"
         if self.carcass_type == 'Tall':
@@ -349,7 +348,7 @@ class Drawers(Cabinet_Exterior):
         pull_empty.pyclone.loc_z('drawer_z_loc+(drawer_front_height/2)',[drawer_z_loc,drawer_front_height])
         pull_empty.pyclone.loc_x('x/2',[x])
         pull_empty.rotation_euler.y = math.radians(180)
-        home_builder_pointers.assign_pointer_to_object(pull_obj,"Pull Finish")
+        home_builder_pointers.assign_pointer_to_object(pull_obj,"Cabinet Pull Finish")
 
         return front_empty
 

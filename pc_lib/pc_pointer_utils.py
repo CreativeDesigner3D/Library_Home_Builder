@@ -112,11 +112,7 @@ def update_props_from_xml_file(filepath,pointers):
             pointer = pointers.add()
             pointer.name = p_dict
             pointer.category = pointer_dict[p_dict][0]
-            pointer.item_name = pointer_dict[p_dict][1]
-        else:
-            pointer = pointers[p_dict]
-            pointer.category = pointer_dict[p_dict][0]
-            pointer.item_name = pointer_dict[p_dict][1]            
+            pointer.item_name = pointer_dict[p_dict][1]         
 
 def get_folder_enum_previews(path,key):
     """ Returns: ImagePreviewCollection

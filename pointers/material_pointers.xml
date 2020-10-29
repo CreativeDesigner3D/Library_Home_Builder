@@ -1,128 +1,108 @@
 <?xml version="1.0" ?>
 <Root Application="Blender" ApplicationVersion="0.1">
 	<Pointer>
-		<Name>Wood Core Surfaces</Name>
-		<Category>Wood</Category>
-		<Asset>PB Small</Asset>
+		<Name>Cabinet Unfinished Surfaces</Name>
+		<Category>_Sample</Category>
+		<Asset>Particle Board</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Wood Core Edges</Name>
-		<Category>Wood</Category>
-		<Asset>PB Small</Asset>
+		<Name>Cabinet Unfinished Edges</Name>
+		<Category>_Sample</Category>
+		<Asset>Particle Board</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Exposed Cabinet Surfaces</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
+		<Name>Cabinet Exposed Surfaces</Name>
+		<Category>_Sample</Category>
+		<Asset>Dark Wood</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Exposed Cabinet Edges</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
+		<Name>Cabinet Exposed Edges</Name>
+		<Category>_Sample</Category>
+		<Asset>Dark Wood</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Interior Cabinet Surfaces</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
+		<Name>Cabinet Interior Surfaces</Name>
+		<Category>_Sample</Category>
+		<Asset>Dark Wood</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Interior Cabinet Edges</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
+		<Name>Cabinet Interior Edges</Name>
+		<Category>_Sample</Category>
+		<Asset>Dark Wood</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Cabinet Lighting</Name>
-		<Category>Lighting</Category>
-		<Asset>Under Cabinet Lighting</Asset>
+		<Name>Cabinet Door Surfaces</Name>
+		<Category>_Sample</Category>
+		<Asset>Dark Wood</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Door Surface</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
+		<Name>Cabinet Door Edges</Name>
+		<Category>_Sample</Category>
+		<Asset>Dark Wood</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Door Edge</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
-	</Pointer>
-	<Pointer>
-		<Name>Countertop Surface</Name>
-		<Category>Stone</Category>
-		<Asset>Midnight Granite</Asset>
-	</Pointer>
-	<Pointer>
-		<Name>Drawer Box Surface</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
-	</Pointer>
-	<Pointer>
-		<Name>Drawer Box Edge</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
-	</Pointer>
-	<Pointer>
-		<Name>Pull Finish</Name>
-		<Category>Metal</Category>
+		<Name>Cabinet Pull Finish</Name>
+		<Category>_Sample</Category>
 		<Asset>Polished Chrome</Asset>
 	</Pointer>
 	<Pointer>
-		<Name>Molding</Name>
-		<Category>Wood</Category>
-		<Asset>Autumn Leaves</Asset>
+		<Name>Countertop Surface</Name>
+		<Category>_Sample</Category>
+		<Asset>Midnight Granite</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Glass</Name>
-		<Category>Misc</Category>
+		<Category>_Sample</Category>
 		<Asset>Glass</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Shelf Holes</Name>
-		<Category>Misc</Category>
+		<Category>_Sample</Category>
 		<Asset>Machining</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Walls</Name>
-		<Category>Wall Paint</Category>
-		<Asset>Textured Paint Cream</Asset>
+		<Category>_Sample</Category>
+		<Asset>Wall Paint</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Lumber</Name>
-		<Category>Wood</Category>
-		<Asset>Wooden Fine Light 2</Asset>
+		<Category>_Sample</Category>
+		<Asset>Plywood</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Bricks</Name>
-		<Category>Stone</Category>
+		<Category>_Sample</Category>
 		<Asset>Red Brick</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Morter</Name>
-		<Category>Concrete</Category>
-		<Asset>Concrete Plain Ground 2</Asset>
+		<Category>_Sample</Category>
+		<Asset>Concrete</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Floor</Name>
-		<Category>Wood Flooring</Category>
+		<Category>_Sample</Category>
 		<Asset>Provincial Oak Hardwood</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Entry Door Frame</Name>
-		<Category>Wood</Category>
+		<Category>_Sample</Category>
 		<Asset>Painted Wood White</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Entry Door Panels</Name>
-		<Category>Wood</Category>
+		<Category>_Sample</Category>
 		<Asset>Painted Wood White</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Entry Door Handle</Name>
-		<Category>Metal</Category>
+		<Category>_Sample</Category>
 		<Asset>Polished Chrome</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Window Metal Frame</Name>
-		<Category>Metal</Category>
+		<Category>_Sample</Category>
 		<Asset>Polished Chrome</Asset>
 	</Pointer>
 </Root>

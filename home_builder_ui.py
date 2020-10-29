@@ -75,6 +75,15 @@ class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
         layout.operator('home_builder.create_new_asset',icon='ADD')
 
 
+class HOME_BUILDER_MT_pointer_menu(bpy.types.Menu):
+    bl_label = "Pointer Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator('home_builder.reload_pointers',icon='FILE_REFRESH')
+
+
 class HOME_BUILDER_UL_assets(bpy.types.UIList):
     
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
@@ -87,6 +96,7 @@ classes = (
     HOME_BUILDER_PT_library_settings,
     HOME_BUILDER_MT_asset_commands_menu,
     HOME_BUILDER_UL_assets,
+    HOME_BUILDER_MT_pointer_menu,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)        

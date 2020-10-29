@@ -611,6 +611,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         right_row = right_col.row()
         right_row.scale_y = 1.3
         right_row.operator('home_builder.update_scene_materials',text="Update Materials",icon='FILE_REFRESH')
+        right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
 
         box = right_col.box()
         col = box.column(align=True)
@@ -654,7 +655,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
         right_row = right_col.row()
         right_row.scale_y = 1.3
         right_row.operator('home_builder.update_scene_pulls',text="Update Pulls",icon='FILE_REFRESH')
-
+        right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
+        
         box = right_col.box()
         col = box.column(align=True)
         for pull in self.pull_pointers:
@@ -677,6 +679,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         right_row = right_col.row()
         right_row.scale_y = 1.3
         right_row.operator('home_builder.update_cabinet_doors',text="Update Cabinet Fronts",icon='FILE_REFRESH')
+        right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
 
         box = right_col.box()
         col = box.column(align=True)

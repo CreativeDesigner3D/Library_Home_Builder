@@ -327,7 +327,7 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
                     new_pull.parent = pull.parent
                     new_pull["IS_CABINET_PULL"] = True
                     context.view_layer.active_layer_collection.collection.objects.link(new_pull)
-                    home_builder_pointers.assign_pointer_to_object(new_pull,"Pull Finish")
+                    home_builder_pointers.assign_pointer_to_object(new_pull,"Cabinet Pull Finish")
                     if exterior_bp:
                         exterior = pc_types.Assembly(exterior_bp)
                         pull_length = exterior.get_prompt("Pull Length")    
@@ -1171,6 +1171,7 @@ class home_builder_OT_floor_prompts(bpy.types.Operator):
     def execute(self, context):
         return {'FINISHED'}
 
+
 class home_builder_OT_delete_assembly(bpy.types.Operator):
     bl_idname = "home_builder.delete_assembly"
     bl_label = "Delete Assembly"
@@ -1180,6 +1181,36 @@ class home_builder_OT_delete_assembly(bpy.types.Operator):
     def execute(self, context):
         obj_bp = bpy.data.objects[self.obj_name]
         pc_utils.delete_object_and_children(obj_bp)
+        return {'FINISHED'}
+
+
+class home_builder_OT_reload_pointers(bpy.types.Operator):
+    bl_idname = "home_builder.reload_pointers"
+    bl_label = "Reload Pointers"
+    
+    def invoke(self,context,event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Are you sure you want to reload the pointer files?")
+        layout.label(text="This will set Material, Door Fronts, and Hardware")
+        layout.label(text="pointers back to the default.")
+
+    def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        for pointer in props.material_pointers:
+            props.material_pointers.remove(0)
+
+        for pointer in props.pull_pointers:
+            props.pull_pointers.remove(0)
+
+        for pointer in props.cabinet_door_pointers:
+            props.cabinet_door_pointers.remove(0)   
+
+        home_builder_pointers.write_pointer_files()
+        home_builder_pointers.update_pointer_properties()                                    
         return {'FINISHED'}
 
 classes = (
@@ -1209,6 +1240,7 @@ classes = (
     home_builder_OT_light_prompts,
     home_builder_OT_floor_prompts,
     home_builder_OT_delete_assembly,
+    home_builder_OT_reload_pointers,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
