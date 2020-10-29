@@ -592,6 +592,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.label(text="Default Wall Thickness")
             row.prop(self,'wall_thickness',text="")
 
+    def draw_moldings(self,layout):
+        molding_box = layout.box()
+        row = molding_box.row()    
+        row.label(text="Molding Interface is Under Development")    
+
     def draw_materials(self,layout):
         split = layout.split(factor=.25)
         left_col = split.column()
@@ -798,7 +803,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
             self.draw_materials(box)
 
         if self.ui_tabs == 'MOLDINGS':
-            pass
+            self.draw_moldings(box)
 
         if self.ui_tabs == 'FRONTS':
             self.draw_fronts(box)

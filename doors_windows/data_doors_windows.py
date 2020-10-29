@@ -10,40 +10,40 @@ from .. import home_builder_parts
 
 def get_default_door_jamb():
     ASSET_DIR = home_builder_paths.get_entry_door_jamb_path()
-    return path.join(ASSET_DIR,"Generic","Door Jamb.blend") 
+    return path.join(ASSET_DIR,"_Sample","Door Jamb.blend") 
 
 def get_window_frame(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_window_frame_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"Generic","Simple Window Frame.blend") 
+        return path.join(ASSET_DIR,"_Sample","Simple Window Frame.blend") 
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")       
 
 def get_window_insert(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_window_insert_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"Generic","Glass Panel.blend")
+        return path.join(ASSET_DIR,"_Sample","Glass Panel.blend")
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")    
 
 def get_door_frame(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_entry_door_frame_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"Generic","Door Frame Square.blend") 
+        return path.join(ASSET_DIR,"_Sample","Door Frame Square.blend") 
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")     
 
 def get_door_panel(door_panel_category,door_panel_name):
     ASSET_DIR = home_builder_paths.get_entry_door_panel_path()
     if door_panel_name == "":
-        return path.join(ASSET_DIR,"Generic","Door Panel Slab.blend") 
+        return path.join(ASSET_DIR,"_Sample","Door Panel Slab.blend") 
     else:
         return path.join(ASSET_DIR, door_panel_category, door_panel_name + ".blend") 
 
 def get_door_handle(door_handle_category,door_handle_name):
     ASSET_DIR = home_builder_paths.get_entry_door_handle_path()
     if door_handle_name == "":
-        return path.join(ASSET_DIR,"Generic","Entry Door Handle 1.blend") 
+        return path.join(ASSET_DIR,"_Sample","Entry Door Handle 1.blend") 
     else:
         return path.join(ASSET_DIR, door_handle_category, door_handle_name + ".blend") 
 

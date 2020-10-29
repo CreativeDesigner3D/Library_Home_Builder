@@ -42,18 +42,18 @@ def get_default_material_pointers():
 
 def get_default_pull_pointers():
     pointers = []
-    pointers.append(("Base Cabinet Pulls","Decorative Pulls","Americana Handle"))
-    pointers.append(("Tall Cabinet Pulls","Decorative Pulls","Americana Handle"))
-    pointers.append(("Upper Cabinet Pulls","Decorative Pulls","Americana Handle"))
-    pointers.append(("Drawer Pulls","Decorative Pulls","Americana Handle"))
+    pointers.append(("Base Cabinet Pulls","_Sample","Pull 8in (203mm) Bar"))
+    pointers.append(("Tall Cabinet Pulls","_Sample","Pull 8in (203mm) Bar"))
+    pointers.append(("Upper Cabinet Pulls","_Sample","Pull 8in (203mm) Bar"))
+    pointers.append(("Drawer Pulls","_Sample","Pull 8in (203mm) Bar"))
     return pointers
 
 def get_default_cabinet_door_pointers():
     pointers = []
-    pointers.append(("Base Cabinet Doors","Generic","Slab"))
-    pointers.append(("Tall Cabinet Doors","Generic","Slab"))
-    pointers.append(("Upper Cabinet Doors","Generic","Slab"))
-    pointers.append(("Drawer Fronts","Generic","Slab"))
+    pointers.append(("Base Cabinet Doors","_Sample","Slab"))
+    pointers.append(("Tall Cabinet Doors","_Sample","Slab"))
+    pointers.append(("Upper Cabinet Doors","_Sample","Slab"))
+    pointers.append(("Drawer Fronts","_Sample","Slab"))
     return pointers
 
 def get_material_pointer_xml_path():

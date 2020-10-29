@@ -75,6 +75,10 @@ def write_xml_file(filepath,pointer_list):
         xml.add_element_with_text(pointer,'Category',pointer_item[1])
         xml.add_element_with_text(pointer,'Asset',pointer_item[2])
     
+    pointer_dir = os.path.dirname(filepath)
+    if not os.path.exists(pointer_dir):
+        os.makedirs(pointer_dir)
+        
     xml.write(filepath)
     xml.format_xml_file(filepath)
 
@@ -109,6 +113,10 @@ def update_props_from_xml_file(filepath,pointers):
             pointer.name = p_dict
             pointer.category = pointer_dict[p_dict][0]
             pointer.item_name = pointer_dict[p_dict][1]
+        else:
+            pointer = pointers[p_dict]
+            pointer.category = pointer_dict[p_dict][0]
+            pointer.item_name = pointer_dict[p_dict][1]            
 
 def get_folder_enum_previews(path,key):
     """ Returns: ImagePreviewCollection

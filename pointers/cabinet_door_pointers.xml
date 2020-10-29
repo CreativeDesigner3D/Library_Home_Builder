@@ -2,22 +2,22 @@
 <Root Application="Blender" ApplicationVersion="0.1">
 	<Pointer>
 		<Name>Base Cabinet Doors</Name>
-		<Category>Generic</Category>
+		<Category>_Sample</Category>
 		<Asset>Slab</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Tall Cabinet Doors</Name>
-		<Category>Generic</Category>
+		<Category>_Sample</Category>
 		<Asset>Slab</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Upper Cabinet Doors</Name>
-		<Category>Generic</Category>
+		<Category>_Sample</Category>
 		<Asset>Slab</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Drawer Fronts</Name>
-		<Category>Generic</Category>
+		<Category>_Sample</Category>
 		<Asset>Slab</Asset>
 	</Pointer>
 </Root>

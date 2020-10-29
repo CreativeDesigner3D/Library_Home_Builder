@@ -126,10 +126,19 @@ class Cabinet_Exterior(pc_types.Assembly):
     def add_door_pull(self,container,is_left_door=True):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
+        pointer = None
+        if self.carcass_type == 'Base':
+            pointer = props.pull_pointers["Base Cabinet Pulls"]
+        if self.carcass_type == 'Tall':
+            pointer = props.pull_pointers["Tall Cabinet Pulls"]
+        if self.carcass_type == 'Upper':
+            pointer = props.pull_pointers["Upper Cabinet Pulls"]
+
         pull_empty = container.add_empty('Pull Empty')
         pull_empty.parent = container.obj_bp
         pull_empty.empty_display_size = .01
-        pull_path = path.join(home_builder_paths.get_pull_path(),props.pull_category,props.pull_name + ".blend")
+        pull_path = path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
+        print('PULL PATH',pull_path)
         pull_obj = home_builder_utils.get_object(pull_path) 
         container.add_object(pull_obj)
         pull_obj.parent = pull_empty
@@ -328,7 +337,9 @@ class Drawers(Cabinet_Exterior):
         pull_empty = self.add_empty('Pull Empty')
         pull_empty.empty_display_size = .01
 
-        pull_path = path.join(home_builder_paths.get_pull_path(),props.pull_category,props.pull_name + ".blend")
+        pull_pointer = props.pull_pointers["Drawer Pulls"]
+
+        pull_path = path.join(home_builder_paths.get_pull_path(),pull_pointer.category,pull_pointer.item_name + ".blend")
         pull_obj = home_builder_utils.get_object(pull_path)
         pull_obj['IS_CABINET_PULL'] = True
         home_builder_utils.get_object_props(pull_obj).pointer_name = "Drawer Pulls"

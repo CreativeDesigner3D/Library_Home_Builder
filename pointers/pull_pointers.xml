@@ -2,22 +2,22 @@
 <Root Application="Blender" ApplicationVersion="0.1">
 	<Pointer>
 		<Name>Base Cabinet Pulls</Name>
-		<Category>Decorative Pulls</Category>
-		<Asset>Americana Handle</Asset>
+		<Category>_Sample</Category>
+		<Asset>Pull 8in (203mm) Bar</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Tall Cabinet Pulls</Name>
-		<Category>Decorative Pulls</Category>
-		<Asset>Americana Handle</Asset>
+		<Category>_Sample</Category>
+		<Asset>Pull 8in (203mm) Bar</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Upper Cabinet Pulls</Name>
-		<Category>Decorative Pulls</Category>
-		<Asset>Americana Handle</Asset>
+		<Category>_Sample</Category>
+		<Asset>Pull 8in (203mm) Bar</Asset>
 	</Pointer>
 	<Pointer>
 		<Name>Drawer Pulls</Name>
-		<Category>Decorative Pulls</Category>
-		<Asset>Americana Handle</Asset>
+		<Category>_Sample</Category>
+		<Asset>Pull 8in (203mm) Bar</Asset>
 	</Pointer>
 </Root>

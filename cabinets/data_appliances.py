@@ -12,28 +12,28 @@ from os import path
 def get_range(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_range_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"Generic","Generic Range.blend")  
+        return path.join(ASSET_DIR,"_Sample","Generic Range.blend")  
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")       
 
 def get_range_hood(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_range_hood_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"Generic","Generic Range Hood.blend")  
+        return path.join(ASSET_DIR,"_Sample","Generic Range Hood.blend")  
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")       
         
 def get_dishwasher(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_dishwasher_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"Generic","Generic Dishwasher.blend")  
+        return path.join(ASSET_DIR,"_Sample","Generic Dishwasher.blend")  
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")   
 
 def get_refrigerator(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_refrigerator_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"Generic","Generic Refrigerator.blend")  
+        return path.join(ASSET_DIR,"_Sample","Generic Refrigerator.blend")  
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")    
 
