@@ -15,7 +15,7 @@ def get_default_door_jamb():
 def get_window_frame(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_window_frame_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"_Sample","Simple Window Frame.blend") 
+        return path.join(ASSET_DIR,"_Sample","Window Frame and Sill.blend") 
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")       
 
@@ -36,7 +36,7 @@ def get_door_frame(category,assembly_name):
 def get_door_panel(door_panel_category,door_panel_name):
     ASSET_DIR = home_builder_paths.get_entry_door_panel_path()
     if door_panel_name == "":
-        return path.join(ASSET_DIR,"_Sample","Door Panel Slab.blend") 
+        return path.join(ASSET_DIR,"_Sample","Slab.blend") 
     else:
         return path.join(ASSET_DIR, door_panel_category, door_panel_name + ".blend") 
 
