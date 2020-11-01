@@ -155,6 +155,7 @@ class Cabinet_Exterior(pc_types.Assembly):
         tall_pull_vertical_location = self.get_prompt("Tall Pull Vertical Location").get_var('tall_pull_vertical_location')
         upper_pull_vertical_location = self.get_prompt("Upper Pull Vertical Location").get_var('upper_pull_vertical_location')
         pull_horizontal_location = self.get_prompt("Pull Horizontal Location").get_var('pull_horizontal_location')
+        turn_off_pulls = self.get_prompt("Turn Off Pulls").get_var('turn_off_pulls')
 
         #FORMULAS
         pull_empty.pyclone.loc_z('front_thickness',[front_thickness])
@@ -170,10 +171,10 @@ class Cabinet_Exterior(pc_types.Assembly):
         pull_empty.rotation_euler.x = math.radians(-90)
         if is_left_door:
             pull_empty.pyclone.loc_y('door_width+pull_horizontal_location',[door_width,pull_horizontal_location])
-            pull_obj.pyclone.hide('IF(door_swing==1,True,False)',[door_swing])
+            pull_obj.pyclone.hide('IF(OR(door_swing==1,turn_off_pulls),True,False)',[door_swing,turn_off_pulls])
         else:
             pull_empty.pyclone.loc_y('door_width-pull_horizontal_location',[door_width,pull_horizontal_location])
-            pull_obj.pyclone.hide('IF(door_swing==0,True,False)',[door_swing])
+            pull_obj.pyclone.hide('IF(OR(door_swing==0,turn_off_pulls),True,False)',[door_swing,turn_off_pulls])
 
         pull_obj['IS_CABINET_PULL'] = True
         home_builder_pointers.assign_pointer_to_object(pull_obj,"Cabinet Pull Finish")  
@@ -188,12 +189,36 @@ class Cabinet_Exterior(pc_types.Assembly):
         open_door = self.get_prompt("Open Door")
         front_height_calculator = self.get_calculator("Front Height Calculator")
         door_swing = self.get_prompt("Door Swing")
-                  
+        turn_off_pulls = self.get_prompt("Turn Off Pulls")
+        carcass_type = self.get_prompt("Carcass Type")
+
         if open_door:
             open_door.draw(layout,allow_edit=False)
 
         if door_swing:
             door_swing.draw(layout,allow_edit=False)    
+
+        if turn_off_pulls:
+            row = layout.row()
+            row.label(text="Pulls:")
+            row.prop(turn_off_pulls,'checkbox_value',text="Off")
+
+            pull_horizontal_location = self.get_prompt("Pull Horizontal Location")
+
+            if carcass_type.get_value() == 'Base':
+                base_pull_location = self.get_prompt("Base Pull Vertical Location")
+                row.prop(pull_horizontal_location,'distance_value',text="X")
+                row.prop(base_pull_location,'distance_value',text="Z")
+            if carcass_type.get_value() == 'Tall':
+                tall_pull_location = self.get_prompt("Tall Pull Vertical Location")
+                row.prop(pull_horizontal_location,'distance_value',text="X")
+                row.prop(tall_pull_location,'distance_value',text="Z")                
+            if carcass_type.get_value() == 'Upper':
+                upper_pull_location = self.get_prompt("Upper Pull Vertical Location")     
+                row.prop(pull_horizontal_location,'distance_value',text="X")
+                row.prop(upper_pull_location,'distance_value',text="Z")                       
+            if carcass_type.get_value() == 'Drawer':
+                pass            
 
         if front_height_calculator:
             for prompt in front_height_calculator.prompts:
@@ -231,6 +256,9 @@ class Doors(Cabinet_Exterior):
         common_prompts.add_front_overlay_prompts(self)
         common_prompts.add_pull_prompts(self)
         common_prompts.add_thickness_prompts(self)
+
+        carcass_type = self.get_prompt("Carcass Type")
+        carcass_type.set_value(self.carcass_type)
 
         door_swing_prompt = self.get_prompt("Door Swing")
         door_swing_prompt.set_value(self.door_swing)
@@ -307,6 +335,7 @@ class Drawers(Cabinet_Exterior):
         front_thickness = self.get_prompt("Front Thickness").get_var('front_thickness')
         drawer_pull_vertical_location = self.get_prompt("Drawer Pull Vertical Location").get_var('drawer_pull_vertical_location')
         vertical_gap = self.get_prompt("Vertical Gap").get_var('vertical_gap')
+        turn_off_pulls = self.get_prompt("Turn Off Pulls").get_var('turn_off_pulls')
 
         front_empty = self.add_empty('Front Z Location ' + str(index))
         front_empty.empty_display_size = .001
@@ -348,6 +377,7 @@ class Drawers(Cabinet_Exterior):
         pull_empty.pyclone.loc_z('drawer_z_loc+(drawer_front_height/2)',[drawer_z_loc,drawer_front_height])
         pull_empty.pyclone.loc_x('x/2',[x])
         pull_empty.rotation_euler.y = math.radians(180)
+        pull_obj.pyclone.hide('IF(turn_off_pulls,True,False)',[turn_off_pulls])
         home_builder_pointers.assign_pointer_to_object(pull_obj,"Cabinet Pull Finish")
 
         return front_empty
@@ -364,6 +394,9 @@ class Drawers(Cabinet_Exterior):
         common_prompts.add_front_prompts(self)
         common_prompts.add_front_overlay_prompts(self)
         common_prompts.add_drawer_pull_prompts(self)
+
+        carcass_type = self.get_prompt("Carcass Type")
+        carcass_type.set_value("Drawer")
 
         to, bo, lo, ro = self.add_overlay_prompts()
 

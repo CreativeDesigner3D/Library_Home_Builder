@@ -12,6 +12,7 @@ def add_filler_prompts(assembly):
 
 def add_front_prompts(assembly):
     assembly.add_prompt("Front Thickness",'DISTANCE',pc_unit.inch(.75))
+    assembly.add_prompt("Turn Off Pulls",'CHECKBOX',False)
 
 def add_sink_prompts(assembly):
     assembly.add_prompt("Add Sink",'CHECKBOX',False)
