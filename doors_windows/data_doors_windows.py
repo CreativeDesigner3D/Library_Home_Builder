@@ -77,6 +77,7 @@ class Standard_Door(pc_types.Assembly):
         handle_vertical_location = self.get_prompt("Handle Vertical Location").get_var('handle_vertical_location')
         entry_door_swing = self.get_prompt("Entry Door Swing").get_var('entry_door_swing')
         handle_location_from_edge = self.get_prompt("Handle Location From Edge").get_var('handle_location_from_edge')
+        turn_off_handles = self.get_prompt("Turn Off Handles").get_var('turn_off_handles')
 
         door_handle_center = door_panel.add_empty('Door Handle Center')
         door_handle_center.empty_display_size = .001
@@ -90,11 +91,11 @@ class Standard_Door(pc_types.Assembly):
         door_handle_obj.pyclone.loc_z('handle_vertical_location',[handle_vertical_location])
         if "Left" in door_panel.obj_bp.name:
             door_handle_obj.pyclone.loc_x('door_panel_width-handle_location_from_edge',[door_panel_width,handle_location_from_edge])
-            door_handle_obj.pyclone.hide('IF(entry_door_swing==1,True,False)',[entry_door_swing])
+            door_handle_obj.pyclone.hide('IF(OR(entry_door_swing==1,turn_off_handles),True,False)',[entry_door_swing,turn_off_handles])
         else:
             door_handle_obj.pyclone.rot_y(value=math.radians(180))
             door_handle_obj.pyclone.loc_x('door_panel_width+handle_location_from_edge',[door_panel_width,handle_location_from_edge])
-            door_handle_obj.pyclone.hide('IF(entry_door_swing==0,True,False)',[entry_door_swing])
+            door_handle_obj.pyclone.hide('IF(OR(entry_door_swing==0,turn_off_handles),True,False)',[entry_door_swing,turn_off_handles])
         home_builder_pointers.assign_pointer_to_object(door_handle_obj,"Entry Door Handle")  
 
         mirror = door_handle_obj.modifiers.new('Mirror','MIRROR')
@@ -115,7 +116,8 @@ class Standard_Door(pc_types.Assembly):
         outswing = self.get_prompt("Outswing").get_var('outswing')
         open_door = self.get_prompt("Open Door").get_var('open_door')
         door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
-        
+        turn_off_door_panels = self.get_prompt("Turn Off Door Panels").get_var('turn_off_door_panels')
+
         #LEFT DOOR
         l_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_category,door_panel_name)))
         l_door_panel.set_name("Left Door Panel")
@@ -130,7 +132,7 @@ class Standard_Door(pc_types.Assembly):
         l_door_panel.dim_z('height-door_frame_width-door_reveal-door_frame_reveal',[height,door_frame_width,door_reveal,door_frame_reveal])       
         home_builder_pointers.assign_materials_to_assembly(l_door_panel)
         hide = l_door_panel.get_prompt("Hide")
-        hide.set_formula('IF(entry_door_swing==1,True,False)',[entry_door_swing]) 
+        hide.set_formula('IF(OR(entry_door_swing==1,turn_off_door_panels),True,False)',[entry_door_swing,turn_off_door_panels]) 
 
         self.add_door_handle(l_door_panel,door_handle_category,door_handle_name)
         home_builder_utils.update_assembly_id_props(l_door_panel,self)
@@ -149,7 +151,7 @@ class Standard_Door(pc_types.Assembly):
         r_door_panel.dim_z('height-door_frame_width-door_reveal-door_frame_reveal',[height,door_frame_width,door_reveal,door_frame_reveal])      
         home_builder_pointers.assign_materials_to_assembly(r_door_panel)
         hide = r_door_panel.get_prompt("Hide")
-        hide.set_formula('IF(entry_door_swing==0,True,False)',[entry_door_swing]) 
+        hide.set_formula('IF(OR(entry_door_swing==0,turn_off_door_panels),True,False)',[entry_door_swing,turn_off_door_panels]) 
 
         self.add_door_handle(r_door_panel,door_handle_category,door_handle_name)
         home_builder_utils.update_assembly_id_props(r_door_panel,self)
@@ -168,6 +170,8 @@ class Standard_Door(pc_types.Assembly):
         self.add_prompt("Handle Vertical Location",'DISTANCE',pc_unit.inch(36))
         self.add_prompt("Handle Location From Edge",'DISTANCE',pc_unit.inch(2.5))
         self.add_prompt("Outswing",'CHECKBOX',True)
+        self.add_prompt("Turn Off Handles",'CHECKBOX',False)
+        self.add_prompt("Turn Off Door Panels",'CHECKBOX',False)
         self.add_prompt("Open Door",'PERCENTAGE',0)
         self.add_prompt("Door Rotation",'ANGLE',120)
         Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))

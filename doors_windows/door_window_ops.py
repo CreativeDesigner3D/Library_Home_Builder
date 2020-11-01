@@ -409,6 +409,8 @@ class home_builder_OT_door_prompts(bpy.types.Operator):
         entry_door_swing = self.assembly.get_prompt("Entry Door Swing")
         outswing = self.assembly.get_prompt("Outswing")
         open_door = self.assembly.get_prompt("Open Door")
+        turn_off_door_panels = self.assembly.get_prompt("Turn Off Door Panels")
+        turn_off_handles = self.assembly.get_prompt("Turn Off Handles")
 
         if open_door and outswing and entry_door_swing:
             box = layout.box()
@@ -421,6 +423,7 @@ class home_builder_OT_door_prompts(bpy.types.Operator):
             row.prop_enum(self, "door_swing", 'RIGHT') 
             row.prop_enum(self, "door_swing", 'DOUBLE')
             outswing.draw(row,allow_edit=False)     
+            box.prop(turn_off_door_panels,'checkbox_value',text="Turn Off Door Panels")
 
         if handle_vertical_location and handle_location_from_edge:
             box = layout.box()
@@ -429,6 +432,7 @@ class home_builder_OT_door_prompts(bpy.types.Operator):
             row.label(text="Pull Location:")
             row.prop(handle_vertical_location,'distance_value',text="Vertical")  
             row.prop(handle_location_from_edge,'distance_value',text="From Edge")  
+            box.prop(turn_off_handles,'checkbox_value',text="Turn Off Handles")
 
     def draw_door_panel(self,layout,context):
         layout.prop(self,'entry_door_panel_category',text="")
