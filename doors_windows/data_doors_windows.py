@@ -71,6 +71,10 @@ class Standard_Door(pc_types.Assembly):
         home_builder_pointers.assign_pointer_to_assembly(door_frame,"Entry Door Frame")
         home_builder_utils.update_assembly_id_props(door_frame,self)
 
+        door_frame_width = door_frame.get_prompt("Door Frame Width").get_value()
+
+        self.get_prompt("Door Frame Width").set_value(door_frame_width)        
+
     def add_door_handle(self,door_panel,door_handle_category="",door_handle_name=""):
         door_panel_width = door_panel.obj_x.pyclone.get_var('location.x','door_panel_width')
         door_thickness = door_panel.obj_y.pyclone.get_var('location.y','door_thickness')
@@ -165,7 +169,7 @@ class Standard_Door(pc_types.Assembly):
         self.add_prompt("Entry Door Swing",'COMBOBOX',0,["Left","Right","Double"])
         self.add_prompt("Door Thickness",'DISTANCE',pc_unit.inch(1.5))
         self.add_prompt("Door Reveal",'DISTANCE',pc_unit.inch(.125))
-        self.add_prompt("Door Frame Width",'DISTANCE',pc_unit.inch(3))
+        Door_Frame_Width = self.add_prompt("Door Frame Width",'DISTANCE',pc_unit.inch(3))
         Door_Frame_Reveal = self.add_prompt("Door Frame Reveal",'DISTANCE',pc_unit.inch(.125))
         self.add_prompt("Handle Vertical Location",'DISTANCE',pc_unit.inch(36))
         self.add_prompt("Handle Location From Edge",'DISTANCE',pc_unit.inch(2.5))
@@ -185,6 +189,7 @@ class Standard_Door(pc_types.Assembly):
         height = self.obj_z.pyclone.get_var('location.z','height')
         boolean_overhang_var = Boolean_Overhang.get_var("boolean_overhang_var")
         door_frame_reveal = Door_Frame_Reveal.get_var("door_frame_reveal")
+        door_frame_width_parent = Door_Frame_Width.get_var("door_frame_width_parent")
 
         hole = self.add_assembly(home_builder_parts.Hole())
         hole.set_name("Hole")
@@ -206,6 +211,8 @@ class Standard_Door(pc_types.Assembly):
         door_jamb.dim_y('depth',[depth])
         door_jamb.dim_z('height-door_frame_reveal',[height,door_frame_reveal])  
         home_builder_pointers.assign_pointer_to_assembly(door_jamb,"Entry Door Frame")
+        door_frame_width = door_jamb.get_prompt("Door Frame Width")
+        door_frame_width.set_formula('door_frame_width_parent',[door_frame_width_parent])
 
         self.add_frame()
         self.set_prompts()
