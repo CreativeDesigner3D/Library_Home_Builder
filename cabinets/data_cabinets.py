@@ -180,7 +180,7 @@ class Cabinet(pc_types.Assembly):
         self.left_filler.dim_y('depth',[depth])
         self.left_filler.dim_z('height',[height])
         home_builder_utils.flip_normals(self.left_filler)
-        home_builder_pointers.assign_pointer_to_assembly(self.left_filler,"Exposed Cabinet Surfaces")
+        home_builder_pointers.assign_pointer_to_assembly(self.left_filler,"Cabinet Exposed Surfaces")
 
     def add_right_filler(self):
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -197,7 +197,7 @@ class Cabinet(pc_types.Assembly):
         self.right_filler.dim_x('-right_adjustment_width',[right_adjustment_width])
         self.right_filler.dim_y('depth',[depth])
         self.right_filler.dim_z('height',[height])
-        home_builder_pointers.assign_pointer_to_assembly(self.right_filler,"Exposed Cabinet Surfaces")
+        home_builder_pointers.assign_pointer_to_assembly(self.right_filler,"Cabinet Exposed Surfaces")
 
     def add_countertop(self):
         width = self.obj_x.pyclone.get_var('location.x','width')
