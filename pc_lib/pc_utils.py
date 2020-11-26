@@ -269,19 +269,9 @@ def get_selection_point(context, event, ray_max=10000.0,objects=None,floor=None,
                     if floor is not None and obj == floor:
                         yield (obj, obj.matrix_world.copy())
                          
-    #                 if obj.draw_type != 'WIRE':
                     if obj.type == 'MESH' and obj.hide_select == False:
                         yield (obj, obj.matrix_world.copy())
     
-                    if obj.instance_type != 'NONE':
-                        obj.dupli_list_create(scene)
-                        for dob in obj.dupli_list:
-                            obj_dupli = dob.object
-                            if obj_dupli.type == 'MESH':
-                                yield (obj_dupli, dob.matrix.copy())
- 
-            # obj.dupli_list_clear()
- 
     def obj_ray_cast(obj, matrix):
         """Wrapper for ray casting that moves the ray into object space"""
         try:
