@@ -179,6 +179,7 @@ def assign_boolean_to_child_assemblies(assembly,bool_obj):
         for nchild in child.children:
             if nchild.type == 'MESH':       
                 mod = nchild.modifiers.new(bool_obj.name,'BOOLEAN')
+                mod.solver ='FAST'
                 mod.object = bool_obj
                 mod.operation = 'DIFFERENCE'
 
