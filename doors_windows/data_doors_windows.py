@@ -164,7 +164,7 @@ class Standard_Door(pc_types.Assembly):
         self.create_assembly("Door")
         self.obj_bp["IS_DOOR_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.door_prompts" 
-        self.obj_bp["MENU_ID"] = "home_builder_MT_window_door_menu"
+        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_window_door_menu"
 
         self.add_prompt("Entry Door Swing",'COMBOBOX',0,["Left","Right","Double"])
         self.add_prompt("Door Thickness",'DISTANCE',pc_unit.inch(1.5))
@@ -298,7 +298,7 @@ class Standard_Window(pc_types.Assembly):
         self.create_assembly("Window")
         self.obj_bp["IS_WINDOW_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.window_prompts" 
-        self.obj_bp["MENU_ID"] = "home_builder_MT_window_door_menu"
+        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_window_door_menu"
 
         Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
         self.add_prompt("Left Window Frame Width",'DISTANCE',pc_unit.inch(3))

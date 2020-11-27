@@ -651,7 +651,7 @@ class home_builder_OT_window_prompts(bpy.types.Operator):
         if self.window_tabs == 'INSERT':
             self.draw_window_insert(box,context)           
 
-class home_builder_MT_window_door_menu(bpy.types.Menu):
+class HOMEBUILDER_MT_window_door_menu(bpy.types.Menu):
     bl_label = "Window and Door Commands"
 
     def draw(self, context):
@@ -684,7 +684,7 @@ classes = (
     home_builder_OT_place_door_window,
     home_builder_OT_door_prompts,
     home_builder_OT_window_prompts,
-    home_builder_MT_window_door_menu,
+    HOMEBUILDER_MT_window_door_menu,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

@@ -1533,7 +1533,7 @@ class home_builder_OT_refrigerator_prompts(Appliance_Prompts):
         self.draw_refrigerator_selection(layout,context)
 
 
-class home_builder_MT_cabinet_menu(bpy.types.Menu):
+class HOMEBUILDER_MT_cabinet_menu(bpy.types.Menu):
     bl_label = "Cabinet Commands"
 
     def draw(self, context):
@@ -1743,7 +1743,7 @@ def register():
     bpy.utils.register_class(home_builder_OT_range_prompts)  
     bpy.utils.register_class(home_builder_OT_dishwasher_prompts)  
     bpy.utils.register_class(home_builder_OT_refrigerator_prompts)  
-    bpy.utils.register_class(home_builder_MT_cabinet_menu)     
+    bpy.utils.register_class(HOMEBUILDER_MT_cabinet_menu)     
     bpy.utils.register_class(home_builder_OT_delete_cabinet)    
     bpy.utils.register_class(home_builder_OT_delete_part)    
     bpy.utils.register_class(home_builder_OT_part_prompts)    
@@ -1762,7 +1762,7 @@ def unregister():
     bpy.utils.unregister_class(home_builder_OT_range_prompts) 
     bpy.utils.unregister_class(home_builder_OT_dishwasher_prompts)  
     bpy.utils.unregister_class(home_builder_OT_refrigerator_prompts)  
-    bpy.utils.unregister_class(home_builder_MT_cabinet_menu)       
+    bpy.utils.unregister_class(HOMEBUILDER_MT_cabinet_menu)       
     bpy.utils.unregister_class(home_builder_OT_delete_cabinet)        
     bpy.utils.unregister_class(home_builder_OT_delete_part)      
     bpy.utils.unregister_class(home_builder_OT_part_prompts) 
