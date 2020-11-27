@@ -8,6 +8,7 @@ class Hole(pc_types.Assembly):
         for child in assembly.obj_bp.children:
             if child.type == 'MESH':       
                 mod = child.modifiers.new(self.obj_mesh.name,'BOOLEAN')
+                mod.solver ='FAST'
                 mod.object = self.obj_mesh
                 mod.operation = 'DIFFERENCE'    
         self.obj_mesh.hide_viewport = True

@@ -20,6 +20,8 @@ class Mesh_Wall(pc_types.Assembly):
 
         #ASSIGN PROPERTY
         self.obj_bp["IS_WALL_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.wall_prompts" 
+        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_wall_menu"
 
         #Set Default Dimensions
         self.obj_x.location.x = pc_unit.inch(120) #Length
@@ -96,6 +98,8 @@ class Wall_Framed(pc_types.Assembly):
 
         #ASSIGN PROPERTY
         self.obj_bp["IS_WALL_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.wall_prompts" 
+        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_wall_menu"
 
         #Set Default Dimensions
         self.obj_x.location.x = pc_unit.inch(120) #Length
@@ -174,7 +178,7 @@ class Wall_Framed(pc_types.Assembly):
         qty = center_stud.get_prompt('Quantity')
         offset = center_stud.get_prompt('Array Offset')
 
-        qty.set_formula('(length-material_thickness)/stud_spacing_distance',[length,material_thickness,stud_spacing_distance])
+        qty.set_formula('int((length-material_thickness)/stud_spacing_distance)',[length,material_thickness,stud_spacing_distance])
         offset.set_formula('-stud_spacing_distance',[stud_spacing_distance])  
              
         print("WALL: Draw Time --- %s seconds ---" % (time.time() - start_time))
@@ -195,6 +199,8 @@ class Wall_Brick(pc_types.Assembly):
 
         #ASSIGN PROPERTY
         self.obj_bp["IS_WALL_BP"] = True        
+        self.obj_bp["PROMPT_ID"] = "home_builder.wall_prompts" 
+        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_wall_menu"
 
         #Set Default Dimensions
         props = home_builder_utils.get_scene_props(bpy.context.scene)

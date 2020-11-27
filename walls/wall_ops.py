@@ -87,7 +87,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         home_builder_utils.get_object_props(constraint_obj).connected_object = self.current_wall.obj_bp
 
     def set_child_properties(self,obj):
-        obj["PROMPT_ID"] = "home_builder.wall_prompts"   
+        home_builder_utils.update_id_props(obj,self.current_wall.obj_bp)  
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':
@@ -416,9 +416,36 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         # layout.label(text=str(left_angle.get_value()))
         # layout.label(text=str(right_angle.get_value()))
 
+
+class HOMEBUILDER_MT_wall_menu(bpy.types.Menu):
+    bl_label = "Wall Commands"
+
+    def draw(self, context):
+        layout = self.layout
+        obj_bp = pc_utils.get_assembly_bp(context.object)
+        wall_bp = None
+
+        wall_bp = home_builder_utils.get_wall_bp(context.object)  
+        if wall_bp:
+
+            layout.operator_context = 'INVOKE_DEFAULT'
+
+            #TODO: Implement additional wall commands
+            # if wall_bp:
+            #     layout.operator('home_builder.move_wall',text="Move Wall - " + door_window_bp.name,icon='OBJECT_ORIGIN').obj_bp_name = door_window_bp.name
+            #     layout.operator('home_builder.free_move_wall',text="Grab Wall - " + door_window_bp.name,icon='VIEW_PAN').obj_bp_name = door_window_bp.name
+            #     layout.operator('home_builder.duplicate_wall',text="Duplicate Wall - " + door_window_bp.name,icon='DUPLICATE').obj_bp_name = door_window_bp.name
+            #     layout.separator()
+
+            layout.operator('home_builder.edit_part',text="Edit Wall",icon='EDITMODE_HLT')
+            # layout.separator()
+            #TODO: Create Delete Wall Command that keeps connected wall locations
+            # layout.operator('home_builder.delete_assembly',text="Delete",icon='X').obj_name = wall_bp.name
+
 classes = (
     home_builder_OT_wall_prompts,
-    home_builder_OT_draw_multiple_walls
+    home_builder_OT_draw_multiple_walls,
+    HOMEBUILDER_MT_wall_menu
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)        

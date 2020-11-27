@@ -38,6 +38,8 @@ class Stud(pc_types.Assembly):
         array = obj_mesh.modifiers.new('Quantity','ARRAY')
         array.use_constant_offset = True
         array.use_relative_offset = False
+        array.constant_offset_displace[0] = 0
+        array.constant_offset_displace[1] = 0
         obj_mesh.pyclone.modifier(array,'count',-1,'qty',[qty])
         obj_mesh.pyclone.modifier(array,'constant_offset_displace',2,'array_offset',[array_offset])
 
@@ -68,12 +70,16 @@ class Brick(pc_types.Assembly):
         x_array = obj_mesh.modifiers.new('X Quantity','ARRAY')
         x_array.use_constant_offset = True
         x_array.use_relative_offset = False
+        x_array.constant_offset_displace[0] = 0
+        x_array.constant_offset_displace[1] = 0            
         obj_mesh.pyclone.modifier(x_array,'count',-1,'x_quantity',[x_quantity])
         obj_mesh.pyclone.modifier(x_array,'constant_offset_displace',0,'x_offset',[x_offset])
 
         z_array = obj_mesh.modifiers.new('Z Quantity','ARRAY')
         z_array.use_constant_offset = True
         z_array.use_relative_offset = False
+        z_array.constant_offset_displace[0] = 0
+        z_array.constant_offset_displace[1] = 0        
         obj_mesh.pyclone.modifier(z_array,'count',-1,'z_quantity',[z_quantity])
         obj_mesh.pyclone.modifier(z_array,'constant_offset_displace',2,'z_offset',[z_offset])
 
