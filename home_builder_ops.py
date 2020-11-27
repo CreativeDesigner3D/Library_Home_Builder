@@ -1165,9 +1165,10 @@ class home_builder_OT_floor_prompts(bpy.types.Operator):
         floor = context.object
         for slot in floor.material_slots:
             mat = slot.material
-            for node in mat.node_tree.nodes:
-                if node.type == 'MAPPING':
-                    self.mapping_node = node
+            if mat:
+                for node in mat.node_tree.nodes:
+                    if node.type == 'MAPPING':
+                        self.mapping_node = node
 
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=150)
@@ -1181,6 +1182,8 @@ class home_builder_OT_floor_prompts(bpy.types.Operator):
             col.prop(self.mapping_node.inputs[1],'default_value',text="Location")
             col.prop(self.mapping_node.inputs[2],'default_value',text="Rotation")
             col.prop(self.mapping_node.inputs[3],'default_value',text="Scale")
+        else:
+            col.label(text="No Material Found")
 
     def execute(self, context):
         return {'FINISHED'}
