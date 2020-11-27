@@ -36,7 +36,7 @@ def load_library_on_file_load(scene=None):
     
 @persistent
 def load_pointers(scene=None):
-    home_builder_pointers.write_pointer_files()
+    # home_builder_pointers.write_pointer_files()
     home_builder_pointers.update_pointer_properties()
 
 def register():

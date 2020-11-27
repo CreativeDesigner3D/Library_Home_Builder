@@ -55,6 +55,9 @@ class room_builder_OT_activate(Operator):
             props.active_category = dirs[0]
             path = os.path.join(library_path,props.active_category)
 
+        if len(props.material_pointers) == 0:
+            home_builder_pointers.update_pointer_properties()
+
         pc_utils.update_file_browser_path(context,path)
         return {'FINISHED'}
 
