@@ -1,5 +1,12 @@
-import bpy
+import site
 import os
+
+# process *.pth in /libs/site/packages to setup globally importable modules
+# 3 levels deep required by occ static ../../ path
+cwd = os.path.dirname(os.path.realpath(__file__))
+site.addsitedir(os.path.join(cwd, "libs", "site", "packages"))
+
+import bpy
 import inspect
 from .pc_lib import pc_utils
 from . import home_builder_props
@@ -23,7 +30,6 @@ bl_info = {
     "wiki_url": "",
     "category": "Asset Library",
 }
-
 
 @persistent
 def load_library_on_file_load(scene=None):

@@ -1,0 +1,3 @@
+# expose PIL as site-package
+
+PIL
