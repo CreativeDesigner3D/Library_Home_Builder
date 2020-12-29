@@ -642,7 +642,7 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
         file.write("import os\n")
         file.write("import sys\n")
 
-        file.write("path = '" + os.path.join(os.path.dirname(asset.asset_path),asset.name)  + "'\n")
+        file.write("path = r'" + os.path.join(os.path.dirname(asset.asset_path),asset.name)  + "'\n")
 
         file.write("bpy.ops.object.select_all(action='DESELECT')\n")
 
