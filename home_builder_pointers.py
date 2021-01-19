@@ -173,7 +173,9 @@ def update_cabinet_back_material(assembly,is_finished_back):
                         pointer.pointer_name = "Cabinet Exposed Surfaces" 
                     else:
                         pointer.pointer_name = "Cabinet Unfinished Surfaces"
-                    break
+                if pointer.name in {'L1','L2','W1','W2'}:
+                    pointer.pointer_name = "Cabinet Unfinished Edges"
+
     assign_materials_to_assembly(assembly)
 
 def assign_carcass_pointers(assembly):
