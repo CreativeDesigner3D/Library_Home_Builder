@@ -73,6 +73,14 @@ def get_door_bp(obj):
     elif obj.parent:
         return get_door_bp(obj.parent)
 
+def get_cabinet_door_bp(obj):
+    if not obj:
+        return None    
+    if "IS_CABINET_DOOR_PANEL" in obj:
+        return obj
+    elif obj.parent:
+        return get_cabinet_door_bp(obj.parent)
+
 def get_window_bp(obj):
     if not obj:
         return None    

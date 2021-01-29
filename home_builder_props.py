@@ -676,9 +676,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
         cabinet_door_box.prop(self,'cabinet_door_category',text="",icon='FILE_FOLDER')  
         cabinet_door_box.template_icon_view(self,"cabinet_door_name",show_labels=True)  
 
-        right_row = right_col.row()
+        right_row = right_col.row(align=True)
         right_row.scale_y = 1.3
-        right_row.operator('home_builder.update_cabinet_doors',text="Update Cabinet Fronts",icon='FILE_REFRESH')
+        right_row.operator('home_builder.update_all_cabinet_doors',text="Update All Cabinet Fronts",icon='FILE_REFRESH')
+        right_row.operator('home_builder.update_selected_cabinet_doors',text="Update Selected Cabinet Fronts",icon='RESTRICT_SELECT_OFF')
+        right_row.separator()
         right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
 
         box = right_col.box()

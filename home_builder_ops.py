@@ -354,9 +354,9 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class home_builder_OT_update_cabinet_doors(bpy.types.Operator):
-    bl_idname = "home_builder.update_cabinet_doors"
-    bl_label = "Update Cabinet Doors"
+class home_builder_OT_update_all_cabinet_doors(bpy.types.Operator):
+    bl_idname = "home_builder.update_all_cabinet_doors"
+    bl_label = "Update All Cabinet Doors"
 
     def execute(self, context):
         door_panel_bps = []
@@ -380,33 +380,43 @@ class home_builder_OT_update_cabinet_doors(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def execute_old(self, context):
-        exterior_bp_objs = []
 
-        for obj in bpy.data.objects:
-            if "IS_EXTERIOR_BP" in obj and obj["IS_EXTERIOR_BP"]:
-                exterior_bp_objs.append(obj)
+# This is used in home_builder.update_selected_cabinet_doors
+# since you cannot create an instance of a blender PropertyGroup
+# this is used to store the default properties for the pointer
+# for the cabinet door front
+class TempPointer():
+    name = ""
+    category = ""
+    item_name = ""
 
-        for exterior_bp in exterior_bp_objs:
-            cabinet_bp = home_builder_utils.get_cabinet_bp(exterior_bp)
-            carcass = None
-            for child in cabinet_bp.children:
-                carcass_bp = home_builder_utils.get_carcass_bp(child)
-                if carcass_bp:
-                    carcass = data_cabinet_carcass.Carcass(child) 
-                    break
+class home_builder_OT_update_selected_cabinet_doors(bpy.types.Operator):
+    bl_idname = "home_builder.update_selected_cabinet_doors"
+    bl_label = "Update Selected Cabinet Doors"
 
-            if carcass:
-                cabinet = pc_types.Assembly(cabinet_bp)
-                old_exterior = pc_types.Assembly(exterior_bp)
+    def execute(self, context):
+        door_panel_bps = []
+        scene_props = home_builder_utils.get_scene_props(context.scene)
 
-                exterior_prompt_dict = old_exterior.get_prompt_dict()
-                exterior = cabinet_utils.get_exterior_from_name(exterior_bp["EXTERIOR_NAME"])
-                exterior.prompts = exterior_prompt_dict
-                new_exterior = carcass.add_insert(cabinet,exterior)
-                new_exterior.update_calculators()
-                
-            pc_utils.delete_object_and_children(exterior_bp)
+        for obj in context.selected_objects:
+            door_bp = home_builder_utils.get_cabinet_door_bp(obj)
+            if door_bp and door_bp not in door_panel_bps:
+                door_panel_bps.append(door_bp)
+
+        for door_panel_bp in door_panel_bps:
+            props = home_builder_utils.get_object_props(door_panel_bp)
+            pointer = TempPointer()
+            pointer.name = props.pointer_name
+            pointer.category = scene_props.cabinet_door_category
+            pointer.item_name = scene_props.cabinet_door_name
+
+            old_door_panel = pc_types.Assembly(door_panel_bp)
+            old_door_panel_parent = pc_types.Assembly(door_panel_bp.parent)
+            new_door = data_cabinet_parts.add_door_part(old_door_panel_parent,pointer)
+
+            home_builder_utils.update_assembly_id_props(new_door,old_door_panel_parent)
+            home_builder_utils.replace_assembly(old_door_panel,new_door)
+            home_builder_utils.hide_empties(new_door.obj_bp)
 
         return {'FINISHED'}
 
@@ -1318,7 +1328,8 @@ classes = (
     home_builder_OT_update_scene_materials,
     home_builder_OT_update_material_pointer,
     home_builder_OT_update_scene_pulls,
-    home_builder_OT_update_cabinet_doors,
+    home_builder_OT_update_all_cabinet_doors,
+    home_builder_OT_update_selected_cabinet_doors,
     home_builder_OT_update_pull_pointer,
     home_builder_OT_update_cabinet_door_pointer,
     home_builder_OT_auto_add_molding,
