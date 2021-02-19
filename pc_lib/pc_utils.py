@@ -123,6 +123,16 @@ def delete_obj_list(obj_list):
     for obj in obj_list:
         bpy.data.objects.remove(obj,do_unlink=True)
 
+def select_obj_list(obj_list):
+    ''' 
+    This function selects every object in the list
+    '''
+    for obj in obj_list:
+        if obj.type != 'EMPTY' and obj.hide_render == False:
+            obj.hide_select = False
+            obj.hide_viewport = False
+            obj.select_set(True)
+
 def delete_object_and_children(obj_bp):
     '''
     Deletes a object and all it's children
@@ -138,6 +148,22 @@ def delete_object_and_children(obj_bp):
         else:
             obj_list.append(child)
     delete_obj_list(obj_list)
+
+def select_object_and_children(obj_bp):
+    '''
+    Selects an object and all it's children
+
+    ARGS
+    obj_bp (bpy.types.Object) - Parent Object to Select
+    '''
+    obj_list = []
+    obj_list.append(obj_bp)
+    for child in obj_bp.children:
+        if len(child.children) > 0:
+            select_object_and_children(child)
+        else:
+            obj_list.append(child)
+    select_obj_list(obj_list)
 
 def create_cube_mesh(name,size):
     
