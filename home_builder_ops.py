@@ -1242,80 +1242,100 @@ class home_builder_OT_reload_pointers(bpy.types.Operator):
         return {'FINISHED'}
 
     
-# class home_builder_OT_create_library_pdf(bpy.types.Operator):
-#     bl_idname = "home_builder.create_library_pdf"
-#     bl_label = "Create Library PDF"
-#     bl_description = "This will create a PDF with all of the items that are available in the library"
+class home_builder_OT_create_library_pdf(bpy.types.Operator):
+    bl_idname = "home_builder.create_library_pdf"
+    bl_label = "Create Library PDF"
+    bl_description = "This will create a PDF with all of the items that are available in the library"
     
-#     elements = []
-#     package = None
+    elements = []
+    package = None
     
-#     def create_header(self, name, font_size):
-#         header_style = TableStyle([('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-#                                 ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
-#                                 ('TOPPADDING', (0, 0), (-1, -1), 15),
-#                                 ('FONTSIZE', (0, 0), (-1, -1), 8),
-#                                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-#                                 ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
-#                                 # ('LINEBELOW', (0, 0), (-1, -1), 2, colors.black),
-#                                 ('BACKGROUND', (0, 1), (-1, -1), colors.white)])        
+    def create_header(self, name, font_size):
+        header_style = TableStyle([('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+                                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+                                ('TOPPADDING', (0, 0), (-1, -1), 15),
+                                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                                ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
+                                # ('LINEBELOW', (0, 0), (-1, -1), 2, colors.black),
+                                ('BACKGROUND', (0, 1), (-1, -1), colors.white)])        
         
-#         name_p = Paragraph(name, ParagraphStyle("Category name style", fontSize=font_size))
-#         header_tbl = Table([[name_p]], colWidths = 500, rowHeights = None, repeatRows = 1)
-#         header_tbl.setStyle(header_style)
-#         self.elements.append(header_tbl)
+        name_p = Paragraph(name, ParagraphStyle("Category name style", fontSize=font_size))
+        header_tbl = Table([[name_p]], colWidths = 500, rowHeights = None, repeatRows = 1)
+        header_tbl.setStyle(header_style)
+        self.elements.append(header_tbl)
         
-#     def create_img_table(self, dir):
-#         item_tbl_data = []
-#         item_tbl_row = []
+    def create_img_table(self, dir):
+        item_tbl_data = []
+        item_tbl_row = []
 
-#         if os.path.isdir(dir):
-#             for i, file in enumerate(os.listdir(dir)):
-#                 last_item = len(os.listdir(dir)) - 1
-#                 if ".png" in file or ".jpg" in file:
-#                     img = Image(os.path.join(dir, file), inch, inch)
-#                     img_name = file.replace(".png", "")
+        if os.path.isdir(dir):
+            for i, file in enumerate(os.listdir(dir)):
+                last_item = len(os.listdir(dir)) - 1
+                if ".png" in file or ".jpg" in file:
+                    img = Image(os.path.join(dir, file), inch, inch)
+                    img_name = file.replace(".png", "")
                                 
-#                     if len(item_tbl_row) == 4:
-#                         item_tbl_data.append(item_tbl_row)
-#                         item_tbl_row = []
-#                     elif i == last_item:
-#                         item_tbl_data.append(item_tbl_row)
+                    if len(item_tbl_row) == 4:
+                        item_tbl_data.append(item_tbl_row)
+                        item_tbl_row = []
+                    elif i == last_item:
+                        item_tbl_data.append(item_tbl_row)
                         
-#                     i_tbl = Table([[img], [Paragraph(img_name, ParagraphStyle("item name style", fontSize=8, wordWrap='CJK'))]])
-#                     item_tbl_row.append(i_tbl)    
+                    i_tbl = Table([[img], [Paragraph(img_name, ParagraphStyle("item name style", fontSize=8, wordWrap='CJK'))]])
+                    item_tbl_row.append(i_tbl)    
 
-#             if len(item_tbl_data) > 0:
-#                 item_tbl = Table(item_tbl_data, colWidths=125)
-#                 self.elements.append(item_tbl)
-#                 # self.elements.append(Spacer(1, inch * 0.5))
+            if len(item_tbl_data) > 0:
+                item_tbl = Table(item_tbl_data, colWidths=125)
+                self.elements.append(item_tbl)
+                # self.elements.append(Spacer(1, inch * 0.5))
           
-#     def execute(self, context):
-#         file_path = home_builder_paths.get_asset_folder_path()
-#         file_name = "Library.pdf"
+    def execute(self, context):
+        file_path = home_builder_paths.get_asset_folder_path()
+        file_name = "Library.pdf"
         
-#         if not os.path.exists(file_path):
-#             os.mkdir(file_path)
+        if not os.path.exists(file_path):
+            os.mkdir(file_path)
         
-#         doc = SimpleDocTemplate(os.path.join(file_path, file_name), 
-#                                 pagesize = A4,
-#                                 leftMargin = 0.25 * inch,
-#                                 rightMargin = 0.25 * inch,
-#                                 topMargin = 0.25 * inch,
-#                                 bottomMargin = 0.25 * inch)      
+        doc = SimpleDocTemplate(os.path.join(file_path, file_name), 
+                                pagesize = A4,
+                                leftMargin = 0.25 * inch,
+                                rightMargin = 0.25 * inch,
+                                topMargin = 0.25 * inch,
+                                bottomMargin = 0.25 * inch)      
         
-#         for library_folder in os.listdir(file_path):
-#             library_path = os.path.join(file_path,library_folder)
-#             if os.path.isdir(library_path) and ".git" not in library_folder:
-#                 self.create_header(library_folder, font_size=20)
-#                 for category_folder in os.listdir(library_path):
-#                     category_path = os.path.join(file_path,library_folder,category_folder)
-#                     if os.path.isdir(category_path):
-#                         self.create_header(category_folder, font_size=10)
-#                         self.create_img_table(category_path)
+        for library_folder in os.listdir(file_path):
+            library_path = os.path.join(file_path,library_folder)
+            if os.path.isdir(library_path) and ".git" not in library_folder:
+                self.create_header(library_folder, font_size=20)
+                for category_folder in os.listdir(library_path):
+                    category_path = os.path.join(file_path,library_folder,category_folder)
+                    if os.path.isdir(category_path):
+                        self.create_header(category_folder, font_size=10)
+                        self.create_img_table(category_path)
 
-#         doc.build(self.elements)
-#         return {'FINISHED'}
+        doc.build(self.elements)
+        return {'FINISHED'}
+
+
+class home_builder_OT_create_2d_views(bpy.types.Operator):
+    bl_idname = "home_builder.create_2d_views"
+    bl_label = "Create 2D Views"
+    
+    # def invoke(self,context,event):
+    #     wm = context.window_manager
+    #     return wm.invoke_props_dialog(self, width=300)
+
+    # def draw(self, context):
+    #     layout = self.layout
+    #     layout.label(text="Are you sure you want to reload the pointer files?")
+    #     layout.label(text="This will set Material, Door Fronts, and Hardware")
+    #     layout.label(text="pointers back to the default.")
+
+    def execute(self, context):
+        
+        return {'FINISHED'}
+
 
 classes = (
     room_builder_OT_activate,
@@ -1347,6 +1367,7 @@ classes = (
     home_builder_OT_delete_assembly,
     home_builder_OT_reload_pointers,
     # home_builder_OT_create_library_pdf,
+    home_builder_OT_create_2d_views,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

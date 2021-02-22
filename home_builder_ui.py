@@ -60,6 +60,25 @@ class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
         props.draw(layout)
 
 
+class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Home Builder"
+    bl_category = "Home Builder"    
+    bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator('home_builder.create_2d_views')
+        #Cabinet Props
+        #Wall Props
+        #2D Drawings
+
+
 class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
     bl_label = "Asset Commands"
 
@@ -76,7 +95,6 @@ class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
         layout.operator('home_builder.create_new_asset',icon='ADD')
         
 
-
 class HOME_BUILDER_MT_pointer_menu(bpy.types.Menu):
     bl_label = "Pointer Menu"
 
@@ -92,11 +110,13 @@ class HOME_BUILDER_UL_assets(bpy.types.UIList):
         layout.label(text=item.name)
         layout.prop(item,'is_selected',text="")
 
+
 classes = (
     FILEBROWSER_PT_home_builder_headers,
     HOME_BUILDER_MT_category_menu,
     HOME_BUILDER_PT_library_settings,
     HOME_BUILDER_MT_asset_commands_menu,
+    HOME_BUILDER_PT_pc_home_builder_properties,
     HOME_BUILDER_UL_assets,
     HOME_BUILDER_MT_pointer_menu,
 )
