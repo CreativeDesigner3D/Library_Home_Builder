@@ -1,10 +1,8 @@
 import site
 import os
-
-# process *.pth in /libs/site/packages to setup globally importable modules
-# 3 levels deep required by occ static ../../ path
-cwd = os.path.dirname(os.path.realpath(__file__))
-site.addsitedir(os.path.join(cwd, "libs", "site", "packages"))
+import sys
+PATH = os.path.join(os.path.dirname(__file__),"python_libs")
+sys.path.append(PATH)
 
 import bpy
 import inspect

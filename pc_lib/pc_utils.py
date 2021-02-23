@@ -128,7 +128,7 @@ def select_obj_list(obj_list):
     This function selects every object in the list
     '''
     for obj in obj_list:
-        if obj.type != 'EMPTY' and obj.hide_render == False:
+        if obj.type != 'EMPTY' and obj.hide_render == False and obj.name in bpy.context.view_layer.objects:
             obj.hide_select = False
             obj.hide_viewport = False
             obj.select_set(True)

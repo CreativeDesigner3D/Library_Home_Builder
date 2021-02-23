@@ -273,7 +273,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
     def modal(self, context, event):
         bpy.ops.object.select_all(action='DESELECT')
 
-        context.area.tag_redraw()
+        context.view_layer.update()
         #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
         self.cabinet.obj_z.empty_display_size = .001
         self.cabinet.obj_z.hide_viewport = False

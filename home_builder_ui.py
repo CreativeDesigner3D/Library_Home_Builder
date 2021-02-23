@@ -63,8 +63,8 @@ class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
 class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Home Builder"
-    bl_category = "Home Builder"    
+    bl_label = "2D Drawings"
+    bl_category = "2D Drawings"    
     bl_options = {'HIDE_HEADER'}
 
     @classmethod
@@ -73,7 +73,15 @@ class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator('home_builder.create_2d_views')
+        row = layout.row()
+        row.scale_y = 1.3
+        row.operator('home_builder.create_2d_views',text="Create Elevation Views",icon='CON_SIZELIMIT')
+        row = layout.row()
+        row.scale_y = 1.3        
+        row.operator('home_builder.create_2d_views',text="Create Cabinet Views",icon='CON_SAMEVOL')
+        row = layout.row()
+        row.scale_y = 1.3        
+        row.operator('home_builder.create_2d_views',text="Create Part Views",icon='MOD_BEVEL')
         #Cabinet Props
         #Wall Props
         #2D Drawings
