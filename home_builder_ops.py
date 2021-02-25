@@ -1333,19 +1333,28 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         return walls
 
     def create_elevation_layout(self,context,wall):
+        for scene in bpy.data.scenes:
+            if not scene.pyclone.is_view_scene:
+                context.window.scene = scene
+                break
         collection = wall.create_assembly_collection(wall.obj_bp.name)
 
         bpy.ops.scene.new(type='EMPTY')
         layout = pc_types.Assembly_Layout(context.scene)
         layout.setup_assembly_layout()
         wall_view = layout.add_assembly_view(collection)
-        wall_view.location = (0.048988,0,0.05597)
+        # wall_view.location = (0.048988,0,0.05597)
+        wall_view.rotation_euler.z = wall.obj_bp.rotation_euler.z *-1
+        wall_view.location.x = wall.obj_bp.location.x *-1
+        wall_view.location.y = wall.obj_bp.location.y *-1
+        wall_view.location.z = wall.obj_bp.location.z *-1
         layout.add_layout_camera()   
         layout.scene.world = self.model_scene.world
 
         context.scene.pyclone.fit_to_paper = False
         context.scene.pyclone.page_scale_unit_type = 'METRIC'
         context.scene.pyclone.metric_page_scale = '1:30'    
+
 
         self.add_title_block(layout,"Wall","1")    
 
@@ -1399,7 +1408,6 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         self.model_scene = context.scene
         walls = self.get_wall_assemblies()
         for wall in walls:
-            print('Wall',wall)
             self.create_elevation_layout(context,pc_types.Assembly(wall))
 
         images = []
