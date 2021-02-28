@@ -450,7 +450,7 @@ class Title_Block(Assembly):
     def create_title_block(self,layout_view):
         collection = layout_view.dimension_collection
 
-        PATH = os.path.join(os.path.dirname(__file__),'assets',"Title_BlockCT.blend")
+        PATH = os.path.join(os.path.dirname(__file__),'assets',"Title_Block.blend")
 
         with bpy.data.libraries.load(PATH, False, False) as (data_from, data_to):
             data_to.objects = data_from.objects
