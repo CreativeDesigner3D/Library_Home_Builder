@@ -1393,7 +1393,6 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         context.scene.pyclone.page_scale_unit_type = 'METRIC'
         context.scene.pyclone.metric_page_scale = '1:30'    
 
-
         self.add_title_block(layout,"Wall","1")    
 
     def render_scene(self,context,scene):
@@ -1420,7 +1419,7 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         title_block = pc_types.Title_Block()
         title_block.create_title_block(layout)
         title_block.obj_bp.rotation_euler.x = math.radians(90)
-        # title_block.obj_drawing_title.data.body = "20' Greenhouse"
+        # title_block.obj_drawing_title.data.body = "Title"
         # title_block.obj_description.data.body = description
         # title_block.obj_scale.data.body = "1 : 30"
         # title_block.obj_drawing_number.data.body = number
@@ -1447,7 +1446,7 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         walls = self.get_wall_assemblies()
         for wall in walls:
             self.create_elevation_layout(context,pc_types.Assembly(wall))
-
+        context.window_manager.pyclone.scene_index = len(bpy.data.scenes) - 1
         # images = []
         # for scene in bpy.data.scenes:
         #     if scene.pyclone.is_view_scene:
