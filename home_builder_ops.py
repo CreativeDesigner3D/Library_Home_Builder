@@ -354,6 +354,44 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_update_selected_pulls(bpy.types.Operator):
+    bl_idname = "home_builder.update_selected_pulls"
+    bl_label = "Update Selected Pulls"
+    
+    def execute(self, context):
+        pull_objs = []
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+
+        for obj in context.selected_objects:
+            if "IS_CABINET_PULL" in obj and obj["IS_CABINET_PULL"]:
+                pull_objs.append(obj)
+
+        for pull in pull_objs:
+            props = home_builder_utils.get_object_props(pull)
+            exterior_bp = home_builder_utils.get_exterior_bp(pull)
+            pointer = TempPointer()
+            pointer.name = props.pointer_name
+            pointer.category = scene_props.pull_category
+            pointer.item_name = scene_props.pull_name            
+            pull_path = os.path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
+            new_pull = home_builder_utils.get_object(pull_path)
+            new_pull_props = home_builder_utils.get_object_props(new_pull)
+            new_pull_props.pointer_name = pointer.name
+            new_pull.parent = pull.parent
+            new_pull["IS_CABINET_PULL"] = True
+            context.view_layer.active_layer_collection.collection.objects.link(new_pull)
+            home_builder_pointers.assign_pointer_to_object(new_pull,"Cabinet Pull Finish")
+            if exterior_bp:
+                exterior = pc_types.Assembly(exterior_bp)
+                pull_length = exterior.get_prompt("Pull Length")    
+                if pull_length:
+                    pull_length.set_value(round(new_pull.dimensions.x,2))  
+                exterior_bp.location = exterior_bp.location 
+
+        pc_utils.delete_obj_list(pull_objs)
+        return {'FINISHED'}
+
+
 class home_builder_OT_update_all_cabinet_doors(bpy.types.Operator):
     bl_idname = "home_builder.update_all_cabinet_doors"
     bl_label = "Update All Cabinet Doors"
@@ -1410,13 +1448,13 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         for wall in walls:
             self.create_elevation_layout(context,pc_types.Assembly(wall))
 
-        images = []
-        for scene in bpy.data.scenes:
-            if scene.pyclone.is_view_scene:
-                file_path = self.render_scene(context,scene)
-                images.append(file_path + ".png")
+        # images = []
+        # for scene in bpy.data.scenes:
+        #     if scene.pyclone.is_view_scene:
+        #         file_path = self.render_scene(context,scene)
+        #         images.append(file_path + ".png")
 
-        self.create_pdf(context,images)
+        # self.create_pdf(context,images)
 
         return {'FINISHED'}
 
@@ -1432,6 +1470,7 @@ classes = (
     home_builder_OT_update_scene_materials,
     home_builder_OT_update_material_pointer,
     home_builder_OT_update_scene_pulls,
+    home_builder_OT_update_selected_pulls,
     home_builder_OT_update_all_cabinet_doors,
     home_builder_OT_update_selected_cabinet_doors,
     home_builder_OT_update_pull_pointer,

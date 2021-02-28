@@ -3,6 +3,7 @@ import os
 from . import home_builder_utils
 from . import home_builder_paths
 from .pc_lib import pc_utils
+from .cabinets import data_cabinets
 
 class FILEBROWSER_PT_home_builder_headers(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'
@@ -63,8 +64,8 @@ class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
 class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "2D Drawings"
-    bl_category = "2D Drawings"    
+    bl_label = "Home Builder"
+    bl_category = "Home Builder"    
     bl_options = {'HIDE_HEADER'}
 
     @classmethod
@@ -73,19 +74,65 @@ class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row.scale_y = 1.3
-        row.operator('home_builder.create_2d_views',text="Create Elevation Views",icon='CON_SIZELIMIT')
-        row = layout.row()
-        row.scale_y = 1.3        
-        row.operator('home_builder.create_2d_views',text="Create Cabinet Views",icon='CON_SAMEVOL')
-        row = layout.row()
-        row.scale_y = 1.3        
-        row.operator('home_builder.create_2d_views',text="Create Part Views",icon='MOD_BEVEL')
-        #Cabinet Props
-        #Wall Props
-        #2D Drawings
 
+        props = home_builder_utils.get_scene_props(context.scene)
+
+        # row = layout.row(align=True)
+        # row.scale_y = 1.3
+        # row.prop_enum(props, "sidebar_tabs", 'PROPERTIES', icon='SETTINGS', text="Properties") 
+        # row.prop_enum(props, "sidebar_tabs", 'TOOLS', icon='MODIFIER_ON', text="Tools") 
+     
+        # if props.sidebar_tabs == 'PROPERTIES':
+        if not context.object:
+            return
+        obj_bp = pc_utils.get_assembly_bp(context.object)
+        cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
+        exterior_bp = home_builder_utils.get_exterior_bp(context.object)
+        wall_bp = home_builder_utils.get_wall_bp(context.object)
+
+        if wall_bp:
+            box = layout.box()
+            row = box.row()
+            row.prop(props,'show_wall_options',text="Wall Commands",emboss=False,icon='TRIA_DOWN' if props.show_wall_options else 'TRIA_RIGHT')
+            if props.show_wall_options:
+                row = box.row()
+                row.operator('home_builder.create_2d_views',text="Create Elevation Views",icon='CON_SIZELIMIT')
+
+        if cabinet_bp:
+            box = layout.box()
+            row = box.row()
+            row.prop(props,'show_cabinet_tools',text="Cabinet Commands",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_tools else 'TRIA_RIGHT')
+            if props.show_cabinet_tools:
+                col = box.column(align=True)
+                col.label(text="Name - " + cabinet_bp.name)
+                col.operator('home_builder.cabinet_prompts',icon='WINDOW')
+                col.operator('home_builder.move_cabinet',text="Place Cabinet",icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
+                col.operator('home_builder.free_move_cabinet',text="Grab",icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
+                col.operator('home_builder.duplicate_cabinet',text="Duplicate",icon='DUPLICATE').obj_bp_name = cabinet_bp.name  
+                if exterior_bp:
+                    col.operator('home_builder.change_cabinet_exterior',text="Change Cabinet Exterior",icon='FILE_REFRESH')
+                col.operator('home_builder.delete_assembly',text="Delete Cabinet",icon='X').obj_name = cabinet_bp.name
+
+            row = box.row()
+            row.prop(props,'show_cabinet_front_tools',text="Cabinet Fronts",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_front_tools else 'TRIA_RIGHT')
+            if props.show_cabinet_front_tools:
+                box.prop(props,'cabinet_door_category',text="",icon='FILE_FOLDER')  
+                box.template_icon_view(props,"cabinet_door_name",show_labels=True)              
+                row = box.row()
+                row.operator('home_builder.update_selected_cabinet_doors',text="Update Selected Front",icon='RESTRICT_SELECT_OFF')
+
+            row = box.row()
+            row.prop(props,'show_hardware_tools',text="Cabinet Hardware",emboss=False,icon='TRIA_DOWN' if props.show_hardware_tools else 'TRIA_RIGHT')            
+            if props.show_hardware_tools:
+                box.prop(props,'pull_category',text="",icon='FILE_FOLDER')  
+                box.template_icon_view(props,"pull_name",show_labels=True)          
+                row = box.row()
+                row.operator('home_builder.update_selected_pulls',text="Update Selected Hardware",icon='RESTRICT_SELECT_OFF')
+
+
+        #Appliances
+        #Cabinet Prompts
+        #Doors and Windows
 
 class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
     bl_label = "Asset Commands"

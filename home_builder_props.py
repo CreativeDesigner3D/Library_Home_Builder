@@ -105,7 +105,7 @@ def update_active_asset_index(self,context):
     active_asset = self.active_asset_collection[self.active_asset_index]
     self.active_assets = active_asset.name
 
-class Home_Builder_Scene_Props(PropertyGroup):
+class Home_Builder_Scene_Props(PropertyGroup):    
     ui_tabs: EnumProperty(name="UI Tabs",
                           items=[('DEFAULTS',"Library","Default Library Settings"),
                                  ('MATERIALS',"Materials","Show the Material Options"),
@@ -144,6 +144,23 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                     ('WINDOW_INSERTS',"Window Inserts","Show the Window Inserts")],
                              default='PYTHON',
                              update=home_builder_enums.update_active_asset_tab)
+
+    sidebar_tabs: EnumProperty(name="Sidebar Tabs",
+                          items=[('PROPERTIES',"Properties","Properties"),
+                                 ('TOOLS',"Tools","Tools")],
+                          default='PROPERTIES')
+    show_wall_options: bpy.props.BoolProperty(name="Show Wall Options",
+                                           description="Show Wall Options",
+                                           default=False)
+    show_cabinet_tools: bpy.props.BoolProperty(name="Show Cabinet Tools",
+                                           description="Show Cabinet Tools",
+                                           default=False)                                                
+    show_cabinet_front_tools: bpy.props.BoolProperty(name="Show Cabinet Front Tools",
+                                           description="Show Cabinet Front Tools",
+                                           default=False)                                           
+    show_hardware_tools: bpy.props.BoolProperty(name="Show Hardware Tools",
+                                           description="Show Hardware Tools",
+                                           default=False)
 
     active_category: StringProperty(name="Active Category")
 

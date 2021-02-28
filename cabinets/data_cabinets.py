@@ -220,6 +220,7 @@ class Cabinet(pc_types.Assembly):
         self.countertop.dim_x('width+ctop_overhang_left+ctop_overhang_right',[width,ctop_overhang_left,ctop_overhang_right])
         self.countertop.dim_y('depth-(ctop_overhang_front+ctop_overhang_back)',[depth,ctop_overhang_front,ctop_overhang_back])
 
+
 class Standard_Cabinet(Cabinet):
     show_in_library = True
     category_name = "Cabinets"
