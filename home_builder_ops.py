@@ -1,4 +1,4 @@
-import bpy,os,inspect
+import bpy,os,inspect, sys
 import math
 import subprocess
 import codecs
@@ -25,6 +25,12 @@ from .cabinets import cabinet_utils
 from . import home_builder_pointers
 from . import home_builder_utils
 from . import home_builder_paths
+
+try:
+    import reportlab
+except ModuleNotFoundError:
+    PATH = os.path.join(os.path.dirname(__file__),"python_libs")
+    sys.path.append(PATH)
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import legal,letter,inch,cm
