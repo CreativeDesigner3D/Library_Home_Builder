@@ -1,7 +1,6 @@
 import bpy
 import os
 import math
-import time
 import inspect
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import cabinet_library
