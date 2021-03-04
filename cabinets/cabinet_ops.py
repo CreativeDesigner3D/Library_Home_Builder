@@ -1,6 +1,7 @@
 import bpy
 import os
 import math
+import time
 import inspect
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import cabinet_library
@@ -47,7 +48,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
-    
+
     cabinet = None
     selected_cabinet = None
 
@@ -73,7 +74,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         self.selected_cabinet = None    
         self.next_wall = None
         self.previous_wall = None  
-        self.placement = ''  
+        self.placement = ''
 
     def reset_properties(self):
         self.cabinet = None
@@ -98,8 +99,42 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
 
-    def position_cabinet(self,mouse_location,selected_obj,event):
+    def accumulate_z_rotation(self,selected_obj,start = 0):
+        ##recursive parent traverser accumulating all rotations ie. total heirarchy rotation
+        rotations = [start]
+        if selected_obj.parent:
+            rotations.append(selected_obj.parent.rotation_euler.z)
+            return self.accumulate_z_rotation(selected_obj.parent,sum(rotations))
+        else:
+            return start
+
+    def rotate_to_normal(self,selected_normal):
+        ## cabinet vector
+        base_vect = Vector((0, -1, 0))
+
+        if selected_normal.y == 1:
+            ## if Vector(0,1,0) it is a negative vector relationship with cabinet Vector(0,-1,0)
+            ## quaternion calcs fail with these, 180 rotation is all thats required
+            self.cabinet.obj_bp.rotation_euler.z =+ math.radians(180)
+
+        else:
+            ## Vector.rotation_difference() returns quaternion rotation so change mode
+            self.cabinet.obj_bp.rotation_mode = 'QUATERNION'
+            ## quaternion calc - required rotation to align cab to face
+            rot_quat = base_vect.rotation_difference(selected_normal)
+
+            self.cabinet.obj_bp.rotation_quaternion = rot_quat
+            self.cabinet.obj_bp.rotation_mode = 'XYZ'
+
+    def position_cabinet(self,mouse_location,selected_obj,event,cursor_z,selected_normal):
+
+        ##get roatations from parent heirarchy
+        parented_rotation_sum = self.accumulate_z_rotation(selected_obj)
+        self.select_obj_unapplied_rot = selected_obj.rotation_euler.z + parented_rotation_sum
+
+        self.selected_normal = selected_normal
         cabinet_bp = home_builder_utils.get_cabinet_bp(selected_obj)
+
         if not cabinet_bp:
             cabinet_bp = home_builder_utils.get_appliance_bp(selected_obj)
 
@@ -124,12 +159,13 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
             if wall_bp:
                 self.current_wall = pc_types.Assembly(wall_bp)
-                rot += self.current_wall.obj_bp.rotation_euler.z      
+                rot += self.current_wall.obj_bp.rotation_euler.z
             if self.has_height_collision(self.selected_cabinet):
                 if dist_to_bp < dist_to_x:
                     self.placement = 'LEFT'
                     add_x_loc = 0
                     add_y_loc = 0
+
                     # if sel_product.obj_bp.mv.placement_type == 'Corner':
                     #     rot += math.radians(90)
                     #     add_x_loc = math.cos(rot) * sel_product.obj_y.location.y
@@ -149,11 +185,17 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.location.y = y_loc
 
         elif wall_bp:
+
             self.placement = 'WALL'
             self.current_wall = pc_types.Assembly(wall_bp)
             self.cabinet.obj_bp.rotation_euler = self.current_wall.obj_bp.rotation_euler
+            ## negative vectors aka directly opposing (cabinet and wall)
+            ## in this instance quaternion calcs fail and 180 rotation used to handle
+            if self.selected_normal.y == 1:
+                self.cabinet.obj_bp.rotation_euler.z += math.radians(180)
             self.cabinet.obj_bp.location.x = mouse_location[0]
             self.cabinet.obj_bp.location.y = mouse_location[1]
+
 
         else:
 
@@ -165,9 +207,22 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.location.x = mouse_location[0]
             self.cabinet.obj_bp.location.y = mouse_location[1]
 
+            ## if selected object is vertical ie wall
+            if selected_normal.z == 0:
+                self.rotate_to_normal(selected_normal)
+                self.cabinet.obj_bp.rotation_euler.z += self.select_obj_unapplied_rot
+
+            ## else its not a wall object so treat as free standing cabinet, take rotation of floor
+            ## could prob also use transform orientation to allow for custom transform orientations
+            else:
+                self.cabinet.obj_bp.rotation_euler.z = selected_obj.rotation_euler.z
+
+            self.cabinet.obj_bp.location.z = self.base_height + cursor_z
+
     def get_cabinet(self,context):
+
         directory, file = os.path.split(self.filepath)
-        filename, ext = os.path.splitext(file)   
+        filename, ext = os.path.splitext(file)
 
         wm_props = home_builder_utils.get_wm_props(context.window_manager)
         self.cabinet = wm_props.get_asset(self.filepath)
@@ -177,6 +232,12 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.draw()
         self.cabinet.set_name(filename)
         self.set_child_properties(self.cabinet.obj_bp)
+
+        ## added base_height to handle upper cabinets in position_cabinet. Can't use += as it accumulates
+        ## with each mouseMove event, maintains difference between lower and upper cabinets
+        self.base_height = self.cabinet.obj_bp.location.z
+        self.base_cabinet = self.cabinet
+
 
     def has_height_collision(self,assembly):
         cab1_z_1 = self.cabinet.obj_bp.matrix_world[2][3]
@@ -240,10 +301,24 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             x_loc = pc_utils.calc_distance((self.cabinet.obj_bp.location.x,self.cabinet.obj_bp.location.y,0),
                                            (self.current_wall.obj_bp.matrix_local[0][3],self.current_wall.obj_bp.matrix_local[1][3],0))
 
-            self.cabinet.obj_bp.location = (0,0,self.cabinet.obj_bp.location.z)
-            self.cabinet.obj_bp.rotation_euler = (0,0,0)
+            ## if backside, Vector(0,1,0) this is a negative vector relationship with cabinet Vector(0,-1,0)
+            ## quaternion calcs fail with these, 180 rotation is all thats required
+
+            if self.selected_normal.y == 1:
+                self.cabinet.obj_bp.rotation_euler = (0, 0,math.radians(180))
+                self.cabinet.obj_bp.location = (0, self.current_wall.obj_y.location.y, self.cabinet.obj_bp.location.z - context.scene.cursor.location.z)
+
+            elif self.selected_cabinet:
+                self.cabinet.obj_bp.rotation_euler = self.selected_cabinet.obj_bp.rotation_euler
+                self.cabinet.obj_bp.location = (0, self.selected_cabinet.obj_bp.location.y, self.cabinet.obj_bp.location.z - context.scene.cursor.location.z)
+
+            else:
+                self.cabinet.obj_bp.rotation_euler = (0, 0, 0)
+                self.cabinet.obj_bp.location = (0, 0, self.cabinet.obj_bp.location.z - context.scene.cursor.location.z)
+
             self.cabinet.obj_bp.parent = self.current_wall.obj_bp
             self.cabinet.obj_bp.location.x = x_loc
+
 
         if self.placement == 'LEFT':
             self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
@@ -255,6 +330,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             constraint.use_z = False
 
         if self.placement == 'RIGHT':
+
             self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
             constraint_obj = self.selected_cabinet.obj_x
             constraint = self.cabinet.obj_bp.constraints.new('COPY_LOCATION')
@@ -268,12 +344,13 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         self.set_child_properties(self.cabinet.obj_bp)
         for cal in self.calculators:
             cal.calculate()
-        self.refresh_data(False)  
+        self.refresh_data(False)
 
     def modal(self, context, event):
+        print(event)
         bpy.ops.object.select_all(action='DESELECT')
 
-        context.view_layer.update()
+        context.area.tag_redraw()
         #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
         self.cabinet.obj_z.empty_display_size = .001
         self.cabinet.obj_z.hide_viewport = False
@@ -285,19 +362,25 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         self.mouse_y = event.mouse_y
         self.reset_selection()
 
-        selected_point, selected_obj = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
+        ## selected_normal added in to pass this info on from ray cast to position_cabinet
+        selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
 
-        self.position_cabinet(selected_point,selected_obj,event)
+        ## cursor_z added to allow for multi level placement
+        cursor_z = context.scene.cursor.location.z
+
+        self.position_cabinet(selected_point,selected_obj,event,cursor_z,selected_normal)
 
         if self.event_is_place_first_point(event):
             self.confirm_placement(context)
+
             return self.finish(context)
             
         if self.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
         if self.event_is_pass_through(event):
-            return {'PASS_THROUGH'} 
+            return {'PASS_THROUGH'}
+
 
         return {'RUNNING_MODAL'}
 
@@ -364,6 +447,8 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         self.set_placed_properties(self.cabinet.obj_bp) 
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
+        ## keep placing until event_is_cancel_command
+        bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
         return {'FINISHED'}
 
 
@@ -584,7 +669,7 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
         self.mouse_y = event.mouse_y
         self.reset_selection()
 
-        selected_point, selected_obj = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
+        selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
 
         self.position_cabinet(selected_point,selected_obj,event)
 
@@ -1752,23 +1837,23 @@ def register():
     bpy.utils.register_class(home_builder_OT_update_prompts)  
     bpy.utils.register_class(home_builder_OT_move_cabinet)  
     bpy.utils.register_class(home_builder_OT_duplicate_cabinet)  
-    bpy.utils.register_class(home_builder_OT_free_move_cabinet)  
-    
+    bpy.utils.register_class(home_builder_OT_free_move_cabinet)
+
 
 def unregister():
-    bpy.utils.unregister_class(home_builder_OT_place_cabinet)  
-    bpy.utils.unregister_class(home_builder_OT_cabinet_prompts)   
-    bpy.utils.unregister_class(home_builder_OT_change_cabinet_exterior) 
-    bpy.utils.unregister_class(home_builder_OT_range_prompts) 
-    bpy.utils.unregister_class(home_builder_OT_dishwasher_prompts)  
-    bpy.utils.unregister_class(home_builder_OT_refrigerator_prompts)  
-    bpy.utils.unregister_class(HOMEBUILDER_MT_cabinet_menu)       
-    bpy.utils.unregister_class(home_builder_OT_delete_cabinet)        
-    bpy.utils.unregister_class(home_builder_OT_delete_part)      
-    bpy.utils.unregister_class(home_builder_OT_part_prompts) 
-    bpy.utils.unregister_class(home_builder_OT_edit_part)   
-    bpy.utils.unregister_class(home_builder_OT_update_cabinet_lighting)  
-    bpy.utils.unregister_class(home_builder_OT_update_prompts)  
-    bpy.utils.unregister_class(home_builder_OT_move_cabinet)  
-    bpy.utils.unregister_class(home_builder_OT_duplicate_cabinet)  
+    bpy.utils.unregister_class(home_builder_OT_place_cabinet)
+    bpy.utils.unregister_class(home_builder_OT_cabinet_prompts)
+    bpy.utils.unregister_class(home_builder_OT_change_cabinet_exterior)
+    bpy.utils.unregister_class(home_builder_OT_range_prompts)
+    bpy.utils.unregister_class(home_builder_OT_dishwasher_prompts)
+    bpy.utils.unregister_class(home_builder_OT_refrigerator_prompts)
+    bpy.utils.unregister_class(HOMEBUILDER_MT_cabinet_menu)
+    bpy.utils.unregister_class(home_builder_OT_delete_cabinet)
+    bpy.utils.unregister_class(home_builder_OT_delete_part)
+    bpy.utils.unregister_class(home_builder_OT_part_prompts)
+    bpy.utils.unregister_class(home_builder_OT_edit_part)
+    bpy.utils.unregister_class(home_builder_OT_update_cabinet_lighting)
+    bpy.utils.unregister_class(home_builder_OT_update_prompts)
+    bpy.utils.unregister_class(home_builder_OT_move_cabinet)
+    bpy.utils.unregister_class(home_builder_OT_duplicate_cabinet)
     bpy.utils.unregister_class(home_builder_OT_free_move_cabinet)
