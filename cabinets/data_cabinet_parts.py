@@ -151,6 +151,7 @@ def add_door_part(assembly,pointer):
 def add_carcass_part(assembly):
     part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp['IS_CUTPART_BP'] = True
     assembly.add_assembly(part)
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
@@ -165,6 +166,7 @@ def add_carcass_part(assembly):
 def add_carcass_bottom(assembly):
     part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp['IS_CUTPART_BP'] = True
     assembly.add_assembly(part)
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
@@ -179,6 +181,7 @@ def add_carcass_bottom(assembly):
 def add_double_sided_part(assembly):
     part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp['IS_CUTPART_BP'] = True
     assembly.add_assembly(part)
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
@@ -193,6 +196,7 @@ def add_double_sided_part(assembly):
 def add_cabinet_shelf(assembly):
     part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Z Array Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp['IS_CUTPART_BP'] = True
     assembly.add_assembly(part)
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
