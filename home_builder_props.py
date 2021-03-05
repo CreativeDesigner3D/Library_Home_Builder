@@ -161,6 +161,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
     show_hardware_tools: bpy.props.BoolProperty(name="Show Hardware Tools",
                                            description="Show Hardware Tools",
                                            default=False)
+    show_2d_view_options: bpy.props.BoolProperty(name="Show 2D View Options",
+                                           description="Show 2D View Options",
+                                           default=False)
 
     active_category: StringProperty(name="Active Category")
 

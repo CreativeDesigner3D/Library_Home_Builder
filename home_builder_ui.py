@@ -96,7 +96,7 @@ class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
             row.prop(props,'show_wall_options',text="Wall Commands",emboss=False,icon='TRIA_DOWN' if props.show_wall_options else 'TRIA_RIGHT')
             if props.show_wall_options:
                 row = box.row()
-                row.operator('home_builder.create_2d_views',text="Create Elevation Views",icon='CON_SIZELIMIT')
+                row.operator('home_builder.wall_prompts',text="Wall Prompts",icon='WINDOW')
 
         if cabinet_bp:
             box = layout.box()
@@ -112,7 +112,7 @@ class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
                 if exterior_bp:
                     col.operator('home_builder.change_cabinet_exterior',text="Change Cabinet Exterior",icon='FILE_REFRESH')
                 col.operator('home_builder.delete_assembly',text="Delete Cabinet",icon='X').obj_name = cabinet_bp.name
-
+                
             row = box.row()
             row.prop(props,'show_cabinet_front_tools',text="Cabinet Fronts",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_front_tools else 'TRIA_RIGHT')
             if props.show_cabinet_front_tools:
@@ -129,6 +129,12 @@ class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
                 row = box.row()
                 row.operator('home_builder.update_selected_pulls',text="Update Selected Hardware",icon='RESTRICT_SELECT_OFF')
 
+        box = layout.box()
+        row = box.row()
+        row.prop(props,'show_2d_view_options',text="2D View Commands",emboss=False,icon='TRIA_DOWN' if props.show_2d_view_options else 'TRIA_RIGHT')            
+        if props.show_2d_view_options:
+            box.operator('home_builder.create_2d_views',text="Create Elevation Views",icon='CON_SIZELIMIT')
+            box.operator('home_builder.create_2d_cabinet_views',text="Create Cabinet Views",icon='CON_SIZELIMIT')
 
         #Appliances
         #Cabinet Prompts

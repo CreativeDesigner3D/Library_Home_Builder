@@ -1464,6 +1464,109 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_create_2d_cabinet_views(bpy.types.Operator):
+    bl_idname = "home_builder.create_2d_cabinet_views"
+    bl_label = "Create 2D Cabinet Views"
+    
+    model_scene = None
+
+    def get_cabinet_assemblies(self):
+        cabinets = []
+        for obj in bpy.data.objects:
+            cabinet_bp = home_builder_utils.get_cabinet_bp(obj)
+            if cabinet_bp and cabinet_bp not in cabinets:
+                cabinets.append(cabinet_bp)
+        return cabinets
+
+    def create_cabinet_layout(self,context,cabinet):
+        for scene in bpy.data.scenes:
+            if not scene.pyclone.is_view_scene:
+                context.window.scene = scene
+                break
+        collection = cabinet.create_assembly_collection(cabinet.obj_bp.name)
+
+        bpy.ops.scene.new(type='EMPTY')
+        layout = pc_types.Assembly_Layout(context.scene)
+        layout.setup_assembly_layout()
+        cabinet_view = layout.add_assembly_view(collection)
+        # cabinet_view.location = (0.048988,0,0.05597)
+        # cabinet_view.rotation_euler.z = cabinet.obj_bp.rotation_euler.z *-1
+
+        layout.add_layout_camera()   
+        layout.scene.world = self.model_scene.world
+
+        context.scene.pyclone.fit_to_paper = False
+        context.scene.pyclone.page_scale_unit_type = 'METRIC'
+        context.scene.pyclone.metric_page_scale = '1:30'    
+
+        cabinet_view.location.x = (cabinet.obj_bp.location.x *-1) * cabinet_view.scale.x
+        cabinet_view.location.y = (cabinet.obj_bp.location.y *-1) * cabinet_view.scale.y
+        cabinet_view.location.z = (cabinet.obj_bp.location.z *-1) * cabinet_view.scale.z
+
+        self.add_title_block(layout,"Wall","1")    
+
+    def render_scene(self,context,scene):
+        context.window.scene = scene
+        filepath = os.path.join(bpy.app.tempdir,scene.name + " View")
+        render = bpy.context.scene.render
+        render.use_file_extension = True
+        render.filepath = filepath
+        bpy.ops.render.render(write_still=True)
+        return filepath
+
+    def add_title_block(self,layout,description,number):
+        today = date.today()
+        # props = bpy.context.scene.fullbloom
+        # if props.original_date == "":
+        #     props.original_date = today.strftime("%m/%d/%Y")
+
+        # if props.revision_date == "":
+        #     props.revision_date = today.strftime("%m/%d/%Y")
+
+        # if props.revision_number == "":
+        #     props.revision_number = "-"
+
+        title_block = pc_types.Title_Block()
+        title_block.create_title_block(layout)
+        title_block.obj_bp.rotation_euler.x = math.radians(90)
+        # title_block.obj_drawing_title.data.body = "Title"
+        # title_block.obj_description.data.body = description
+        # title_block.obj_scale.data.body = "1 : 30"
+        # title_block.obj_drawing_number.data.body = number
+        # title_block.obj_original_date.data.body = props.original_date
+        # title_block.obj_revision_date.data.body = props.revision_date
+        # title_block.obj_revision_number.data.body = props.revision_number
+        # title_block.obj_drawn_by.data.body = props.drawn_by
+
+    def create_pdf(self,context,images):
+        width, height = landscape(letter)
+        filepath = os.path.join(bpy.app.tempdir,"2D Views.PDF")
+        filename = "2D Views.PDF"
+        c = canvas.Canvas(filepath, pagesize=landscape(letter))
+
+        for image in images:
+            c.drawImage(image,0,0,width=width, height=height, mask='auto',preserveAspectRatio=True)  
+            c.showPage()
+        c.save()
+
+        os.system('start "Title" /D "' + bpy.app.tempdir + '" "' + filename + '"')
+
+    def execute(self, context):
+        self.model_scene = context.scene
+        walls = self.get_cabinet_assemblies()
+        for wall in walls:
+            self.create_cabinet_layout(context,pc_types.Assembly(wall))
+        context.window_manager.pyclone.scene_index = len(bpy.data.scenes) - 1
+        # images = []
+        # for scene in bpy.data.scenes:
+        #     if scene.pyclone.is_view_scene:
+        #         file_path = self.render_scene(context,scene)
+        #         images.append(file_path + ".png")
+
+        # self.create_pdf(context,images)
+
+        return {'FINISHED'}
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -1496,6 +1599,7 @@ classes = (
     home_builder_OT_reload_pointers,
     # home_builder_OT_create_library_pdf,
     home_builder_OT_create_2d_views,
+    home_builder_OT_create_2d_cabinet_views,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
