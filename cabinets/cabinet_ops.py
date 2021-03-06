@@ -128,8 +128,11 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
     def position_cabinet(self,mouse_location,selected_obj,event,cursor_z,selected_normal):
 
         ##get roatations from parent heirarchy
-        parented_rotation_sum = self.accumulate_z_rotation(selected_obj)
-        self.select_obj_unapplied_rot = selected_obj.rotation_euler.z + parented_rotation_sum
+        if selected_obj is not None:
+            parented_rotation_sum = self.accumulate_z_rotation(selected_obj)
+            self.select_obj_unapplied_rot = selected_obj.rotation_euler.z + parented_rotation_sum
+        else:
+            self.select_obj_unapplied_rot = 0
 
         self.selected_normal = selected_normal
         cabinet_bp = home_builder_utils.get_cabinet_bp(selected_obj)
