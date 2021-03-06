@@ -98,12 +98,17 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
 
-    def accumulate_z_rotation(self,selected_obj,start = 0):
+    def accumulate_z_rotation(self,selected_obj,start = 0,total = True):
         ##recursive parent traverser accumulating all rotations ie. total heirarchy rotation
         rotations = [start]
         if selected_obj.parent:
-            rotations.append(selected_obj.parent.rotation_euler.z)
-            return self.accumulate_z_rotation(selected_obj.parent,sum(rotations))
+            
+            if total:
+                rotations.append(selected_obj.parent.rotation_euler.z)
+                return self.accumulate_z_rotation(selected_obj.parent,sum(rotations))
+            else:
+                ## breaks after one parent
+                return selected_obj.parent.rotation_euler.z
         else:
             return start
 
@@ -129,9 +134,16 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
         ##get roatations from parent heirarchy
         if selected_obj is not None:
+            ##this is to block the drop if ray cast has returned nothing as xy is unattainable
+            ##without will drop at (0,0,z_cursor) but on its side, could handle the rotation for this
+            ##instance but seems like a pointless placement anyway? ties in with left click event
+            self.drop = True
+
+            ##get rotations from parent heirarchy
             parented_rotation_sum = self.accumulate_z_rotation(selected_obj)
             self.select_obj_unapplied_rot = selected_obj.rotation_euler.z + parented_rotation_sum
         else:
+            self.drop = False
             self.select_obj_unapplied_rot = 0
 
         self.selected_normal = selected_normal
@@ -162,8 +174,21 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             if wall_bp:
                 self.current_wall = pc_types.Assembly(wall_bp)
                 rot += self.current_wall.obj_bp.rotation_euler.z
+            
             if self.has_height_collision(self.selected_cabinet):
-                if dist_to_bp < dist_to_x:
+                ## Allows back of cabinet snapping
+                ## only way to get back consistently is through getting parent rotation of the back is always
+                ## 1.5707963705062866 very close to 0.5 * pi have chucked back to 5 decimal - that precison scares me :)
+                ## So wall parenting for non island bench parenting continues to work properly
+                ## have added the total input for the accumulate_z function so only
+                ## grabs first parent here (not wall_bp but all for non island setting
+
+                if not wall_bp and int(self.accumulate_z_rotation(selected_obj,0,False)*10000) == 15707:
+                    rot += math.radians(180)
+                    x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * self.cabinet.obj_x.location.x
+                    y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * self.cabinet.obj_x.location.x
+
+                elif dist_to_bp < dist_to_x:
                     self.placement = 'LEFT'
                     add_x_loc = 0
                     add_y_loc = 0
@@ -209,13 +234,14 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.location.x = mouse_location[0]
             self.cabinet.obj_bp.location.y = mouse_location[1]
 
-            ## if selected object is vertical ie wall 
+            ## if selected object is vertical ie wall
             ## or ray cast doesn't hit anything returning Vector(0,0,0) ie selected_object
-            ## is None and self.select_obj_unapplied_rot = 0
-            
+            ## is None and self.drop is False
+
             if selected_normal.z == 0:
-                self.rotate_to_normal(selected_normal)
-                self.cabinet.obj_bp.rotation_euler.z += self.select_obj_unapplied_rot
+                if self.drop:
+                    self.rotate_to_normal(selected_normal)
+                    self.cabinet.obj_bp.rotation_euler.z += self.select_obj_unapplied_rot
 
             ## else its not a wall object so treat as free standing cabinet, take rotation of floor
             ## could prob also use transform orientation to allow for custom transform orientations
@@ -404,11 +430,11 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
     def event_is_place_first_point(self,event):
         if self.starting_point != ():
             return False
-        if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
+        if event.type == 'LEFTMOUSE' and event.value == 'PRESS' and self.drop:
             return True
-        elif event.type == 'NUMPAD_ENTER' and event.value == 'PRESS':
+        elif event.type == 'NUMPAD_ENTER' and event.value == 'PRESS' and self.drop:
             return True
-        elif event.type == 'RET' and event.value == 'PRESS':
+        elif event.type == 'RET' and event.value == 'PRESS' and self.drop:
             return True
         else:
             return False
