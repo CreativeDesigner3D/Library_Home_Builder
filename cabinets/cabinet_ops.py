@@ -209,7 +209,10 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.location.x = mouse_location[0]
             self.cabinet.obj_bp.location.y = mouse_location[1]
 
-            ## if selected object is vertical ie wall
+            ## if selected object is vertical ie wall 
+            ## or ray cast doesn't hit anything returning Vector(0,0,0) ie selected_object
+            ## is None and self.select_obj_unapplied_rot = 0
+            
             if selected_normal.z == 0:
                 self.rotate_to_normal(selected_normal)
                 self.cabinet.obj_bp.rotation_euler.z += self.select_obj_unapplied_rot
