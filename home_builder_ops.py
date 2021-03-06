@@ -1386,18 +1386,36 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         bpy.ops.scene.new(type='EMPTY')
         layout = pc_types.Assembly_Layout(context.scene)
         layout.setup_assembly_layout()
+        layout.scene.name = wall.obj_bp.name
         wall_view = layout.add_assembly_view(collection)
-        # wall_view.location = (0.048988,0,0.05597)
-        wall_view.rotation_euler.z = wall.obj_bp.rotation_euler.z *-1
-        wall_view.location.x = wall.obj_bp.location.x *-1
-        wall_view.location.y = wall.obj_bp.location.y *-1
-        wall_view.location.z = wall.obj_bp.location.z *-1
+        
         layout.add_layout_camera()   
         layout.scene.world = self.model_scene.world
+        layout.camera.parent = wall.obj_bp
+
+        dim = pc_types.Dimension()
+        dim.create_dimension(layout)
+        dim.obj_bp.rotation_euler.x = math.radians(-90)
+        dim.obj_bp.rotation_euler.y = 0
+        dim.obj_y.location.y = .2
+        dim.obj_bp.parent = wall_view
+        dim.obj_bp.location = wall.obj_bp.matrix_world.translation
+        dim.obj_bp.rotation_euler.z = wall.obj_bp.rotation_euler.z
+        dim.obj_x.location.x = wall.obj_x.location.x
+        dim.flip_y()
+        dim.update_dim_text()
 
         context.scene.pyclone.fit_to_paper = False
         context.scene.pyclone.page_scale_unit_type = 'METRIC'
         context.scene.pyclone.metric_page_scale = '1:30'    
+
+        bpy.ops.object.select_all(action='DESELECT')
+        wall_view.select_set(True)
+        context.view_layer.objects.active = wall_view
+        bpy.ops.view3d.camera_to_view_selected()
+
+        #NEEDED TO REFRESH CAMERA ORTHO SCALE AFTER VIEW SELECTED
+        context.scene.pyclone.metric_page_scale = '1:30'   
 
         self.add_title_block(layout,"Wall","1")    
 
@@ -1424,7 +1442,7 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
 
         title_block = pc_types.Title_Block()
         title_block.create_title_block(layout)
-        title_block.obj_bp.rotation_euler.x = math.radians(90)
+        # title_block.obj_bp.rotation_euler.x = math.radians(90)
         # title_block.obj_drawing_title.data.body = "Title"
         # title_block.obj_description.data.body = description
         # title_block.obj_scale.data.body = "1 : 30"
