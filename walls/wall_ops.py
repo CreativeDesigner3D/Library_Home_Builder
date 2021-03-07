@@ -117,7 +117,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         self.mouse_x = event.mouse_x
         self.mouse_y = event.mouse_y
 
-        selected_point, selected_obj = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
+        selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
 
         self.position_object(selected_point,selected_obj)
         self.set_end_angles()            
