@@ -222,7 +222,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
                 self.cabinet.obj_bp.rotation_euler.z += math.radians(180)
             self.cabinet.obj_bp.location.x = mouse_location[0]
             self.cabinet.obj_bp.location.y = mouse_location[1]
-
+            self.cabinet.obj_bp.location.z = self.base_height + wall_bp.location.z
 
         else:
 
@@ -268,7 +268,6 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         ## with each mouseMove event, maintains difference between lower and upper cabinets
         self.base_height = self.cabinet.obj_bp.location.z
         self.base_cabinet = self.cabinet
-
 
     def has_height_collision(self,assembly):
         cab1_z_1 = self.cabinet.obj_bp.matrix_world[2][3]
@@ -337,16 +336,13 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
             if self.selected_normal.y == 1:
                 self.cabinet.obj_bp.rotation_euler = (0, 0,math.radians(180))
-                self.cabinet.obj_bp.location = (0, self.current_wall.obj_y.location.y, self.cabinet.obj_bp.location.z - context.scene.cursor.location.z)
-
+                self.cabinet.obj_bp.location = (0, self.current_wall.obj_y.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
             elif self.selected_cabinet:
                 self.cabinet.obj_bp.rotation_euler = self.selected_cabinet.obj_bp.rotation_euler
-                self.cabinet.obj_bp.location = (0, self.selected_cabinet.obj_bp.location.y, self.cabinet.obj_bp.location.z - context.scene.cursor.location.z)
-
+                self.cabinet.obj_bp.location = (0, self.selected_cabinet.obj_bp.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
             else:
                 self.cabinet.obj_bp.rotation_euler = (0, 0, 0)
-                self.cabinet.obj_bp.location = (0, 0, self.cabinet.obj_bp.location.z - context.scene.cursor.location.z)
-
+                self.cabinet.obj_bp.location = (0, 0, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
             self.cabinet.obj_bp.parent = self.current_wall.obj_bp
             self.cabinet.obj_bp.location.x = x_loc
 
@@ -361,7 +357,6 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             constraint.use_z = False
 
         if self.placement == 'RIGHT':
-
             self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
             constraint_obj = self.selected_cabinet.obj_x
             constraint = self.cabinet.obj_bp.constraints.new('COPY_LOCATION')
@@ -531,7 +526,6 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
         self.exclude_objects = []
         self.class_name = ""
 
-    # def invoke(self,context,event):
     def execute(self, context):
         self.reset_properties()
         self.create_drawing_plane(context)
