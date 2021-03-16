@@ -1429,28 +1429,8 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         return filepath
 
     def add_title_block(self,layout,description,number):
-        today = date.today()
-        # props = bpy.context.scene.fullbloom
-        # if props.original_date == "":
-        #     props.original_date = today.strftime("%m/%d/%Y")
-
-        # if props.revision_date == "":
-        #     props.revision_date = today.strftime("%m/%d/%Y")
-
-        # if props.revision_number == "":
-        #     props.revision_number = "-"
-
         title_block = pc_types.Title_Block()
         title_block.create_title_block(layout)
-        # title_block.obj_bp.rotation_euler.x = math.radians(90)
-        # title_block.obj_drawing_title.data.body = "Title"
-        # title_block.obj_description.data.body = description
-        # title_block.obj_scale.data.body = "1 : 30"
-        # title_block.obj_drawing_number.data.body = number
-        # title_block.obj_original_date.data.body = props.original_date
-        # title_block.obj_revision_date.data.body = props.revision_date
-        # title_block.obj_revision_number.data.body = props.revision_number
-        # title_block.obj_drawn_by.data.body = props.drawn_by
 
     def create_pdf(self,context,images):
         width, height = landscape(letter)
@@ -1504,24 +1484,28 @@ class home_builder_OT_create_2d_cabinet_views(bpy.types.Operator):
         collection = cabinet.create_assembly_collection(cabinet.obj_bp.name)
 
         bpy.ops.scene.new(type='EMPTY')
+        context.scene.name = cabinet.obj_bp.name
         layout = pc_types.Assembly_Layout(context.scene)
         layout.setup_assembly_layout()
         cabinet_view = layout.add_assembly_view(collection)
-        # cabinet_view.location = (0.048988,0,0.05597)
-        # cabinet_view.rotation_euler.z = cabinet.obj_bp.rotation_euler.z *-1
 
         layout.add_layout_camera()   
         layout.scene.world = self.model_scene.world
+        layout.camera.parent = cabinet.obj_bp        
+
+        self.add_title_block(layout,"Wall","1")    
 
         context.scene.pyclone.fit_to_paper = False
         context.scene.pyclone.page_scale_unit_type = 'METRIC'
         context.scene.pyclone.metric_page_scale = '1:30'    
 
-        cabinet_view.location.x = (cabinet.obj_bp.location.x *-1) * cabinet_view.scale.x
-        cabinet_view.location.y = (cabinet.obj_bp.location.y *-1) * cabinet_view.scale.y
-        cabinet_view.location.z = (cabinet.obj_bp.location.z *-1) * cabinet_view.scale.z
+        bpy.ops.object.select_all(action='DESELECT')
+        cabinet_view.select_set(True)
+        context.view_layer.objects.active = cabinet_view
+        bpy.ops.view3d.camera_to_view_selected()
 
-        self.add_title_block(layout,"Wall","1")    
+        #NEEDED TO REFRESH CAMERA ORTHO SCALE AFTER VIEW SELECTED
+        context.scene.pyclone.metric_page_scale = '1:30'   
 
     def render_scene(self,context,scene):
         context.window.scene = scene
@@ -1533,28 +1517,8 @@ class home_builder_OT_create_2d_cabinet_views(bpy.types.Operator):
         return filepath
 
     def add_title_block(self,layout,description,number):
-        today = date.today()
-        # props = bpy.context.scene.fullbloom
-        # if props.original_date == "":
-        #     props.original_date = today.strftime("%m/%d/%Y")
-
-        # if props.revision_date == "":
-        #     props.revision_date = today.strftime("%m/%d/%Y")
-
-        # if props.revision_number == "":
-        #     props.revision_number = "-"
-
         title_block = pc_types.Title_Block()
         title_block.create_title_block(layout)
-        title_block.obj_bp.rotation_euler.x = math.radians(90)
-        # title_block.obj_drawing_title.data.body = "Title"
-        # title_block.obj_description.data.body = description
-        # title_block.obj_scale.data.body = "1 : 30"
-        # title_block.obj_drawing_number.data.body = number
-        # title_block.obj_original_date.data.body = props.original_date
-        # title_block.obj_revision_date.data.body = props.revision_date
-        # title_block.obj_revision_number.data.body = props.revision_number
-        # title_block.obj_drawn_by.data.body = props.drawn_by
 
     def create_pdf(self,context,images):
         width, height = landscape(letter)
