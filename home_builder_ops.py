@@ -1489,9 +1489,9 @@ class home_builder_OT_create_2d_cabinet_views(bpy.types.Operator):
         layout.setup_assembly_layout()
         cabinet_view = layout.add_assembly_view(collection)
 
-        layout.add_layout_camera()   
+        layout.add_layout_camera()
         layout.scene.world = self.model_scene.world
-        layout.camera.parent = cabinet.obj_bp        
+        layout.camera.parent = cabinet.obj_bp
 
         self.add_title_block(layout,"Wall","1")    
 

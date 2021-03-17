@@ -513,9 +513,18 @@ class Title_Block(Assembly):
             collection.objects.link(obj)
 
         self.obj_bp.parent = layout_view.camera
-        self.obj_bp.location.x = -0.13959
-        self.obj_bp.location.y = -0.108
-        self.obj_bp.location.z = -1.001
+        if bpy.context.scene.pyclone.page_size == 'LETTER':
+            self.obj_bp.location.x = -0.13959
+            self.obj_bp.location.y = -0.108
+            self.obj_bp.location.z = -1.001
+            self.obj_x.location.x = pc_unit.inch(11)
+            self.obj_y.location.y = pc_unit.inch(8.5)
+        else:
+            self.obj_bp.location.x = -0.177502
+            self.obj_bp.location.y = -0.108
+            self.obj_bp.location.z = -1.001
+            self.obj_x.location.x = pc_unit.inch(14)
+            self.obj_y.location.y = pc_unit.inch(8.5)
 
     def draw_ui(self,context,layout):
         arrow_height = self.get_prompt("Arrow Height")
@@ -547,10 +556,6 @@ class Title_Block(Assembly):
         row = layout.row()
         row.label(text="Revision Number:")
         row.prop(self.obj_revision_number.data,'body',text="")
-
-        row = layout.row()
-        row.label(text="Drawing Title:")
-        row.prop(self.obj_drawing_title.data,'body',text="")
 
         row = layout.row()
         row.label(text="Original Date:")
