@@ -61,7 +61,7 @@ class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
         props.draw(layout)
 
 
-class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
+class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_label = "Home Builder"
@@ -77,14 +77,16 @@ class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
 
         props = home_builder_utils.get_scene_props(context.scene)
 
-        # row = layout.row(align=True)
-        # row.scale_y = 1.3
-        # row.prop_enum(props, "sidebar_tabs", 'PROPERTIES', icon='SETTINGS', text="Properties") 
-        # row.prop_enum(props, "sidebar_tabs", 'TOOLS', icon='MODIFIER_ON', text="Tools") 
-     
-        # if props.sidebar_tabs == 'PROPERTIES':
+        box = layout.box()
+        row = box.row()
+        row.prop(props,'show_2d_view_options',text="2D View Commands",emboss=False,icon='TRIA_DOWN' if props.show_2d_view_options else 'TRIA_RIGHT')            
+        if props.show_2d_view_options:
+            box.operator('home_builder.create_2d_views',text="Create Wall Elevation Views",icon='CON_SIZELIMIT')
+            box.operator('home_builder.create_2d_cabinet_views',text="Create Cabinet Views",icon='CON_SIZELIMIT')
+
         if not context.object:
             return
+
         obj_bp = pc_utils.get_assembly_bp(context.object)
         cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
         exterior_bp = home_builder_utils.get_exterior_bp(context.object)
@@ -129,13 +131,7 @@ class HOME_BUILDER_PT_pc_home_builder_properties(bpy.types.Panel):
                 row = box.row()
                 row.operator('home_builder.update_selected_pulls',text="Update Selected Hardware",icon='RESTRICT_SELECT_OFF')
 
-        box = layout.box()
-        row = box.row()
-        row.prop(props,'show_2d_view_options',text="2D View Commands",emboss=False,icon='TRIA_DOWN' if props.show_2d_view_options else 'TRIA_RIGHT')            
-        if props.show_2d_view_options:
-            box.operator('home_builder.create_2d_views',text="Create Elevation Views",icon='CON_SIZELIMIT')
-            box.operator('home_builder.create_2d_cabinet_views',text="Create Cabinet Views",icon='CON_SIZELIMIT')
-
+        #TODO
         #Appliances
         #Cabinet Prompts
         #Doors and Windows
@@ -177,7 +173,7 @@ classes = (
     HOME_BUILDER_MT_category_menu,
     HOME_BUILDER_PT_library_settings,
     HOME_BUILDER_MT_asset_commands_menu,
-    HOME_BUILDER_PT_pc_home_builder_properties,
+    HOME_BUILDER_PT_home_builder_properties,
     HOME_BUILDER_UL_assets,
     HOME_BUILDER_MT_pointer_menu,
 )
