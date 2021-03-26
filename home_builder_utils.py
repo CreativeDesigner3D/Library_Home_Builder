@@ -145,7 +145,7 @@ def unwrap_obj(context,obj):
         bpy.ops.object.editmode_toggle()
         
     bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.uv.smart_project(angle_limit=66, island_margin=0, area_weight=0)
+    bpy.ops.uv.smart_project(angle_limit=66, island_margin=0)
     if mode == 'OBJECT':
         bpy.ops.object.editmode_toggle()
 
