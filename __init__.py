@@ -20,8 +20,8 @@ from bpy.app.handlers import persistent
 bl_info = {
     "name": "Home Builder Library",
     "author": "Andrew Peel",
-    "version": (0, 3, 1),
-    "blender": (2, 91, 0),
+    "version": (0, 4, 0),
+    "blender": (2, 92, 0),
     "location": "Asset Library",
     "description": "Library designed to help with architectural and interior design",
     "warning": "",
