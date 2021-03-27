@@ -96,7 +96,7 @@ def update_props_from_xml_file(filepath,pointers):
             name = ""
             category = ""
             item_name = ""
-            items = elm.getchildren()
+            items = list(elm.iter())
             for item in items:
                 if item.tag == 'Name':
                     name = item.text
