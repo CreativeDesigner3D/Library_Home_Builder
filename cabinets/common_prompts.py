@@ -44,6 +44,7 @@ def add_front_overlay_prompts(assembly):
     assembly.add_prompt("Left Reveal",'DISTANCE',pc_unit.inch(.0625))
     assembly.add_prompt("Right Reveal",'DISTANCE',pc_unit.inch(.0625))
     assembly.add_prompt("Vertical Gap",'DISTANCE',pc_unit.inch(.125))
+    assembly.add_prompt("Horizontal Gap",'DISTANCE',pc_unit.inch(.125))
 
 def add_pull_prompts(assembly):
     assembly.add_prompt("Base Pull Vertical Location",'DISTANCE',pc_unit.inch(1.5))

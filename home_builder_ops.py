@@ -540,7 +540,8 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.write("import os\n")
         file.write("import sys\n")
         file.write("import Library_Home_Builder\n")
-
+        file.write("bpy.ops.home_builder.reload_pointers()\n")
+        
         #CREATE DIR
         file.write("dir_path = r'" + asset.library_path + "'\n")
         file.write("path = os.path.join(dir_path,'" + asset.name.replace("_"," ") + "')\n")
@@ -556,8 +557,10 @@ class home_builder_OT_render_asset_thumbnails(Operator):
 
         #DRAW ASSET
         file.write("item = eval('Library_Home_Builder." + asset.package_name + "." + asset.module_name + "." + asset.class_name + "()')" + "\n")
-        # file.write("if hasattr(item,'draw'):\n")
-        # file.write("    item.draw()\n")
+        file.write("if hasattr(item,'pre_draw'):\n")
+        file.write("    item.pre_draw()\n")        
+        file.write("if hasattr(item,'draw'):\n")
+        file.write("    item.draw()\n")
         # file.write("if hasattr(item,'draw_door'):\n")
         # file.write("    item.draw_door()\n")      
         # file.write("if hasattr(item,'draw_wall'):\n")
@@ -570,7 +573,12 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.write("select_objects()\n")
         file.write("bpy.ops.view3d.camera_to_view_selected()\n")
 
+        file.write("for mat in bpy.data.materials:\n")
+        file.write("    bpy.data.materials.remove(mat,do_unlink=True)\n")
+
         #RENDER
+        file.write("bpy.context.scene.camera.data.lens = 40\n")
+        file.write("bpy.context.scene.camera.location.z += .05\n")
         file.write("render = bpy.context.scene.render\n")
         file.write("render.resolution_x = 540\n")
         file.write("render.resolution_y = 540\n")

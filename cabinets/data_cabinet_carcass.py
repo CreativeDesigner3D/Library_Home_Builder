@@ -453,7 +453,7 @@ class Carcass(pc_types.Assembly):
             insert.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
         
         insert.dim_x('width-(material_thickness*2)',[width,material_thickness])
-        insert.dim_y('fabs(depth)',[depth])
+        insert.dim_y('fabs(depth)-material_thickness',[depth,material_thickness])
         insert.obj_x.empty_display_size = .001
         insert.obj_y.empty_display_size = .001
         insert.obj_z.empty_display_size = .001

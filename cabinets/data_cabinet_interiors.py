@@ -57,6 +57,8 @@ class Cabinet_Interior(pc_types.Assembly):
 
 class Shelves(Cabinet_Interior):
 
+    shelf_qty = 1
+
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)    
 
@@ -70,3 +72,7 @@ class Shelves(Cabinet_Interior):
 
         add_cabinet_shelf(self)
         add_shelf_holes(self)
+
+        shelf_qty = self.get_prompt("Shelf Quantity")
+        if shelf_qty:
+            shelf_qty.set_value(self.shelf_qty)

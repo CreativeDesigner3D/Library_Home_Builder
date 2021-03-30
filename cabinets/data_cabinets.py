@@ -226,6 +226,7 @@ class Standard_Cabinet(Cabinet):
     category_name = "Cabinets"
     
     width = pc_unit.inch(18)
+    calculators = []
 
     # carcass = None
     # interior = None
@@ -291,6 +292,12 @@ class Standard_Cabinet(Cabinet):
             self.obj_z.location.z = props.upper_cabinet_height
             self.obj_bp.location.z = props.height_above_floor - props.upper_cabinet_height
 
+    def get_calculators(self,obj):
+        for cal in obj.pyclone.calculators:
+            self.calculators.append(cal)
+        for child in obj.children:
+            self.get_calculators(child)
+
     def render(self):
         left_side = None
         right_side = None
@@ -303,15 +310,10 @@ class Standard_Cabinet(Cabinet):
             if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
                 back = pc_types.Assembly(child)
 
-        left_finished_end = self.carcass.get_prompt('Left Finished End')
-        right_finished_end = self.carcass.get_prompt('Right Finished End')
-        finished_back = self.carcass.get_prompt('Finished Back')
-        if left_finished_end:
-            left_finished_end.set_value(True)
-        if right_finished_end:
-            right_finished_end.set_value(True)            
-        home_builder_utils.update_side_material(left_side,left_finished_end.get_value(),finished_back.get_value())
-        home_builder_utils.update_side_material(right_side,right_finished_end.get_value(),finished_back.get_value())
+        self.get_calculators(self.obj_bp)
+
+        for cal in self.calculators:
+            cal.calculate()
 
 
 class Stacked_Cabinet(Cabinet):
