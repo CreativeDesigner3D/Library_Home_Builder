@@ -12,11 +12,14 @@ from os import path
 
 class Carcass(pc_types.Assembly):
 
+    use_design_carcass = True
     left_side = None
     right_side = None
     back = None
     bottom = None
     top = None
+    design_carcass = None
+    design_base_assembly = None
     interior = None
     exterior = None
 
@@ -33,11 +36,53 @@ class Carcass(pc_types.Assembly):
                 if "IS_BOTTOM_BP" in child:
                     self.bottom = pc_types.Assembly(child)
                 if "IS_TOP_BP" in child:
-                    self.top = pc_types.Assembly(child)          
+                    self.top = pc_types.Assembly(child)      
+                if "IS_DESIGN_CARCASS_BP" in child:
+                    self.design_carcass = pc_types.Assembly(child)         
+                if "IS_DESIGN_BASE_ASSEMBLY_BP" in child:
+                    self.design_base_assembly = pc_types.Assembly(child)                                          
                 if "IS_INTERIOR_BP" in child:
                     self.interior = data_cabinet_interiors.Cabinet_Interior(child)    
                 if "IS_EXTERIOR_BP" in child:
                     self.exterior = data_cabinet_exteriors.Cabinet_Exterior(child)                                                    
+
+    def add_design_carcass(self):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        material_thickness = self.get_prompt("Material Thickness").get_var("material_thickness")
+        finished_back = self.get_prompt("Finished Back")
+        finished_top = self.get_prompt("Finished Top")
+        toe_kick_height = self.get_prompt("Toe Kick Height")
+        toe_kick_setback = self.get_prompt("Toe Kick Setback")
+
+        carcass = data_cabinet_parts.add_design_carcass(self)
+        carcass.set_name('Design Carcass')
+        carcass.loc_x(value=0)
+        carcass.loc_y(value=0)
+        carcass.dim_x('width',[width])
+        carcass.dim_y('depth',[depth])
+        if toe_kick_height:
+            toe_kick_height_var = toe_kick_height.get_var('toe_kick_height_var')
+            toe_kick_setback_var = toe_kick_setback.get_var('toe_kick_setback_var')
+            carcass.loc_z('toe_kick_height_var',[toe_kick_height_var])
+            carcass.dim_z('height-toe_kick_height_var',[height,toe_kick_height_var])
+
+            base_assembly = data_cabinet_parts.add_design_base_assembly(self)
+            base_assembly.set_name('Design Base Assembly')
+            base_assembly.loc_x(value=0)
+            base_assembly.loc_y(value=0)
+            base_assembly.loc_z(value=0)
+            base_assembly.dim_x('width',[width])
+            base_assembly.dim_y('depth+toe_kick_setback_var',[depth,toe_kick_setback_var])
+            base_assembly.dim_z('toe_kick_height_var',[toe_kick_height_var])
+            home_builder_pointers.update_design_base_assembly_pointers(base_assembly,True,True,True)
+
+        else:
+            carcass.loc_z(value=0)
+            carcass.dim_z('height',[height])
+        home_builder_pointers.update_design_carcass_pointers(carcass,True,True,True,True,True)
+        return carcass
 
     def add_cabinet_top(self):
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -451,6 +496,7 @@ class Base_Advanced(Carcass):
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
+        self.use_design_carcass = props.use_design_carcass
 
         self.create_assembly("Carcass")
         self.obj_bp["IS_CARCASS_BP"] = True
@@ -468,14 +514,17 @@ class Base_Advanced(Carcass):
         self.obj_y.location.y = -props.base_cabinet_depth
         self.obj_z.location.z = props.base_cabinet_height
 
-        self.add_cabinet_bottom()
-        self.add_cabinet_top()
-        self.left_side, self.right_side = self.add_cabinet_sides(add_toe_kick_notch=True)
-        self.back = self.add_cabinet_back()
-        self.add_toe_kick()
-        # add_top_lighting(self)
-        # add_kick_lighting(self)
-        # add_side_lighting(self)
+        if self.use_design_carcass:
+            self.add_design_carcass()
+        else:
+            self.add_cabinet_bottom()
+            self.add_cabinet_top()
+            self.left_side, self.right_side = self.add_cabinet_sides(add_toe_kick_notch=True)
+            self.back = self.add_cabinet_back()
+            self.add_toe_kick()
+            # add_top_lighting(self)
+            # add_kick_lighting(self)
+            # add_side_lighting(self)
 
 
 class Tall_Advanced(Carcass):
@@ -485,6 +534,7 @@ class Tall_Advanced(Carcass):
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
+        self.use_design_carcass = props.use_design_carcass
 
         self.create_assembly("Carcass")
         self.obj_bp["IS_CARCASS_BP"] = True
@@ -502,14 +552,17 @@ class Tall_Advanced(Carcass):
         self.obj_y.location.y = -props.tall_cabinet_depth
         self.obj_z.location.z = props.tall_cabinet_height
 
-        self.add_cabinet_bottom()
-        self.add_cabinet_top()
-        self.add_cabinet_sides(add_toe_kick_notch=True)
-        self.add_cabinet_back()
-        self.add_toe_kick()
-        # add_top_lighting(self)
-        # add_kick_lighting(self)
-        # add_side_lighting(self)
+        if self.use_design_carcass:
+            self.add_design_carcass()
+        else:
+            self.add_cabinet_bottom()
+            self.add_cabinet_top()
+            self.add_cabinet_sides(add_toe_kick_notch=True)
+            self.add_cabinet_back()
+            self.add_toe_kick()
+            # add_top_lighting(self)
+            # add_kick_lighting(self)
+            # add_side_lighting(self)
 
 class Upper_Advanced(Carcass):
 
@@ -518,7 +571,8 @@ class Upper_Advanced(Carcass):
 
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
-
+        self.use_design_carcass = props.use_design_carcass
+        
         self.create_assembly("Carcass")
         self.obj_bp["IS_CARCASS_BP"] = True
 
@@ -534,13 +588,16 @@ class Upper_Advanced(Carcass):
         self.obj_y.location.y = -props.upper_cabinet_depth
         self.obj_z.location.z = props.upper_cabinet_height
 
-        self.add_upper_cabinet_bottom()
-        self.add_cabinet_top()
-        self.add_cabinet_sides(add_toe_kick_notch=False)
-        self.add_upper_cabinet_back()
-        # add_top_lighting(self)
-        # add_under_cabinet_lighting(self)
-        # add_side_lighting(self)
+        if self.use_design_carcass:
+            self.add_design_carcass()
+        else:
+            self.add_upper_cabinet_bottom()
+            self.add_cabinet_top()
+            self.add_cabinet_sides(add_toe_kick_notch=False)
+            self.add_upper_cabinet_back()
+            # add_top_lighting(self)
+            # add_under_cabinet_lighting(self)
+            # add_side_lighting(self)
 
 
 class Refrigerator(pc_types.Assembly):

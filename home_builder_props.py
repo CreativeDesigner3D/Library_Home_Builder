@@ -303,6 +303,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                       default=pc_unit.inch(40.0),
                                                       unit='LENGTH')
 
+    use_design_carcass: bpy.props.BoolProperty(name="Use Design Carcass",
+                                               description="Turn this on to speed up drawing time by using a simple carcass assembly.",
+                                               default=True)
+
     #CABINET TOE KICK
     base_assembly_type: EnumProperty(name="Base Assembly Type",
                           items=[('NOTCH_SIDES',"Notch Sides","Notch the sides of the cabinet"),
@@ -537,6 +541,12 @@ class Home_Builder_Scene_Props(PropertyGroup):
                 row.prop(self,"top_drawer_front_height")
 
         if self.default_tabs == 'CABINET_CONSTRUCTION':
+            box = prop_col.box()
+            row = box.row(align=True)
+            row.label(text="General Construction Options:")
+            row = box.row(align=True)
+            row.prop(self,"use_design_carcass",text="Use Design Carcass")
+            
             box = prop_col.box()
             box.label(text="Cabinet Base Assembly:")
             

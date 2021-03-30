@@ -855,12 +855,24 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             finished_back = carcass.get_prompt("Finished Back")
             finished_top = carcass.get_prompt("Finished Top")
             finished_bottom = carcass.get_prompt("Finished Bottom")
-            if finished_back and left_finished_end and right_finished_end:
-                home_builder_pointers.update_side_material(carcass.left_side,left_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
-                home_builder_pointers.update_side_material(carcass.right_side,right_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
-                home_builder_pointers.update_top_material(carcass.top,finished_back.get_value(),finished_top.get_value())
-                home_builder_pointers.update_bottom_material(carcass.bottom,finished_back.get_value(),finished_bottom.get_value())
-                home_builder_pointers.update_cabinet_back_material(carcass.back,finished_back.get_value())
+            if carcass.design_carcass:
+                home_builder_pointers.update_design_carcass_pointers(carcass.design_carcass,
+                                                                     left_finished_end.get_value(),
+                                                                     right_finished_end.get_value(),
+                                                                     finished_back.get_value(),
+                                                                     finished_top.get_value(),
+                                                                     finished_bottom.get_value())
+                home_builder_pointers.update_design_base_assembly_pointers(carcass.design_base_assembly,
+                                                                           left_finished_end.get_value(),
+                                                                           right_finished_end.get_value(),
+                                                                           finished_back.get_value())                                                                     
+            else:
+                if finished_back and left_finished_end and right_finished_end:
+                    home_builder_pointers.update_side_material(carcass.left_side,left_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
+                    home_builder_pointers.update_side_material(carcass.right_side,right_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
+                    home_builder_pointers.update_top_material(carcass.top,finished_back.get_value(),finished_top.get_value())
+                    home_builder_pointers.update_bottom_material(carcass.bottom,finished_back.get_value(),finished_bottom.get_value())
+                    home_builder_pointers.update_cabinet_back_material(carcass.back,finished_back.get_value())
 
     def update_fillers(self,context):
         left_adjustment_width = self.cabinet.get_prompt("Left Adjustment Width")

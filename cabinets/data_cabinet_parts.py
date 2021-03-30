@@ -148,6 +148,34 @@ def add_door_part(assembly,pointer):
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
+def add_design_carcass(assembly):
+    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Design Carcass.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp['IS_DESIGN_CARCASS_BP'] = True
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
+    home_builder_pointers.assign_design_carcass_pointers(part)
+    home_builder_pointers.assign_materials_to_assembly(part)
+    return part
+
+def add_design_base_assembly(assembly):
+    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Design Base Assembly.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp['IS_DESIGN_BASE_ASSEMBLY_BP'] = True
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
+    home_builder_pointers.assign_design_base_assembly_pointers(part)
+    home_builder_pointers.assign_materials_to_assembly(part)
+    return part
+
 def add_carcass_part(assembly):
     part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))

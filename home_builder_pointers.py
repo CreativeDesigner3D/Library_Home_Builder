@@ -178,6 +178,62 @@ def update_cabinet_back_material(assembly,is_finished_back):
 
     assign_materials_to_assembly(assembly)
 
+def update_design_carcass_pointers(assembly,is_finished_left,is_finished_right,is_finished_back,is_finished_top,is_finished_bottom):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Interior':
+                    pointer.pointer_name = "Cabinet Interior Surfaces"
+                if pointer.name == 'Edges':
+                    pointer.pointer_name = "Cabinet Exposed Edges"
+                if pointer.name == 'Top':
+                    if is_finished_top:
+                        pointer.pointer_name = "Cabinet Exposed Surfaces"
+                    else:
+                        pointer.pointer_name = "Cabinet Unfinished Surfaces"
+                if pointer.name == 'Bottom':
+                    if is_finished_bottom:
+                        pointer.pointer_name = "Cabinet Exposed Surfaces"
+                    else:
+                        pointer.pointer_name = "Cabinet Unfinished Surfaces"
+                if pointer.name == 'Left':
+                    if is_finished_left:
+                        pointer.pointer_name = "Cabinet Exposed Surfaces"
+                    else:
+                        pointer.pointer_name = "Cabinet Unfinished Surfaces"   
+                if pointer.name == 'Right':
+                    if is_finished_right:
+                        pointer.pointer_name = "Cabinet Exposed Surfaces"
+                    else:
+                        pointer.pointer_name = "Cabinet Unfinished Surfaces" 
+                if pointer.name == 'Back':
+                    if is_finished_back:
+                        pointer.pointer_name = "Cabinet Exposed Surfaces"
+                    else:
+                        pointer.pointer_name = "Cabinet Unfinished Surfaces" 
+    assign_materials_to_assembly(assembly)
+
+def update_design_base_assembly_pointers(assembly,is_finished_left,is_finished_right,is_finished_back):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Left':
+                    if is_finished_left:
+                        pointer.pointer_name = "Cabinet Exposed Surfaces"
+                    else:
+                        pointer.pointer_name = "Cabinet Unfinished Surfaces"
+                if pointer.name == 'Right':
+                    if is_finished_right:
+                        pointer.pointer_name = "Cabinet Exposed Surfaces"
+                    else:
+                        pointer.pointer_name = "Cabinet Unfinished Surfaces"
+                if pointer.name == 'Back':
+                    if is_finished_back:
+                        pointer.pointer_name = "Cabinet Exposed Surfaces"
+                    else:
+                        pointer.pointer_name = "Cabinet Unfinished Surfaces"   
+    assign_materials_to_assembly(assembly)
+
 def assign_carcass_pointers(assembly):
     for child in assembly.obj_bp.children:
         if child.type == 'MESH':
@@ -194,6 +250,42 @@ def assign_carcass_pointers(assembly):
                     pointer.pointer_name = "Cabinet Unfinished Edges"
                 if pointer.name == 'W2':
                     pointer.pointer_name = "Cabinet Unfinished Edges"     
+
+def assign_design_carcass_pointers(assembly):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Interior':
+                    pointer.pointer_name = "Cabinet Interior Surfaces"
+                if pointer.name == 'Edges':
+                    pointer.pointer_name = "Cabinet Exposed Edges"
+                if pointer.name == 'Top':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"
+                if pointer.name == 'Bottom':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"
+                if pointer.name == 'Left':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"     
+                if pointer.name == 'Right':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"    
+                if pointer.name == 'Back':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"    
+
+def assign_design_base_assembly_pointers(assembly):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                if pointer.name == 'Top':
+                    pointer.pointer_name = "Cabinet Unfinished Surfaces"
+                if pointer.name == 'Bottom':
+                    pointer.pointer_name = "Cabinet Unfinished Surfaces"
+                if pointer.name == 'Left':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"     
+                if pointer.name == 'Right':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"    
+                if pointer.name == 'Front':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"                       
+                if pointer.name == 'Back':
+                    pointer.pointer_name = "Cabinet Exposed Surfaces"    
 
 def assign_carcass_bottom_pointers(assembly):
     for child in assembly.obj_bp.children:
