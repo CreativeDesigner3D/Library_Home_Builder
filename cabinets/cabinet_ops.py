@@ -1099,6 +1099,14 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         row.label(text='Height from Floor:')
         row.prop(self.cabinet.obj_bp,'location',index=2,text="")          
 
+        props = home_builder_utils.get_scene_props(context.scene)
+        row = box.row()
+        row.alignment = 'LEFT'
+        row.prop(props,'show_cabinet_placement_options',emboss=False,icon='TRIA_DOWN' if props.show_cabinet_tools else 'TRIA_RIGHT')
+        if props.show_cabinet_placement_options:
+            row = box.row()
+            row.label(text="TODO: Implement Cabinet Placement Options")
+
     def draw_carcass_prompts(self,layout,context):
         for carcass in self.cabinet.carcasses:
             left_finished_end = carcass.get_prompt("Left Finished End")
@@ -1156,7 +1164,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         col = layout.column(align=True)
         box = col.box()
         row = box.row()
-        row.label(text="Cabinet - " + self.cabinet.obj_bp.name)
+        row.label(text="Cabinet Options - " + self.cabinet.obj_bp.name)
 
         if bottom_cabinet_height:
             row = box.row()
@@ -1193,6 +1201,12 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
+        info_box = layout.box()
+        
+        row = info_box.row()
+        row.prop(self.cabinet.obj_bp,'name',text="Name")
+        row.menu('HOME_BUILDER_MT_change_material_group',text="Material Group",icon='COLOR')
+
         self.draw_product_size(layout,context)
 
         prompt_box = layout.box()

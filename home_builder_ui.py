@@ -99,6 +99,14 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
             box.operator('home_builder.create_2d_views',text="Create Wall Elevation Views",icon='CON_SIZELIMIT')
             box.operator('home_builder.create_2d_cabinet_views',text="Create Cabinet Views",icon='CON_SIZELIMIT')
 
+        box = layout.box()
+        row = box.row()
+        row.prop(props,'show_material_options',text="Material Selection",emboss=False,icon='TRIA_DOWN' if props.show_material_options else 'TRIA_RIGHT')            
+        if props.show_material_options:
+            box.prop(props,'material_category',text="",icon='FILE_FOLDER')  
+            box.template_icon_view(props,"material_name",show_labels=True)  
+            box.operator('home_builder.assign_material',text="Assign Material",icon='BRUSH_DATA')
+
         if not context.object:
             return
 
@@ -121,7 +129,10 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
             row.prop(props,'show_cabinet_tools',text="Cabinet Commands",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_tools else 'TRIA_RIGHT')
             if props.show_cabinet_tools:
                 col = box.column(align=True)
-                col.label(text="Name - " + cabinet_bp.name)
+                col.prop(cabinet_bp,'name')
+                col.separator()
+                col.menu('HOME_BUILDER_MT_change_material_group',text="Material Group",icon='COLOR')
+                col.separator()
                 col.operator('home_builder.cabinet_prompts',icon='WINDOW')
                 col.operator('home_builder.move_cabinet',text="Place Cabinet",icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
                 col.operator('home_builder.free_move_cabinet',text="Grab",icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
@@ -131,8 +142,6 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
                 
                 col.operator('home_builder.delete_assembly',text="Delete Cabinet",icon='X').obj_name = cabinet_bp.name
                 
-
-
             row = box.row()
             row.prop(props,'show_cabinet_front_tools',text="Cabinet Fronts",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_front_tools else 'TRIA_RIGHT')
             if props.show_cabinet_front_tools:
@@ -178,6 +187,16 @@ class HOME_BUILDER_MT_pointer_menu(bpy.types.Menu):
         layout.operator('home_builder.reload_pointers',icon='FILE_REFRESH')
 
 
+class HOME_BUILDER_MT_change_material_group(bpy.types.Menu):
+    bl_label = "Change Material Group"
+
+    def draw(self, context):
+        cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
+        if cabinet_bp:
+            pass
+            #TODO: IMPLEMENT MATERIAL GROUPS
+
+
 class HOME_BUILDER_UL_assets(bpy.types.UIList):
     
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
@@ -192,6 +211,7 @@ classes = (
     HOME_BUILDER_MT_asset_commands_menu,
     HOME_BUILDER_PT_home_builder_properties,
     HOME_BUILDER_UL_assets,
+    HOME_BUILDER_MT_change_material_group,
     HOME_BUILDER_MT_pointer_menu,
 )
 

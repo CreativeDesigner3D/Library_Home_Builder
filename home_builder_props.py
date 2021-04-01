@@ -164,7 +164,12 @@ class Home_Builder_Scene_Props(PropertyGroup):
     show_2d_view_options: bpy.props.BoolProperty(name="Show 2D View Options",
                                            description="Show 2D View Options",
                                            default=False)
-
+    show_cabinet_placement_options: bpy.props.BoolProperty(name="Show Cabinet Placement Options",
+                                           description="Show Cabinet Placement Options",
+                                           default=False)
+    show_material_options: bpy.props.BoolProperty(name="Show Material Options",
+                                           description="Show Material Options",
+                                           default=False)                                           
     active_category: StringProperty(name="Active Category")
 
     wall_height: FloatProperty(name="Wall Height",default=pc_unit.inch(96),subtype='DISTANCE')

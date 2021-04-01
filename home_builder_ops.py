@@ -43,6 +43,28 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER, TA_JUSTIFY
 from reportlab.platypus.flowables import HRFlowable
 
+def event_is_place_asset(event):
+    if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
+        return True
+    elif event.type == 'NUMPAD_ENTER' and event.value == 'PRESS':
+        return True
+    elif event.type == 'RET' and event.value == 'PRESS':
+        return True
+    else:
+        return False
+
+def event_is_cancel_command(event):
+    if event.type in {'RIGHTMOUSE', 'ESC'}:
+        return True
+    else:
+        return False
+
+def event_is_pass_through(event):
+    if event.type in {'MIDDLEMOUSE', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE'}:
+        return True
+    else:
+        return False
+
 class room_builder_OT_activate(Operator):
     bl_idname = "room_builder.activate"
     bl_label = "Activate Room Builder"
@@ -336,6 +358,7 @@ class home_builder_OT_update_material_pointer(bpy.types.Operator):
     bl_label = "Update Material Pointer"
     
     pointer_name: bpy.props.StringProperty(name="Pointer Name")
+    refresh: bpy.props.BoolProperty(name="Refresh",default=False)
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
@@ -343,6 +366,9 @@ class home_builder_OT_update_material_pointer(bpy.types.Operator):
             if pointer.name == self.pointer_name:
                 pointer.category = props.material_category
                 pointer.item_name = props.material_name  
+
+        if self.refresh:
+            bpy.ops.home_builder.update_scene_materials()
         return {'FINISHED'}
 
 
@@ -1699,6 +1725,163 @@ class home_builder_OT_create_2d_cabinet_views(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
+class home_builder_OT_assign_material(bpy.types.Operator):
+    bl_idname = "home_builder.assign_material"
+    bl_label = "Assign Material"
+
+    mat = None
+    
+    @classmethod
+    def poll(cls, context):  
+        if context.object and context.object.mode != 'OBJECT':
+            return False
+        return True
+        
+    def execute(self, context):
+        self.mat = self.get_material(context)
+        context.window_manager.modal_handler_add(self)
+        context.area.tag_redraw()
+        return {'RUNNING_MODAL'}
+        
+    def get_material(self,context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        return home_builder_utils.get_material(props.material_category,props.material_name)
+
+    def modal(self, context, event):
+        context.window.cursor_set('PAINT_BRUSH')
+        context.area.tag_redraw()
+        self.mouse_x = event.mouse_x
+        self.mouse_y = event.mouse_y
+        selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event)
+        bpy.ops.object.select_all(action='DESELECT')
+        if selected_obj:
+            selected_obj.select_set(True)
+            context.view_layer.objects.active = selected_obj
+        
+            if event_is_place_asset(event):
+                if len(selected_obj.data.uv_layers) == 0:
+                    bpy.ops.object.editmode_toggle()
+                    bpy.ops.mesh.select_all(action='SELECT') 
+                    bpy.ops.uv.smart_project(angle_limit=66, island_margin=0)  
+                    bpy.ops.object.editmode_toggle()
+
+                if len(selected_obj.material_slots) == 0:
+                    bpy.ops.object.material_slot_add()
+
+                if len(selected_obj.pyclone.pointers) > 0:
+                    print(self.mat,selected_obj)
+                    bpy.ops.home_builder.assign_material_dialog('INVOKE_DEFAULT',material_name = self.mat.name, object_name = selected_obj.name)
+                    return self.finish(context)
+                else:
+                    for slot in selected_obj.material_slots:
+                        slot.material = self.mat
+                        
+                return self.finish(context)
+
+        if event_is_cancel_command(event):
+            return self.cancel_drop(context)
+        
+        if event_is_pass_through(event):
+            return {'PASS_THROUGH'}        
+        
+        return {'RUNNING_MODAL'}
+
+    def cancel_drop(self,context):
+        context.window.cursor_set('DEFAULT')
+        return {'CANCELLED'}
+    
+    def finish(self,context):
+        context.window.cursor_set('DEFAULT')
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
+
+class home_builder_OT_assign_material_dialog(bpy.types.Operator):
+    bl_idname = "home_builder.assign_material_dialog"
+    bl_label = "Assign Material Dialog"
+    bl_description = "This is a dialog to assign materials to Home Builder objects"
+    bl_options = {'UNDO'}
+    
+    #READONLY
+    material_name: bpy.props.StringProperty(name="Material Name")
+    object_name: bpy.props.StringProperty(name="Object Name")
+    
+    obj = None
+    material = None
+    
+    def check(self, context):
+        return True
+    
+    def invoke(self, context, event):
+        self.material = bpy.data.materials[self.material_name]
+        self.obj = bpy.data.objects[self.object_name]
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=480)
+        
+    def draw(self,context):
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        layout = self.layout
+        box = layout.box()
+        box.label(text=self.obj.name,icon='OBJECT_DATA')
+        pointer_list = []
+
+        for index, mat_slot in enumerate(self.obj.material_slots):
+            row = box.split(factor=.80)
+            pointer = None
+
+            if index + 1 <= len(self.obj.pyclone.pointers):
+                pointer = self.obj.pyclone.pointers[index]
+
+            if mat_slot.name == "":
+                row.label(text='No Material')
+            else:
+                if pointer:
+                    row.prop(mat_slot,"name",text=pointer.name,icon='MATERIAL')
+                else:
+                    row.prop(mat_slot,"name",text=" ",icon='MATERIAL')
+
+            if pointer and pointer.pointer_name not in pointer_list:
+                pointer_list.append(pointer.pointer_name)
+
+            props = row.operator('home_builder.assign_material_to_slot',text="Override",icon='BACK')
+            props.object_name = self.obj.name
+            props.material_name = self.material.name
+            props.index = index
+
+        if len(pointer_list) > 0:
+            box = layout.box()
+            box.label(text="Update Material Pointers",icon='MATERIAL')
+            for pointer in pointer_list:
+                row = box.split(factor=.80)
+                mat_pointer = scene_props.material_pointers[pointer] 
+                row.label(text=pointer + ": " + mat_pointer.category + "/" + mat_pointer.item_name)    
+                props = row.operator('home_builder.update_material_pointer',text="Update All",icon='FILE_REFRESH')
+                props.pointer_name = pointer
+                props.refresh = True
+        
+    def execute(self,context):
+        return {'FINISHED'}        
+
+
+class home_builder_OT_assign_material_to_slot(bpy.types.Operator):
+    bl_idname = "home_builder.assign_material_to_slot"
+    bl_label = "Assign Material to Slot"
+    bl_description = "This will assign a material to a material slot"
+    bl_options = {'UNDO'}
+    
+    #READONLY
+    material_name: bpy.props.StringProperty(name="Material Name")
+    object_name: bpy.props.StringProperty(name="Object Name")
+    
+    index: bpy.props.IntProperty(name="Index")
+    
+    def execute(self,context):
+        obj = bpy.data.objects[self.object_name]
+        mat = bpy.data.materials[self.material_name]
+        obj.material_slots[self.index].material = mat
+        return {'FINISHED'}
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -1733,6 +1916,9 @@ classes = (
     home_builder_OT_create_2d_views,
     home_builder_OT_create_2d_cabinet_views,
     home_builder_OT_save_custom_cabinet,
+    home_builder_OT_assign_material,
+    home_builder_OT_assign_material_dialog,
+    home_builder_OT_assign_material_to_slot,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
