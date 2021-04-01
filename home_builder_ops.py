@@ -77,6 +77,18 @@ class room_builder_OT_drop(Operator):
     
     filepath: StringProperty(name='Library Name')
 
+    def get_custom_cabinet(self,context,filepath):
+        parent = None
+        with bpy.data.libraries.load(filepath, False, False) as (data_from, data_to):
+                data_to.objects = data_from.objects
+        for obj in data_to.objects:
+            # self.all_objects.append(obj)
+            if obj.parent is None:
+                parent = obj
+                # self.parent_obj_dict[obj] = (obj.location.x, obj.location.y, obj.location.z)            
+            context.view_layer.active_layer_collection.collection.objects.link(obj)
+        return parent
+
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
 
@@ -107,6 +119,10 @@ class room_builder_OT_drop(Operator):
         if props.active_category == 'Cabinets':
             bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
 
+        if props.active_category == 'Custom Cabinets':
+            obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
+            bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name)
+
         if props.active_category == 'Walls':
             bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
 
@@ -123,9 +139,15 @@ class home_builder_OT_change_library_category(bpy.types.Operator):
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
         props.active_category = self.category
-        path = os.path.join(home_builder_paths.get_library_path(),self.category)
-        if os.path.exists(path):
+        if props.active_category == 'Custom Cabinets':
+            path = os.path.join(home_builder_paths.get_custom_cabinet_library_path())
+            if not os.path.exists(path):
+                os.makedirs(path)
             pc_utils.update_file_browser_path(context,path)
+        else:
+            path = os.path.join(home_builder_paths.get_library_path(),self.category)
+            if os.path.exists(path):
+                pc_utils.update_file_browser_path(context,path)
         return {'FINISHED'}
 
 
@@ -554,7 +576,6 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.write("        if obj.type == 'MESH':\n")
         file.write("            obj.select_set(True)\n")
 
-
         #DRAW ASSET
         file.write("item = eval('Library_Home_Builder." + asset.package_name + "." + asset.module_name + "." + asset.class_name + "()')" + "\n")
         file.write("if hasattr(item,'pre_draw'):\n")
@@ -601,6 +622,127 @@ class home_builder_OT_render_asset_thumbnails(Operator):
             if asset.is_selected:
                 script = self.create_item_thumbnail_script(asset)
                 subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path() + '" -b --python "' + script + '"',shell=True) 
+        return {'FINISHED'}
+
+class home_builder_OT_save_custom_cabinet(Operator):
+    bl_idname = "home_builder.save_custom_cabinet"
+    bl_label = "Save Custom Cabinet"
+    bl_description = "This will save the assembly to the custom cabinet library"
+    bl_options = {'UNDO'}
+
+    assembly_bp_name: bpy.props.StringProperty(name="Collection Name")
+
+    assembly = None
+    assembly_name = ""
+
+    @classmethod
+    def poll(cls, context):
+        assembly_bp = pc_utils.get_assembly_bp(context.object)
+        if assembly_bp:
+            return True
+        else:
+            return False
+
+    def check(self, context):    
+        return True
+
+    def invoke(self,context,event):
+        assembly_bp = pc_utils.get_assembly_bp(context.object)
+        self.assembly = pc_types.Assembly(assembly_bp)
+        self.assembly_name = self.assembly.obj_bp.name
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def draw(self, context):
+        layout = self.layout
+
+        path = home_builder_paths.get_custom_cabinet_library_path()
+        files = os.listdir(path) if os.path.exists(path) else []
+
+        layout.label(text="Cabinet Name: " + self.assembly_name)
+
+        if self.assembly_name + ".blend" in files or self.assembly_name + ".png" in files:
+            layout.label(text="File already exists",icon="ERROR")
+
+    def select_assembly_objects(self,coll):
+        for obj in coll.objects:
+            obj.select_set(True)
+        for child in coll.children:
+            self.select_collection_objects(child)
+
+    def create_assembly_thumbnail_script(self,source_dir,source_file,assembly_name,obj_list):
+        file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        
+        file.write("with bpy.data.libraries.load(r'" + source_file + "', False, True) as (data_from, data_to):\n")
+        file.write("    data_to.objects = " + str(obj_list) + "\n")    
+
+        file.write("for obj in data_to.objects:\n")
+        file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+        file.write("    obj.select_set(True)\n")
+        
+        file.write("bpy.ops.view3d.camera_to_view_selected()\n")
+
+        file.write("render = bpy.context.scene.render\n")
+        file.write("render.use_file_extension = True\n")
+        file.write("render.filepath = r'" + os.path.join(source_dir,assembly_name) + "'\n")
+        file.write("bpy.ops.render.render(write_still=True)\n")
+        file.close()
+
+        return os.path.join(bpy.app.tempdir,'thumb_temp.py')
+        
+    def create_assembly_save_script(self,source_dir,source_file,assembly_name,obj_list):
+        file = codecs.open(os.path.join(bpy.app.tempdir,"save_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+
+        file.write("for mat in bpy.data.materials:\n")
+        file.write("    bpy.data.materials.remove(mat,do_unlink=True)\n")
+        file.write("for obj in bpy.data.objects:\n")
+        file.write("    bpy.data.objects.remove(obj,do_unlink=True)\n")               
+        file.write("bpy.context.preferences.filepaths.save_version = 0\n")
+        
+        file.write("with bpy.data.libraries.load(r'" + source_file + "', False, True) as (data_from, data_to):\n")
+        file.write("    data_to.objects = " + str(obj_list) + "\n")        
+
+        file.write("for obj in data_to.objects:\n")
+        file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+
+        file.write("bpy.ops.wm.save_as_mainfile(filepath=r'" + os.path.join(source_dir,assembly_name) + ".blend')\n")
+        file.close()
+        return os.path.join(bpy.app.tempdir,'save_temp.py')
+
+    def get_children_list(self,obj_bp,obj_list):
+        obj_list.append(obj_bp.name)
+        for obj in obj_bp.children:
+            self.get_children_list(obj,obj_list)
+        return obj_list
+
+    def get_thumbnail_path(self):
+        return os.path.join(home_builder_paths.get_library_path(),"thumbnail.blend")
+
+    def execute(self, context):
+        if bpy.data.filepath == "":
+            bpy.ops.wm.save_as_mainfile(filepath=os.path.join(bpy.app.tempdir,"temp_blend.blend"))
+                    
+        directory_to_save_to = home_builder_paths.get_custom_cabinet_library_path()
+
+        obj_list = []
+        obj_list = self.get_children_list(self.assembly.obj_bp,obj_list)
+
+        thumbnail_script_path = self.create_assembly_thumbnail_script(directory_to_save_to, bpy.data.filepath, self.assembly_name, obj_list)
+        save_script_path = self.create_assembly_save_script(directory_to_save_to, bpy.data.filepath, self.assembly_name, obj_list)
+
+#         subprocess.Popen(r'explorer ' + bpy.app.tempdir)
+        
+        subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path() + '" -b --python "' + thumbnail_script_path + '"')
+        subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"')
+        
+        os.remove(thumbnail_script_path)
+        os.remove(save_script_path)
+        
+        bpy.ops.file.refresh()
+        
         return {'FINISHED'}
 
 
@@ -1590,6 +1732,7 @@ classes = (
     # home_builder_OT_create_library_pdf,
     home_builder_OT_create_2d_views,
     home_builder_OT_create_2d_cabinet_views,
+    home_builder_OT_save_custom_cabinet,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

@@ -35,6 +35,19 @@ class FILEBROWSER_PT_home_builder_headers(bpy.types.Panel):
         row.scale_y = 1.3
         row.menu('HOME_BUILDER_MT_category_menu',text=props.active_category,icon='FILEBROWSER')
 
+        if props.active_category == 'Custom Cabinets' and context.object:
+            obj_bp = pc_utils.get_assembly_bp(context.object)
+
+            if obj_bp:
+                row = layout.row()
+                row.label(text='Selected Assembly: ' + obj_bp.name)
+                row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
+                row = layout.row()
+                row.operator('home_builder.save_custom_cabinet',text="Save Custom Cabinet",icon='SCREEN_BACK')    
+            else:
+                row = layout.row()
+                row.label(text='Selected Assembly to Save')            
+
 
 class HOME_BUILDER_MT_category_menu(bpy.types.Menu):
     bl_label = "Library"
@@ -47,6 +60,8 @@ class HOME_BUILDER_MT_category_menu(bpy.types.Menu):
             path = os.path.join(library_path,d)
             if os.path.isdir(path):
                 layout.operator('home_builder.change_library_category',text=d,icon='FILEBROWSER').category = d
+        layout.separator()
+        layout.operator('home_builder.change_library_category',text='Custom Cabinets',icon='FILEBROWSER').category = "Custom Cabinets"
 
 
 class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
@@ -113,8 +128,11 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
                 col.operator('home_builder.duplicate_cabinet',text="Duplicate",icon='DUPLICATE').obj_bp_name = cabinet_bp.name  
                 if exterior_bp:
                     col.operator('home_builder.change_cabinet_exterior',text="Change Cabinet Exterior",icon='FILE_REFRESH')
+                
                 col.operator('home_builder.delete_assembly',text="Delete Cabinet",icon='X').obj_name = cabinet_bp.name
                 
+
+
             row = box.row()
             row.prop(props,'show_cabinet_front_tools',text="Cabinet Fronts",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_front_tools else 'TRIA_RIGHT')
             if props.show_cabinet_front_tools:
@@ -133,7 +151,6 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
 
         #TODO
         #Appliances
-        #Cabinet Prompts
         #Doors and Windows
 
 class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
