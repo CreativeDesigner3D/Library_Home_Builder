@@ -1955,6 +1955,48 @@ class home_builder_OT_update_product_material_group(bpy.types.Operator):
         self.update_children(obj,index)
         return {'FINISHED'}
 
+
+class home_builder_OT_add_material_pointer(bpy.types.Operator):
+    bl_idname = "home_builder.add_material_pointer"
+    bl_label = "Add Material Pointer"
+    bl_description = "This will add a new material pointer to the active group"
+    bl_options = {'UNDO'}
+    
+    #READONLY
+    material_pointer_name: bpy.props.StringProperty(name="Material Pointer Name",default="New Pointer")
+
+    def execute(self,context):
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        mat_group = scene_props.material_pointer_groups[scene_props.material_group_index]
+        pointer = mat_group.pointers.add()
+        pointer.name = self.material_pointer_name
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=350)
+        
+    def draw(self,context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="Material Pointer Name")
+        layout.prop(self,'material_pointer_name',text="")
+
+
+class home_builder_OT_update_object_materials(bpy.types.Operator):
+    bl_idname = "home_builder.update_object_materials"
+    bl_label = "Update Object Materials"
+    bl_description = "This updates the object materials from the assigned pointers"
+    bl_options = {'UNDO'}
+    
+    object_name: bpy.props.StringProperty(name="Object Name")
+
+    def execute(self,context):
+        obj = bpy.data.objects[self.object_name]
+        home_builder_pointers.assign_materials_to_object(obj)
+        return {'FINISHED'}
+
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -1995,6 +2037,8 @@ classes = (
     home_builder_OT_change_global_material_pointer_group,
     home_builder_OT_change_product_material_pointer_group,
     home_builder_OT_update_product_material_group,
+    home_builder_OT_add_material_pointer,
+    home_builder_OT_update_object_materials,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

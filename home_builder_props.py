@@ -174,7 +174,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                            default=False)
     show_material_options: bpy.props.BoolProperty(name="Show Material Options",
                                            description="Show Material Options",
-                                           default=False)                                           
+                                           default=False)     
+    show_material_pointer_options: bpy.props.BoolProperty(name="Show Material Pointer Options",
+                                           description="Show Material Pointer Options",
+                                           default=False)                                                                                     
     active_category: StringProperty(name="Active Category")
 
     wall_height: FloatProperty(name="Wall Height",default=pc_unit.inch(96),subtype='DISTANCE')
@@ -664,6 +667,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
 
         box = right_col.box()
+        box.operator('home_builder.add_material_pointer',text="Add Pointer")
         col = box.column(align=True)
         for mat in material_group.pointers:
             row = col.row()

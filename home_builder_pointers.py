@@ -106,8 +106,7 @@ def assign_pointer_to_assembly(assembly,pointer_name):
 
 def assign_materials_to_object(obj):
     props = home_builder_utils.get_scene_props(bpy.context.scene)
-    bp = pc_utils.get_assembly_bp(obj)
-    obj_props = home_builder_utils.get_object_props(bp)
+    obj_props = home_builder_utils.get_object_props(obj)
     mat_group = props.material_pointer_groups[obj_props.material_group_index]
     for index, pointer in enumerate(obj.pyclone.pointers):
         if index + 1 <= len(obj.material_slots) and pointer.pointer_name in mat_group.pointers:

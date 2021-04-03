@@ -109,6 +109,41 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
 
         if not context.object:
             return
+        else:
+            row = box.row()
+            row.prop(props,'show_material_pointer_options',text="Material Pointers",emboss=False,icon='TRIA_DOWN' if props.show_material_pointer_options else 'TRIA_RIGHT')            
+            if props.show_material_pointer_options:
+                obj_props = home_builder_utils.get_object_props(context.object)
+
+                mat_group = props.material_pointer_groups[obj_props.material_group_index]
+                box.label(text="Material Group: " + mat_group.name,icon='COLOR')
+                row = box.row()
+                row.template_list("MATERIAL_UL_matslots", "", context.object, "material_slots", context.object, "active_material_index", rows=3)  
+
+                col = row.column(align=True)
+                col.operator("pc_material.add_material_slot", icon='ADD', text="").object_name = context.object.name
+                col.operator("object.material_slot_remove", icon='REMOVE', text="")                
+                col.operator('home_builder.update_object_materials',icon='FILE_REFRESH',text="").object_name = context.object.name
+
+                slot = None
+                if len(context.object.material_slots) >= context.object.active_material_index + 1:
+                    slot = context.object.material_slots[context.object.active_material_index]
+
+                if slot:
+                    row = box.row()
+                    if len(context.object.pyclone.pointers) >= context.object.active_material_index + 1:
+                        pointer_slot = context.object.pyclone.pointers[context.object.active_material_index]
+                        row.prop(pointer_slot,'name')
+                        row = box.row()
+                        row.prop_search(pointer_slot,'pointer_name',mat_group,'pointers',text="Pointer")
+                    else:
+                        row.operator('pc_material.add_material_pointers').object_name = context.object.name
+
+                if context.object.mode == 'EDIT':
+                    row = layout.row(align=True)
+                    row.operator("object.material_slot_assign", text="Assign")
+                    row.operator("object.material_slot_select", text="Select")
+                    row.operator("object.material_slot_deselect", text="Deselect")  
 
         obj_bp = pc_utils.get_assembly_bp(context.object)
         cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
