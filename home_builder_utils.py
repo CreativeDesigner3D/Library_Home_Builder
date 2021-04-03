@@ -1,7 +1,7 @@
 import bpy
 import os
 import math
-from .pc_lib import pc_types, pc_unit, pc_utils, pc_pointer_utils
+from .pc_lib import pc_types, pc_unit, pc_utils
 from . import home_builder_paths
 
 def get_preferences(context):
@@ -173,6 +173,11 @@ def update_id_props(obj,parent_obj):
     if "MENU_ID" in parent_obj:
         obj["MENU_ID"] = parent_obj["MENU_ID"]   
 
+def assign_current_material_index(obj):
+    props = get_scene_props(bpy.context.scene)
+    obj_props = get_object_props(obj)
+    obj_props.material_group_index = props.material_group_index
+    
 def update_object_and_children_id_props(obj,parent_obj):
     update_id_props(obj,parent_obj)
     for child in obj.children:

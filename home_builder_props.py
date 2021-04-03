@@ -17,10 +17,11 @@ from bpy.props import (
         EnumProperty,
         )
 import inspect
-from .pc_lib import pc_types, pc_unit, pc_utils, pc_pointer_utils
+from .pc_lib import pc_types, pc_unit, pc_utils
 from . import home_builder_utils
 from . import home_builder_enums
 from . import home_builder_paths
+from . import home_builder_pointers
 from .walls import data_walls
 from .doors_windows import door_window_library
 from .cabinets import cabinet_library
@@ -34,6 +35,10 @@ library_modules = [cabinet_library,
 class Pointer(PropertyGroup):
     category: bpy.props.StringProperty(name="Category")
     item_name: bpy.props.StringProperty(name="Item Name")
+
+
+class PointerGroup(PropertyGroup):
+    pointers: bpy.props.CollectionProperty(name="Pointers",type=Pointer)
 
 
 class Asset(PropertyGroup):
@@ -414,10 +419,17 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                            default=pc_unit.inch(40),
                                            unit='LENGTH')
 
-    #POINTERS                                                   
-    material_pointers: bpy.props.CollectionProperty(name="Material Pointers",type=Pointer)
+    #POINTERS                                   
+    material_group_index: bpy.props.IntProperty(name="Material Group Index")                
+    material_pointer_groups: bpy.props.CollectionProperty(name="Material Pointer Groups",type=PointerGroup)
+
     pull_pointers: bpy.props.CollectionProperty(name="Pull Pointers",type=Pointer)
     cabinet_door_pointers: bpy.props.CollectionProperty(name="Cabinet Door Pointers",type=Pointer)
+
+    pull_group_index: bpy.props.IntProperty(name="Pull Group Index")
+    pull_pointer_groups: bpy.props.CollectionProperty(name="Pull Pointer Groups",type=PointerGroup)
+    cabinet_door_group_index: bpy.props.IntProperty(name="Cabinet Door Group Index")
+    cabinet_door_pointer_groups: bpy.props.CollectionProperty(name="Cabinet Door Pointer Groups",type=PointerGroup)
 
     active_asset_category: bpy.props.EnumProperty(name="Active Asset Category",
         items=home_builder_enums.enum_active_asset_categories,
@@ -643,14 +655,17 @@ class Home_Builder_Scene_Props(PropertyGroup):
         material_box.prop(self,'material_category',text="",icon='FILE_FOLDER')  
         material_box.template_icon_view(self,"material_name",show_labels=True)  
 
+        material_group = self.material_pointer_groups[self.material_group_index]
+
         right_row = right_col.row()
         right_row.scale_y = 1.3
+        right_row.menu('HOME_BUILDER_MT_change_global_material_group',text=material_group.name,icon='COLOR')
         right_row.operator('home_builder.update_scene_materials',text="Update Materials",icon='FILE_REFRESH')
         right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
 
         box = right_col.box()
         col = box.column(align=True)
-        for mat in self.material_pointers:
+        for mat in material_group.pointers:
             row = col.row()
             row.operator('home_builder.update_material_pointer',text=mat.name,icon='FORWARD').pointer_name = mat.name
             row.label(text=mat.category + " - " + mat.item_name,icon='MATERIAL')
@@ -866,6 +881,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
     def unregister(cls):
         del bpy.types.Scene.home_builder
 
+def update_material_group_index(self,context):
+    if self.id_data.type != 'EMPTY':
+        home_builder_pointers.assign_materials_to_object(self.id_data)
+    
 class Home_Builder_Object_Props(PropertyGroup):
 
     connected_object: bpy.props.PointerProperty(name="Connected Object",
@@ -873,6 +892,10 @@ class Home_Builder_Object_Props(PropertyGroup):
                                                 description="This is the used to store objects that are connected together.")
 
     pointer_name: bpy.props.StringProperty(name="Pointer Name")
+
+    material_group_index: bpy.props.IntProperty(name="Material Group Index",update=update_material_group_index)                
+    pull_group_index: bpy.props.IntProperty(name="Pull Group Index")
+    cabinet_door_group_index: bpy.props.IntProperty(name="Cabinet Door Group Index")
 
     @classmethod
     def register(cls):
@@ -888,6 +911,7 @@ class Home_Builder_Object_Props(PropertyGroup):
 
 classes = (
     Pointer,
+    PointerGroup,
     Asset,
     Home_Builder_AddonPreferences,
     Home_Builder_Window_Manager_Props,

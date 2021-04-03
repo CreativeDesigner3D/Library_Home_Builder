@@ -33,7 +33,6 @@ def get_default_material_pointers():
     pointers.append(("Entry Door Panels","_Sample","Painted Wood White"))
     pointers.append(("Entry Door Handle","_Sample","Polished Chrome"))
     pointers.append(("Window Metal Frame","_Sample","Polished Chrome"))
-
     return pointers
 
 def get_default_pull_pointers():
@@ -64,22 +63,34 @@ def get_cabinet_door_pointer_xml_path():
     path = os.path.join(os.path.dirname(__file__),'pointers')
     return os.path.join(path,"cabinet_door_pointers.xml")
 
-def write_pointer_files():
-    pc_pointer_utils.write_xml_file(get_material_pointer_xml_path(),
-                                    get_default_material_pointers())
-    pc_pointer_utils.write_xml_file(get_pull_pointer_xml_path(),
-                                    get_default_pull_pointers())
-    pc_pointer_utils.write_xml_file(get_cabinet_door_pointer_xml_path(),
-                                    get_default_cabinet_door_pointers())
+def add_pointers_from_list(pointer_list,pointers):
+    '''
+    This adds the default pointers from a list
+    '''
+    for pointer in pointer_list:
+        if pointer[0] not in pointers:
+            p = pointers.add()
+            p.name = pointer[0]
+            p.category = pointer[1]
+            p.item_name = pointer[2]
 
 def update_pointer_properties():
     props = home_builder_utils.get_scene_props(bpy.context.scene)
-    pc_pointer_utils.update_props_from_xml_file(get_material_pointer_xml_path(),
-                                                props.material_pointers)
-    pc_pointer_utils.update_props_from_xml_file(get_pull_pointer_xml_path(),
-                                                props.pull_pointers)    
-    pc_pointer_utils.update_props_from_xml_file(get_cabinet_door_pointer_xml_path(),
-                                                props.cabinet_door_pointers)                                                    
+
+    if len(props.material_pointer_groups) == 0:
+        material_group = props.material_pointer_groups.add()
+        material_group.name = "Default"
+    else:
+        material_group = props.material_pointer_groups[props.material_group_index]
+
+    add_pointers_from_list(get_default_material_pointers(),
+                           material_group.pointers)
+                                              
+    add_pointers_from_list(get_default_pull_pointers(),
+                           props.pull_pointers)
+                                                  
+    add_pointers_from_list(get_default_cabinet_door_pointers(),
+                           props.cabinet_door_pointers)                                                    
 
 def assign_pointer_to_object(obj,pointer_name):
     if len(obj.pyclone.pointers) == 0:
@@ -95,9 +106,12 @@ def assign_pointer_to_assembly(assembly,pointer_name):
 
 def assign_materials_to_object(obj):
     props = home_builder_utils.get_scene_props(bpy.context.scene)
+    bp = pc_utils.get_assembly_bp(obj)
+    obj_props = home_builder_utils.get_object_props(bp)
+    mat_group = props.material_pointer_groups[obj_props.material_group_index]
     for index, pointer in enumerate(obj.pyclone.pointers):
-        if index + 1 <= len(obj.material_slots) and pointer.pointer_name in props.material_pointers:
-            p = props.material_pointers[pointer.pointer_name]
+        if index + 1 <= len(obj.material_slots) and pointer.pointer_name in mat_group.pointers:
+            p = mat_group.pointers[pointer.pointer_name]
             slot = obj.material_slots[index]
             slot.material = home_builder_utils.get_material(p.category,p.item_name)
             

@@ -303,6 +303,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
                 self.calculators.append(calculator)
 
         home_builder_utils.update_id_props(obj,self.cabinet.obj_bp)
+        home_builder_utils.assign_current_material_index(obj)
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
         if obj.type == 'MESH':
@@ -1203,9 +1204,16 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         layout = self.layout
         info_box = layout.box()
         
-        row = info_box.row()
+        obj_props = home_builder_utils.get_object_props(self.cabinet.obj_bp)
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+
+        mat_group = scene_props.material_pointer_groups[obj_props.material_group_index]
+        
+        row = info_box.row(align=True)
         row.prop(self.cabinet.obj_bp,'name',text="Name")
-        row.menu('HOME_BUILDER_MT_change_material_group',text="Material Group",icon='COLOR')
+        row.separator()
+        row.menu('HOME_BUILDER_MT_change_product_material_group',text=mat_group.name,icon='COLOR')
+        row.operator('home_builder.update_product_material_group',text="",icon='FILE_REFRESH').object_name = self.cabinet.obj_bp.name
 
         self.draw_product_size(layout,context)
 

@@ -131,7 +131,7 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
                 col = box.column(align=True)
                 col.prop(cabinet_bp,'name')
                 col.separator()
-                col.menu('HOME_BUILDER_MT_change_material_group',text="Material Group",icon='COLOR')
+                col.menu('HOME_BUILDER_MT_change_product_material_group',text="Material Group",icon='COLOR')
                 col.separator()
                 col.operator('home_builder.cabinet_prompts',icon='WINDOW')
                 col.operator('home_builder.move_cabinet',text="Place Cabinet",icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
@@ -166,7 +166,6 @@ class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
     bl_label = "Asset Commands"
 
     def draw(self, context):
-
         props = home_builder_utils.get_scene_props(context.scene)
         path = props.get_active_category_path()
         layout = self.layout
@@ -187,14 +186,35 @@ class HOME_BUILDER_MT_pointer_menu(bpy.types.Menu):
         layout.operator('home_builder.reload_pointers',icon='FILE_REFRESH')
 
 
-class HOME_BUILDER_MT_change_material_group(bpy.types.Menu):
+class HOME_BUILDER_MT_change_global_material_group(bpy.types.Menu):
     bl_label = "Change Material Group"
 
     def draw(self, context):
+        layout = self.layout
+        props = home_builder_utils.get_scene_props(context.scene)
+        for index, material_group in enumerate(props.material_pointer_groups):
+            grp = props.material_pointer_groups[index]
+            icon = 'RADIOBUT_ON' if index == props.material_group_index else 'RADIOBUT_OFF'
+            layout.operator('home_builder.change_global_material_pointer_group',text=grp.name,icon=icon).material_index = index
+        layout.separator()
+        layout.operator('home_builder.add_material_pointer_group',icon='ADD')
+
+
+class HOME_BUILDER_MT_change_product_material_group(bpy.types.Menu):
+    bl_label = "Change Material Group"
+
+    def draw(self, context):
+        layout = self.layout
         cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
         if cabinet_bp:
-            pass
-            #TODO: IMPLEMENT MATERIAL GROUPS
+            cabinet_bp_props = home_builder_utils.get_object_props(cabinet_bp)
+            scene_props = home_builder_utils.get_scene_props(context.scene)
+            for index, material_group in enumerate(scene_props.material_pointer_groups):
+                grp = scene_props.material_pointer_groups[index]
+                icon = 'RADIOBUT_ON' if index == cabinet_bp_props.material_group_index else 'RADIOBUT_OFF'            
+                props = layout.operator('home_builder.change_product_material_pointer_group',text=grp.name,icon=icon)
+                props.material_index = index
+                props.object_name = cabinet_bp.name
 
 
 class HOME_BUILDER_UL_assets(bpy.types.UIList):
@@ -211,7 +231,8 @@ classes = (
     HOME_BUILDER_MT_asset_commands_menu,
     HOME_BUILDER_PT_home_builder_properties,
     HOME_BUILDER_UL_assets,
-    HOME_BUILDER_MT_change_material_group,
+    HOME_BUILDER_MT_change_global_material_group,
+    HOME_BUILDER_MT_change_product_material_group,
     HOME_BUILDER_MT_pointer_menu,
 )
 

@@ -84,7 +84,7 @@ class room_builder_OT_activate(Operator):
             props.active_category = dirs[0]
             path = os.path.join(library_path,props.active_category)
 
-        if len(props.material_pointers) == 0:
+        if len(props.material_pointer_groups) == 0:
             home_builder_pointers.update_pointer_properties()
 
         pc_utils.update_file_browser_path(context,path)
@@ -104,11 +104,10 @@ class room_builder_OT_drop(Operator):
         with bpy.data.libraries.load(filepath, False, False) as (data_from, data_to):
                 data_to.objects = data_from.objects
         for obj in data_to.objects:
-            # self.all_objects.append(obj)
             if obj.parent is None:
-                parent = obj
-                # self.parent_obj_dict[obj] = (obj.location.x, obj.location.y, obj.location.z)            
+                parent = obj          
             context.view_layer.active_layer_collection.collection.objects.link(obj)
+        home_builder_utils.assign_current_material_index(parent)
         return parent
 
     def execute(self, context):
@@ -327,21 +326,6 @@ class home_builder_OT_add_room_light(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class home_builder_OT_update_pointers(bpy.types.Operator):
-    bl_idname = "home_builder.update_pointers"
-    bl_label = "Update Scene Materials"
-    
-    def execute(self, context):
-        props = home_builder_utils.get_scene_props(context.scene)
-        for pointer in props.material_pointers:
-            props.material_pointers.remove(0)
-        for pointer in props.pull_pointers:
-            props.pull_pointers.remove(0)   
-        home_builder_utils.write_pointer_files()
-        home_builder_utils.update_pointer_properties()   
-        return {'FINISHED'}
-
-
 class home_builder_OT_update_scene_materials(bpy.types.Operator):
     bl_idname = "home_builder.update_scene_materials"
     bl_label = "Update Scene Materials"
@@ -362,7 +346,8 @@ class home_builder_OT_update_material_pointer(bpy.types.Operator):
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
-        for pointer in props.material_pointers:
+        group = props.material_pointer_groups[props.material_group_index]
+        for pointer in group.pointers:
             if pointer.name == self.pointer_name:
                 pointer.category = props.material_category
                 pointer.item_name = props.material_name  
@@ -1448,8 +1433,8 @@ class home_builder_OT_reload_pointers(bpy.types.Operator):
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
-        for pointer in props.material_pointers:
-            props.material_pointers.remove(0)
+        for pointer in props.material_pointer_groups:
+            props.material_pointer_groups.remove(0)
 
         for pointer in props.pull_pointers:
             props.pull_pointers.remove(0)
@@ -1457,8 +1442,8 @@ class home_builder_OT_reload_pointers(bpy.types.Operator):
         for pointer in props.cabinet_door_pointers:
             props.cabinet_door_pointers.remove(0)   
 
-        home_builder_pointers.write_pointer_files()
-        home_builder_pointers.update_pointer_properties()                                    
+        home_builder_pointers.update_pointer_properties()
+        props.material_group_index = 0                                    
         return {'FINISHED'}
 
     
@@ -1821,10 +1806,16 @@ class home_builder_OT_assign_material_dialog(bpy.types.Operator):
         
     def draw(self,context):
         scene_props = home_builder_utils.get_scene_props(context.scene)
+        obj_props = home_builder_utils.get_object_props(self.obj)
         layout = self.layout
         box = layout.box()
         box.label(text=self.obj.name,icon='OBJECT_DATA')
         pointer_list = []
+
+        if len(scene_props.material_pointer_groups) - 1 >= obj_props.material_group_index:
+            mat_group = scene_props.material_pointer_groups[obj_props.material_group_index]
+        else:
+            mat_group = scene_props.material_pointer_groups[0]
 
         for index, mat_slot in enumerate(self.obj.material_slots):
             row = box.split(factor=.80)
@@ -1851,10 +1842,12 @@ class home_builder_OT_assign_material_dialog(bpy.types.Operator):
 
         if len(pointer_list) > 0:
             box = layout.box()
-            box.label(text="Update Material Pointers",icon='MATERIAL')
+            row = box.row()
+            row.label(text="Update Material Pointers",icon='MATERIAL')
+            row.label(text="Material Group: " + mat_group.name,icon='COLOR')
             for pointer in pointer_list:
                 row = box.split(factor=.80)
-                mat_pointer = scene_props.material_pointers[pointer] 
+                mat_pointer = mat_group.pointers[pointer] 
                 row.label(text=pointer + ": " + mat_pointer.category + "/" + mat_pointer.item_name)    
                 props = row.operator('home_builder.update_material_pointer',text="Update All",icon='FILE_REFRESH')
                 props.pointer_name = pointer
@@ -1882,6 +1875,86 @@ class home_builder_OT_assign_material_to_slot(bpy.types.Operator):
         obj.material_slots[self.index].material = mat
         return {'FINISHED'}
 
+
+class home_builder_OT_add_material_pointer_group(bpy.types.Operator):
+    bl_idname = "home_builder.add_material_pointer_group"
+    bl_label = "Add Material Pointer Group"
+    bl_description = "This will add a new material pointer group"
+    bl_options = {'UNDO'}
+    
+    #READONLY
+    material_group_name: bpy.props.StringProperty(name="Material Group Name",default="New Material Group")
+
+    def execute(self,context):
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        mat_group = scene_props.material_pointer_groups.add()
+        mat_group.name = self.material_group_name
+        home_builder_pointers.add_pointers_from_list(home_builder_pointers.get_default_material_pointers(),
+                                                     mat_group.pointers)        
+
+        scene_props.material_group_index = len(scene_props.material_pointer_groups) - 1
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=350)
+        
+    def draw(self,context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="Material Group Name")
+        layout.prop(self,'material_group_name',text="")
+
+
+class home_builder_OT_change_global_material_pointer_group(bpy.types.Operator):
+    bl_idname = "home_builder.change_global_material_pointer_group"
+    bl_label = "Change Global Material Pointer Group"
+    bl_description = "This change the global material pointer group"
+    bl_options = {'UNDO'}
+    
+    material_index: bpy.props.IntProperty(name="Index")
+
+    def execute(self,context):
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+        scene_props.material_group_index = self.material_index
+        return {'FINISHED'}
+
+
+class home_builder_OT_change_product_material_pointer_group(bpy.types.Operator):
+    bl_idname = "home_builder.change_product_material_pointer_group"
+    bl_label = "Change Product Material Pointer Group"
+    bl_description = "This change the product material pointer group"
+    bl_options = {'UNDO'}
+    
+    object_name: bpy.props.StringProperty(name="Object Name")
+    material_index: bpy.props.IntProperty(name="Index")
+
+    def execute(self,context):
+        obj = bpy.data.objects[self.object_name]
+        obj_props = home_builder_utils.get_object_props(obj)
+        obj_props.material_group_index = self.material_index
+        return {'FINISHED'}
+
+
+class home_builder_OT_update_product_material_group(bpy.types.Operator):
+    bl_idname = "home_builder.update_product_material_group"
+    bl_label = "Update Product Material Group"
+    
+    object_name: bpy.props.StringProperty(name="Object Name")
+
+    def update_children(self,obj,index):
+        obj_props = home_builder_utils.get_object_props(obj)
+        obj_props.material_group_index = index
+        for child in obj.children:
+            self.update_children(child,index)
+
+    def execute(self, context):
+        obj = bpy.data.objects[self.object_name]
+        obj_props = home_builder_utils.get_object_props(obj)
+        index = obj_props.material_group_index
+        self.update_children(obj,index)
+        return {'FINISHED'}
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -1889,7 +1962,6 @@ classes = (
     home_builder_OT_disconnect_constraint,
     home_builder_OT_draw_floor_plane,
     home_builder_OT_add_room_light,
-    home_builder_OT_update_pointers,
     home_builder_OT_update_scene_materials,
     home_builder_OT_update_material_pointer,
     home_builder_OT_update_scene_pulls,
@@ -1919,6 +1991,10 @@ classes = (
     home_builder_OT_assign_material,
     home_builder_OT_assign_material_dialog,
     home_builder_OT_assign_material_to_slot,
+    home_builder_OT_add_material_pointer_group,
+    home_builder_OT_change_global_material_pointer_group,
+    home_builder_OT_change_product_material_pointer_group,
+    home_builder_OT_update_product_material_group,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
