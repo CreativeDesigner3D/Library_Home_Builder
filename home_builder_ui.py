@@ -101,6 +101,12 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
 
         box = layout.box()
         row = box.row()
+        row.prop(props,'show_report_options',text="Reports",emboss=False,icon='TRIA_DOWN' if props.show_report_options else 'TRIA_RIGHT')            
+        if props.show_report_options:
+            box.operator('home_builder.create_cabinet_list_report',text="Cabinet List Report",icon='TEXT')
+
+        box = layout.box()
+        row = box.row()
         row.prop(props,'show_material_options',text="Material Selection",emboss=False,icon='TRIA_DOWN' if props.show_material_options else 'TRIA_RIGHT')            
         if props.show_material_options:
             box.prop(props,'material_category',text="",icon='FILE_FOLDER')  

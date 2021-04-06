@@ -1,6 +1,7 @@
 import bpy,os,inspect, sys
 import math
 import subprocess
+import datetime
 import codecs
 from datetime import date
 from bpy.types import (Header, 
@@ -1711,6 +1712,80 @@ class home_builder_OT_create_2d_cabinet_views(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_create_cabinet_list(bpy.types.Operator):
+    bl_idname = "home_builder.create_cabinet_list_report"
+    bl_label = "Create Cabinet List Report"
+    
+    def get_cabinet_assemblies(self):
+        cabinets = []
+        for obj in bpy.data.objects:
+            cabinet_bp = home_builder_utils.get_cabinet_bp(obj)
+            if cabinet_bp and cabinet_bp not in cabinets:
+                cabinets.append(cabinet_bp)
+        return cabinets
+
+    def set_part_table_style(self,data):
+        obj_table = Table(data, colWidths=(100,200,50,50,50,120), repeatRows=1)
+        obj_table.hAlign = 'CENTER'
+        tblStyle = TableStyle([('TEXTCOLOR',(0,0),(-1,-1),colors.black),
+                               ('FONTSIZE',(0,0),(-1,-1),8),
+                               ('VALIGN',(0,0),(-1,-1),'TOP'),
+                               ('ALIGN',(0,0),(-1,-1),'CENTER'),
+                               ('LINEBELOW',(0,0),(-1,0),2,colors.black),
+                               ('LINEBELOW',(0,1),(-1,-2),1,colors.lightgrey),
+                               ('BACKGROUND',(0,1),(-1,-1),colors.white)])        
+
+        obj_table.setStyle(tblStyle)
+        return obj_table
+
+    def draw_cabinets(self,cabinets):
+        data = [["CABINETS (" + str(len(cabinets)) + ")" ,"Name","Width","Height","Depth","Material"]]
+        for i, cab in enumerate(cabinets):
+            cabinet = pc_types.Assembly(cab)
+            if bpy.context.scene.unit_settings.system == 'METRIC':
+                ext = "mm"
+            else:
+                ext = '"'
+            depth = int(pc_unit.meter_to_active_unit(math.fabs(cabinet.obj_y.location.y)))
+            width = int(pc_unit.meter_to_active_unit(math.fabs(cabinet.obj_x.location.x)))
+            height = int(pc_unit.meter_to_active_unit(math.fabs(cabinet.obj_z.location.z)))
+            material_group_index = home_builder_utils.get_object_props(cabinet.obj_bp).material_group_index
+            material_groups = home_builder_utils.get_scene_props(bpy.context.scene).material_pointer_groups
+            material_group = material_groups[material_group_index]
+            data.append([str(i+1),cabinet.obj_bp.name,str(width) + ext,str(height) + ext,str(depth) + ext,material_group.name])
+        
+        return self.set_part_table_style(data)
+
+    def draw_report_header(self,elements,report_name):  
+        if bpy.data.filepath == "":
+            room_name = ""
+        else:
+            filename = os.path.basename(bpy.data.filepath)
+            room_name, ext = os.path.splitext(filename)
+        
+        styles=getSampleStyleSheet()  
+        elements.append(Paragraph(report_name,styles["Title"]))
+        elements.append(Paragraph("Room Name: " + room_name,styles["Normal"]))
+        elements.append(Paragraph("Date: " + datetime.date.today().strftime("%m/%d/%y"),styles["Normal"]))
+        elements.append(Spacer(1,0.2*inch))
+
+    def execute(self, context):
+        self.model_scene = context.scene
+        cabinets = self.get_cabinet_assemblies()
+        width, height = landscape(letter)
+        filename = "Cabinet Product List.PDF"
+        filepath = os.path.join(bpy.app.tempdir,filename)
+        
+        doc = SimpleDocTemplate(filepath, pagesize=A4,leftMargin=.25*inch,rightMargin=.25*inch,topMargin=.25*inch,bottomMargin=.25*inch)        
+        
+        elements = []
+        self.draw_report_header(elements, "Cutlist Report")
+        elements.append(self.draw_cabinets(cabinets))
+        doc.build(elements)     
+        os.system('start "Title" /D "' + bpy.app.tempdir + '" "' + filename + '"')
+        return {'FINISHED'}
+
+
 class home_builder_OT_assign_material(bpy.types.Operator):
     bl_idname = "home_builder.assign_material"
     bl_label = "Assign Material"
@@ -2039,6 +2114,7 @@ classes = (
     home_builder_OT_update_product_material_group,
     home_builder_OT_add_material_pointer,
     home_builder_OT_update_object_materials,
+    home_builder_OT_create_cabinet_list,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

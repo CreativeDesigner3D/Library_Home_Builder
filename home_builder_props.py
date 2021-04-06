@@ -177,7 +177,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                            default=False)     
     show_material_pointer_options: bpy.props.BoolProperty(name="Show Material Pointer Options",
                                            description="Show Material Pointer Options",
-                                           default=False)                                                                                     
+                                           default=False)    
+    show_report_options: bpy.props.BoolProperty(name="Show Report Options",
+                                           description="Show Report Options",
+                                           default=False)                                                                                                                               
     active_category: StringProperty(name="Active Category")
 
     wall_height: FloatProperty(name="Wall Height",default=pc_unit.inch(96),subtype='DISTANCE')
