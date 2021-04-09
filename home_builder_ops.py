@@ -496,6 +496,21 @@ class home_builder_OT_update_pull_pointer(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_update_molding_pointer(bpy.types.Operator):
+    bl_idname = "home_builder.update_molding_pointer"
+    bl_label = "Update Molding Pointer"
+    
+    pointer_name: bpy.props.StringProperty(name="Pointer Name")
+
+    def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        for pointer in props.molding_pointers:
+            if pointer.name == self.pointer_name:
+                pointer.category = props.molding_category
+                pointer.item_name = props.molding_name      
+        return {'FINISHED'}
+
+
 class home_builder_OT_update_cabinet_door_pointer(bpy.types.Operator):
     bl_idname = "home_builder.update_cabinet_door_pointer"
     bl_label = "Update Cabinet Door Pointer"
@@ -805,7 +820,7 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
     def reset_variables(self):
         pass
 
-    def create_item_thumbnail_script(self,asset):
+    def create_thumbnail_script(self,asset):
         file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
         file.write("import bpy\n")
         file.write("import os\n")
@@ -834,7 +849,7 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
         file.close()
         return os.path.join(bpy.app.tempdir,'thumb_temp.py')
 
-    def create_item_material_thumbnail_script(self,asset):
+    def create_material_thumbnail_script(self,asset):
         file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
         file.write("import bpy\n")
         file.write("import os\n")
@@ -877,6 +892,36 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
         file.close()
         return os.path.join(bpy.app.tempdir,'thumb_temp.py')    
 
+    def create_molding_thumbnail_script(self,asset):
+        file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+        file.write("import sys\n")
+
+        file.write("path = r'" + os.path.join(os.path.dirname(asset.asset_path),asset.name)  + "'\n")
+
+        file.write("bpy.ops.object.select_all(action='DESELECT')\n")
+
+        file.write("with bpy.data.libraries.load(r'" + asset.asset_path + "', False, True) as (data_from, data_to):\n")
+        file.write("    data_to.objects = data_from.objects\n")
+
+        file.write("for obj in data_to.objects:\n")
+        file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+        file.write("    obj.select_set(True)\n")
+        file.write("    if obj.type == 'CURVE':\n")
+        file.write("        bpy.context.scene.camera.rotation_euler = (0,0,0)\n")
+        file.write("        obj.data.dimensions = '2D'\n")        
+
+        file.write("bpy.ops.view3d.camera_to_view_selected()\n")
+
+        #RENDER
+        file.write("render = bpy.context.scene.render\n")    
+        file.write("render.use_file_extension = True\n")
+        file.write("render.filepath = path\n")
+        file.write("bpy.ops.render.render(write_still=True)\n")
+        file.close()
+        return os.path.join(bpy.app.tempdir,'thumb_temp.py')
+
     def get_thumbnail_path(self,asset):
         return os.path.join(os.path.dirname(os.path.dirname(asset.asset_path)),"thumbnail.blend")
 
@@ -885,9 +930,11 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
         for asset in scene_props.active_asset_collection:
             if asset.is_selected:
                 if scene_props.asset_tabs == 'MATERIALS':
-                    script = self.create_item_material_thumbnail_script(asset)
+                    script = self.create_material_thumbnail_script(asset)
+                elif scene_props.asset_tabs == 'MOLDINGS':
+                    script = self.create_molding_thumbnail_script(asset)                    
                 else:
-                    script = self.create_item_thumbnail_script(asset)
+                    script = self.create_thumbnail_script(asset)
                 subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path(asset) + '" -b --python "' + script + '"',shell=True) 
                 # subprocess.call(bpy.app.binary_path + ' -b --python "' + script + '"',shell=True) 
         scene_props.asset_tabs = scene_props.asset_tabs
@@ -1411,7 +1458,7 @@ class home_builder_OT_reload_pointers(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         layout.label(text="Are you sure you want to reload the pointer files?")
-        layout.label(text="This will set Material, Door Fronts, and Hardware")
+        layout.label(text="This will set Material, Molding, Door Fronts, and Hardware")
         layout.label(text="pointers back to the default.")
 
     def execute(self, context):
@@ -1424,6 +1471,9 @@ class home_builder_OT_reload_pointers(bpy.types.Operator):
 
         for pointer in props.cabinet_door_pointers:
             props.cabinet_door_pointers.remove(0)   
+
+        for pointer in props.molding_pointers:
+            props.molding_pointers.remove(0)  
 
         home_builder_pointers.update_pointer_properties()
         props.material_group_index = 0                                    
@@ -2194,8 +2244,9 @@ class home_builder_OT_add_part(bpy.types.Operator):
         ctop.obj_z.hide_viewport = False
 
     def add_base_molding(self,props,sel_assembly):
-        molding_path = home_builder_paths.get_base_molding_path()
-        path = os.path.join(molding_path,"_Sample","BA01 4in.blend")
+        pointer = props.molding_pointers["Base Molding"]
+        molding_path = home_builder_paths.get_molding_path()
+        path = os.path.join(molding_path,pointer.category,pointer.item_name + ".blend")
         profile = home_builder_utils.get_object(path)
 
         bpy.ops.curve.primitive_bezier_curve_add(enter_editmode=False)
@@ -2207,6 +2258,7 @@ class home_builder_OT_add_part(bpy.types.Operator):
         obj_curve.data.bevel_mode = 'OBJECT'
         obj_curve.data.bevel_object = profile
         obj_curve.location = (0,0,0)
+        
         spline = obj_curve.data.splines.new('BEZIER')
 
         if self.left_return:
@@ -2231,9 +2283,13 @@ class home_builder_OT_add_part(bpy.types.Operator):
         bpy.ops.curve.handle_type_set(type='VECTOR')
         bpy.ops.object.editmode_toggle()
 
+        home_builder_pointers.assign_pointer_to_object(obj_curve,"Molding")
+        home_builder_pointers.assign_materials_to_object(obj_curve)
+
     def add_crown_molding(self,props,sel_assembly):
-        molding_path = home_builder_paths.get_base_molding_path()
-        path = os.path.join(molding_path,"_Sample","BA01 4in.blend")
+        pointer = props.molding_pointers["Crown Molding"]
+        molding_path = home_builder_paths.get_molding_path()
+        path = os.path.join(molding_path,pointer.category,pointer.item_name + ".blend")
         profile = home_builder_utils.get_object(path)
         
         bpy.ops.curve.primitive_bezier_curve_add(enter_editmode=False)
@@ -2269,9 +2325,13 @@ class home_builder_OT_add_part(bpy.types.Operator):
         bpy.ops.curve.handle_type_set(type='VECTOR')
         bpy.ops.object.editmode_toggle()
 
+        home_builder_pointers.assign_pointer_to_object(obj_curve,"Molding")
+        home_builder_pointers.assign_materials_to_object(obj_curve)
+
     def add_light_molding(self,props,sel_assembly):
-        molding_path = home_builder_paths.get_base_molding_path()
-        path = os.path.join(molding_path,"_Sample","BA01 4in.blend")
+        pointer = props.molding_pointers["Light Rail Molding"]
+        molding_path = home_builder_paths.get_molding_path()
+        path = os.path.join(molding_path,pointer.category,pointer.item_name + ".blend")
         profile = home_builder_utils.get_object(path)
         
         bpy.ops.curve.primitive_bezier_curve_add(enter_editmode=False)
@@ -2307,6 +2367,9 @@ class home_builder_OT_add_part(bpy.types.Operator):
         bpy.ops.curve.handle_type_set(type='VECTOR')
         bpy.ops.object.editmode_toggle()
 
+        home_builder_pointers.assign_pointer_to_object(obj_curve,"Molding")
+        home_builder_pointers.assign_materials_to_object(obj_curve)
+        
     def execute(self,context):
         obj = bpy.data.objects[self.object_name]
         obj_bp = pc_utils.get_assembly_bp(obj)
@@ -2340,6 +2403,7 @@ classes = (
     home_builder_OT_update_all_cabinet_doors,
     home_builder_OT_update_selected_cabinet_doors,
     home_builder_OT_update_pull_pointer,
+    home_builder_OT_update_molding_pointer,
     home_builder_OT_update_cabinet_door_pointer,
     home_builder_OT_auto_add_molding,
     home_builder_OT_generate_2d_views,

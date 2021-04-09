@@ -16,6 +16,7 @@ def get_default_material_pointers():
     pointers.append(("Cabinet Door Edges","_Sample","Dark Wood"))
     pointers.append(("Cabinet Pull Finish","_Sample","Polished Chrome"))
     pointers.append(("Countertop Surface","_Sample","Midnight Granite"))
+    pointers.append(("Molding","_Sample","Dark Wood"))
 
     #MISC
     pointers.append(("Glass","_Sample","Glass"))
@@ -51,17 +52,12 @@ def get_default_cabinet_door_pointers():
     pointers.append(("Drawer Fronts","_Sample","Slab"))
     return pointers
 
-def get_material_pointer_xml_path():
-    path = os.path.join(os.path.dirname(__file__),'pointers')
-    return os.path.join(path,"material_pointers.xml")
-
-def get_pull_pointer_xml_path():
-    path = os.path.join(os.path.dirname(__file__),'pointers')
-    return os.path.join(path,"pull_pointers.xml")
-
-def get_cabinet_door_pointer_xml_path():
-    path = os.path.join(os.path.dirname(__file__),'pointers')
-    return os.path.join(path,"cabinet_door_pointers.xml")
+def get_default_molding_pointers():
+    pointers = []
+    pointers.append(("Base Molding","Base","BA01 4in"))
+    pointers.append(("Crown Molding","Crown","CR01 2 x 2"))
+    pointers.append(("Light Rail Molding","Light Rail","L01 1_25 x 1_5in"))
+    return pointers
 
 def add_pointers_from_list(pointer_list,pointers):
     '''
@@ -91,6 +87,9 @@ def update_pointer_properties():
                                                   
     add_pointers_from_list(get_default_cabinet_door_pointers(),
                            props.cabinet_door_pointers)                                                    
+
+    add_pointers_from_list(get_default_molding_pointers(),
+                           props.molding_pointers)   
 
 def assign_pointer_to_object(obj,pointer_name):
     if len(obj.pyclone.pointers) == 0:

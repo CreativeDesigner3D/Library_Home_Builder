@@ -18,6 +18,8 @@ preview_collections["range_hood_categories"] = pc_pointer_utils.create_image_pre
 preview_collections["range_hood_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cabinet_door_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["cabinet_door_items"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["molding_categories"] = pc_pointer_utils.create_image_preview_collection()
+preview_collections["molding_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["entry_door_panel_categories"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["entry_door_panel_items"] = pc_pointer_utils.create_image_preview_collection()
 preview_collections["entry_door_frame_categories"] = pc_pointer_utils.create_image_preview_collection()
@@ -84,6 +86,30 @@ def update_pull_category(self,context):
         preview_collections["pull_items"] = pc_pointer_utils.create_image_preview_collection()     
         
     enum_pull_names(self,context)
+
+#MOLDING
+def enum_molding_categories(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = home_builder_paths.get_molding_path()
+    pcoll = preview_collections["molding_categories"]
+    return pc_pointer_utils.get_folder_enum_previews(icon_dir,pcoll)
+
+def enum_molding_names(self,context):
+    if context is None:
+        return []
+    
+    icon_dir = os.path.join(home_builder_paths.get_molding_path(),self.molding_category)
+    pcoll = preview_collections["molding_items"]
+    return pc_pointer_utils.get_image_enum_previews(icon_dir,pcoll)
+
+def update_molding_category(self,context):
+    if preview_collections["molding_items"]:
+        bpy.utils.previews.remove(preview_collections["molding_items"])
+        preview_collections["molding_items"] = pc_pointer_utils.create_image_preview_collection()     
+        
+    enum_molding_names(self,context)
 
 #SINKS
 def enum_sink_categories(self,context):

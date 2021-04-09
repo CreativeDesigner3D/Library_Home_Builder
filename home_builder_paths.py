@@ -79,5 +79,5 @@ def get_window_frame_path():
 def get_window_insert_path():
     return os.path.join(get_asset_folder_path(),'Window Inserts')     
 
-def get_base_molding_path():
-    return os.path.join(get_asset_folder_path(),'Moldings Base')             
+def get_molding_path():
+    return os.path.join(get_asset_folder_path(),'Moldings')             

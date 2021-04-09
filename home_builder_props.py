@@ -141,6 +141,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                     ('ENTRY_DOOR_PANELS',"Entry Door Panels","Show the Entry Door Panels"),
                                     ('FAUCETS',"Faucets","Show the Faucets"),
                                     ('MATERIALS',"Materials","Show the Materials"),
+                                    ('MOLDINGS',"Moldings","Show the Moldings"),
                                     ('RANGE_HOODS',"Range Hoods","Show the Range Hoods"),
                                     ('RANGES',"Ranges","Show the Ranges"),
                                     ('REFRIGERATORS',"Refrigerators","Show the Refrigerators"),
@@ -442,11 +443,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
     pull_pointers: bpy.props.CollectionProperty(name="Pull Pointers",type=Pointer)
     cabinet_door_pointers: bpy.props.CollectionProperty(name="Cabinet Door Pointers",type=Pointer)
-
-    pull_group_index: bpy.props.IntProperty(name="Pull Group Index")
-    pull_pointer_groups: bpy.props.CollectionProperty(name="Pull Pointer Groups",type=PointerGroup)
-    cabinet_door_group_index: bpy.props.IntProperty(name="Cabinet Door Group Index")
-    cabinet_door_pointer_groups: bpy.props.CollectionProperty(name="Cabinet Door Pointer Groups",type=PointerGroup)
+    molding_pointers: bpy.props.CollectionProperty(name="Molding Pointers",type=Pointer)
 
     active_asset_category: bpy.props.EnumProperty(name="Active Asset Category",
         items=home_builder_enums.enum_active_asset_categories,
@@ -473,6 +470,12 @@ class Home_Builder_Scene_Props(PropertyGroup):
         update=home_builder_enums.update_cabinet_door_category)
     cabinet_door_name: bpy.props.EnumProperty(name="Cabinet Door Name",
         items=home_builder_enums.enum_cabinet_door_names)
+
+    molding_category: bpy.props.EnumProperty(name="Molding Category",
+        items=home_builder_enums.enum_molding_categories,
+        update=home_builder_enums.update_molding_category)
+    molding_name: bpy.props.EnumProperty(name="Molding Name",
+        items=home_builder_enums.enum_molding_names)
 
     def draw_sizes(self,layout):
         # box = layout.box()
@@ -657,9 +660,29 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.prop(self,'wall_thickness',text="")
 
     def draw_moldings(self,layout):
-        molding_box = layout.box()
-        row = molding_box.row()    
-        row.label(text="Molding Interface is Under Development")    
+        split = layout.split(factor=.25)
+        left_col = split.column()
+        right_col = split.column()
+
+        molding_box = left_col.box()
+        row = molding_box.row()
+        row.label(text="Molding Selections:")
+
+        molding_box.prop(self,'molding_category',text="",icon='FILE_FOLDER')  
+        molding_box.template_icon_view(self,"molding_name",show_labels=True)  
+
+        right_row = right_col.row()
+        right_row.scale_y = 1.3
+        right_row.label(text="TODO: Create Auto Placement Command")
+        # right_row.operator('home_builder.update_scene_pulls',text="Update Molding",icon='FILE_REFRESH')
+        right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
+
+        box = right_col.box()
+        col = box.column(align=True)
+        for molding in self.molding_pointers:
+            row = col.row()
+            row.operator('home_builder.update_molding_pointer',text=molding.name,icon='FORWARD').pointer_name = molding.name
+            row.label(text=molding.category + " - " + molding.item_name,icon='MODIFIER_ON')
 
     def draw_materials(self,layout):
         split = layout.split(factor=.25)
@@ -677,8 +700,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         right_row = right_col.row()
         right_row.scale_y = 1.3
         right_row.menu('HOME_BUILDER_MT_change_global_material_group',text=material_group.name,icon='COLOR')
-        right_row.operator('home_builder.update_scene_materials',text="Update Materials",icon='FILE_REFRESH')
-        right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
+        right_row.operator('home_builder.update_scene_materials',text="Update Materials",icon='FILE_REFRESH')    
 
         box = right_col.box()
         box.operator('home_builder.add_material_pointer',text="Add Pointer")
@@ -686,7 +708,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
         for mat in material_group.pointers:
             row = col.row()
             row.operator('home_builder.update_material_pointer',text=mat.name,icon='FORWARD').pointer_name = mat.name
-            row.label(text=mat.category + " - " + mat.item_name,icon='MATERIAL')
+            row.label(text=mat.category + " - " + mat.item_name,icon='MATERIAL')            
 
     def draw_tools(self,layout):
         box = layout.box()
@@ -842,6 +864,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
             return home_builder_paths.get_faucet_path()
         if self.asset_tabs == 'MATERIALS':
             return home_builder_paths.get_material_path()
+        if self.asset_tabs == 'MOLDINGS':
+            return home_builder_paths.get_molding_path()
         if self.asset_tabs == 'RANGE_HOODS':
             return home_builder_paths.get_range_hood_path()
         if self.asset_tabs == 'RANGES':
