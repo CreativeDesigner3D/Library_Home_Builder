@@ -13,9 +13,9 @@ exterior_selection = [('SELECT_EXTERIOR',"Select Exterior","Select Exterior"),
                       ('LEFT_SWING_DOOR',"Left Swing Doors","Left Swing Doors"),
                       ('RIGHT_SWING_DOOR',"Right Swing Doors","Right Swing Doors"),
                       ('DOUBLE_DOORS',"Double Doors","Double Doors"),
-                    #   ('2_DOOR_2_DRAWER',"2 Door 2 Drawer","2 Door 2 Drawer"),
-                    #   ('1_DOOR_1_DRAWER',"1 Door 1 Drawer","1 Door 1 Drawer"),
-                    #   ('2_DOOR_1_DRAWER',"2 Door 1 Drawer","2 Door 1 Drawer"),
+                      ('2_DOOR_2_DRAWER',"2 Door 2 Drawer","2 Door 2 Drawer"),
+                      ('1_DOOR_1_DRAWER',"1 Door 1 Drawer","1 Door 1 Drawer"),
+                      ('2_DOOR_1_DRAWER',"2 Door 1 Drawer","2 Door 1 Drawer"),
                     #   ('SLIDING_DOORS',"Sliding Doors","Sliding Doors"),
                       ('1_DRAWERS',"1 Drawer","1 Drawer"),
                       ('2_DRAWERS',"2 Drawers","2 Drawers"),
@@ -36,11 +36,15 @@ def get_class_from_name(name):
         exterior = Doors()          
         exterior.door_swing = 2 
     elif name == '2_DOOR_2_DRAWER':
-        exterior = Doors()#TODO
+        exterior = Door_Drawer()
+        exterior.two_drawers = True
+        exterior.door_swing = 2
     elif name == '1_DOOR_1_DRAWER':
-        exterior = Doors()#TODO
+        exterior = Door_Drawer()
+        exterior.door_swing = 0
     elif name == '2_DOOR_1_DRAWER':
-        exterior = Doors()#TODO
+        exterior = Door_Drawer()
+        exterior.door_swing = 2
     elif name == 'SLIDING_DOORS':
         exterior = Doors()#TODO
     elif name == '1_DRAWERS':
@@ -423,7 +427,8 @@ class Drawers(Cabinet_Exterior):
 class Door_Drawer(Cabinet_Exterior):
 
     door_swing = 0 # Left = 0, Right = 1, Double = 2
-    
+    two_drawers = False
+
     def set_pull_props(self,obj):
         obj['IS_CABINET_PULL'] = True
         home_builder_pointers.assign_pointer_to_object(obj,"Cabinet Pull Finish")  
@@ -450,7 +455,10 @@ class Door_Drawer(Cabinet_Exterior):
         common_prompts.add_pull_prompts(self)
         common_prompts.add_thickness_prompts(self)
 
-        add_two_drawer_fronts = self.add_prompt("Add Two Drawer Fronts",'CHECKBOX',False)
+        door_swing_prompt = self.get_prompt("Door Swing")
+        door_swing_prompt.set_value(self.door_swing)
+
+        add_two_drawer_fronts = self.add_prompt("Add Two Drawer Fronts",'CHECKBOX',self.two_drawers)
         add_two_drawer_fronts_var = add_two_drawer_fronts.get_var('add_two_drawer_fronts_var')
 
         top_df_height = self.add_prompt("Top Drawer Front Height",'DISTANCE',pc_unit.inch(6))

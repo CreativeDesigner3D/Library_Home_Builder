@@ -38,6 +38,33 @@ class Base_2_Door_2_Drawer(data_cabinets.Standard_Cabinet):
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Door_Drawer()
         self.carcass.exterior.door_swing = 2
+        self.carcass.exterior.two_drawers = True
+        # self.exterior.cabinet_type = 'Base'
+        # self.splitter = None
+
+
+class Base_2_Door_1_Drawer(data_cabinets.Standard_Cabinet):
+
+    def __init__(self):
+        self.width = pc_unit.inch(36)
+        self.carcass = data_cabinet_carcass.Base_Advanced()
+        self.carcass.interior = None
+        self.carcass.exterior = data_cabinet_exteriors.Door_Drawer()
+        self.carcass.exterior.door_swing = 2
+        self.carcass.exterior.two_drawers = False
+        # self.exterior.cabinet_type = 'Base'
+        # self.splitter = None
+
+
+class Base_1_Door_1_Drawer(data_cabinets.Standard_Cabinet):
+
+    def __init__(self):
+        self.width = pc_unit.inch(18)
+        self.carcass = data_cabinet_carcass.Base_Advanced()
+        self.carcass.interior = None
+        self.carcass.exterior = data_cabinet_exteriors.Door_Drawer()
+        self.carcass.exterior.door_swing = 0
+        self.carcass.exterior.two_drawers = False
         # self.exterior.cabinet_type = 'Base'
         # self.splitter = None
 
