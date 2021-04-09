@@ -156,6 +156,18 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
         exterior_bp = home_builder_utils.get_exterior_bp(context.object)
         wall_bp = home_builder_utils.get_wall_bp(context.object)
 
+        if obj_bp:
+            box = layout.box()
+            row = box.row()
+            row.prop(props,'show_add_part_options',text="Add Part",emboss=False,icon='TRIA_DOWN' if props.show_add_part_options else 'TRIA_RIGHT')            
+            if props.show_add_part_options:
+                row = box.row()
+                row.label(text="Selected Assembly: " + obj_bp.name)
+                row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
+
+                box.prop(props,'selected_part',text="",icon='SNAP_FACE') 
+                box.operator('home_builder.add_part',text="Add Part",icon='BRUSH_DATA').object_name = obj_bp.name
+
         if wall_bp:
             box = layout.box()
             row = box.row()

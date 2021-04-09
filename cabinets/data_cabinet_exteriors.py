@@ -94,62 +94,42 @@ class Cabinet_Exterior(pc_types.Assembly):
 
         return to, bo, lo, ro
 
-    def add_door_panel(self,container,is_left_door=True):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
+    def replace_front(self,old_front,pointer):
+        new_front = data_cabinet_parts.add_door_part(self,pointer)
+        scene_props = home_builder_utils.get_scene_props(bpy.context.scene)
+        pull_pointer = None
 
-        pointer = None
-        if self.carcass_type == 'Base':
-            pointer = props.cabinet_door_pointers["Base Cabinet Doors"]
-        if self.carcass_type == 'Tall':
-            pointer = props.cabinet_door_pointers["Tall Cabinet Doors"]
-        if self.carcass_type == 'Upper':
-            pointer = props.cabinet_door_pointers["Upper Cabinet Doors"]
+        if pointer.name == 'Base Cabinet Doors':
+            pull_pointer = scene_props.pull_pointers["Base Cabinet Pulls"]
+        if pointer.name == 'Tall Cabinet Doors':
+            pull_pointer = scene_props.pull_pointers["Tall Cabinet Pulls"]
+        if pointer.name == 'Upper Cabinet Doors':
+            pull_pointer = scene_props.pull_pointers["Upper Cabinet Pulls"]          
+        if pointer.name == 'Drawer Fronts':
+            pull_pointer = scene_props.pull_pointers["Drawer Pulls"]       
 
-        dim_x = container.obj_x.pyclone.get_var('location.x','dim_x')
-        dim_y = container.obj_y.pyclone.get_var('location.y','dim_y')
-        dim_z = container.obj_z.pyclone.get_var('location.z','dim_z')    
-        door_swing = self.get_prompt("Door Swing").get_var('door_swing')
-
-        door = data_cabinet_parts.add_door_part(self,pointer)
-        door.set_name("Door Panel")
-        door.dim_x('dim_x',[dim_x])
-        door.dim_y('dim_y',[dim_y])
-        door.dim_z('dim_z',[dim_z])
-        door.obj_bp.parent = container.obj_bp    
-        hide = door.get_prompt("Hide") 
-        if is_left_door:
-            hide.set_formula('IF(door_swing==1,True,False)',[door_swing])
+        if "Drawer" in pointer.name:
+            self.add_drawer_pull(new_front,pull_pointer)
         else:
-            hide.set_formula('IF(door_swing==0,True,False)',[door_swing])
-        return door
+            self.add_door_pull(new_front,pull_pointer)
 
-    def add_door_pull(self,container,is_left_door=True):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        home_builder_utils.update_assembly_id_props(new_front,self)
+        home_builder_utils.replace_assembly(old_front,new_front)
+        home_builder_utils.hide_empties(new_front.obj_bp)
 
-        pointer = None
-        if self.carcass_type == 'Base':
-            pointer = props.pull_pointers["Base Cabinet Pulls"]
-        if self.carcass_type == 'Tall':
-            pointer = props.pull_pointers["Tall Cabinet Pulls"]
-        if self.carcass_type == 'Upper':
-            pointer = props.pull_pointers["Upper Cabinet Pulls"]
-
-        pull_empty = container.add_empty('Pull Empty')
-        pull_empty.parent = container.obj_bp
-        pull_empty.empty_display_size = .01
+    def add_door_pull(self,front,pointer):
         pull_path = path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
         pull_obj = home_builder_utils.get_object(pull_path) 
-        container.add_object(pull_obj)
-        pull_obj.parent = pull_empty
+        front.add_object(pull_obj)
 
         pull_length = self.get_prompt("Pull Length")  
         pull_length.set_value(round(pull_obj.dimensions.x,2))
 
         #VARS
-        door_width = container.obj_y.pyclone.get_var('location.y','door_width')
-        door_length = container.obj_x.pyclone.get_var('location.x','door_length')
+        door_width = front.obj_y.pyclone.get_var('location.y','door_width')
+        door_length = front.obj_x.pyclone.get_var('location.x','door_length')
         front_thickness = self.get_prompt("Front Thickness").get_var('front_thickness')
-        door_swing = self.get_prompt("Door Swing").get_var('door_swing')
+        hide = front.get_prompt("Hide").get_var('hide')
         pull_length_var = pull_length.get_var('pull_length_var')
         base_pull_vertical_location = self.get_prompt("Base Pull Vertical Location").get_var('base_pull_vertical_location')
         tall_pull_vertical_location = self.get_prompt("Tall Pull Vertical Location").get_var('tall_pull_vertical_location')
@@ -158,59 +138,43 @@ class Cabinet_Exterior(pc_types.Assembly):
         turn_off_pulls = self.get_prompt("Turn Off Pulls").get_var('turn_off_pulls')
 
         #FORMULAS
-        pull_empty.pyclone.loc_z('front_thickness',[front_thickness])
-        if self.carcass_type == 'Base':
-            pull_empty.pyclone.loc_x('door_length-base_pull_vertical_location-(pull_length_var/2)',
+        pull_obj.pyclone.loc_z('front_thickness',[front_thickness])
+        if pointer.name == 'Base Cabinet Pulls':
+            pull_obj.pyclone.loc_x('door_length-base_pull_vertical_location-(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])  
-        if self.carcass_type == 'Tall':
-            pull_empty.pyclone.loc_x('tall_pull_vertical_location-(pull_length_var/2)',
+        if pointer.name == 'Tall Cabinet Pulls':
+            pull_obj.pyclone.loc_x('tall_pull_vertical_location-(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])  
-        if self.carcass_type == 'Upper': 
-            pull_empty.pyclone.loc_x('upper_pull_vertical_location+(pull_length_var/2)',
+        if pointer.name == 'Upper Cabinet Pulls':
+            pull_obj.pyclone.loc_x('upper_pull_vertical_location+(pull_length_var/2)',
             [door_length,base_pull_vertical_location,tall_pull_vertical_location,upper_pull_vertical_location,pull_length_var])     
-        pull_empty.rotation_euler.x = math.radians(-90)
-        if is_left_door:
-            pull_empty.pyclone.loc_y('door_width+pull_horizontal_location',[door_width,pull_horizontal_location])
-            pull_obj.pyclone.hide('IF(OR(door_swing==1,turn_off_pulls),True,False)',[door_swing,turn_off_pulls])
-        else:
-            pull_empty.pyclone.loc_y('door_width-pull_horizontal_location',[door_width,pull_horizontal_location])
-            pull_obj.pyclone.hide('IF(OR(door_swing==0,turn_off_pulls),True,False)',[door_swing,turn_off_pulls])
+        pull_obj.rotation_euler.x = math.radians(-90)
+        pull_obj.pyclone.loc_y('IF(door_width>0,door_width-pull_horizontal_location,door_width+pull_horizontal_location)',[door_width,pull_horizontal_location])
+        pull_obj.pyclone.hide('IF(OR(hide,turn_off_pulls),True,False)',[hide,turn_off_pulls])
 
         pull_obj['IS_CABINET_PULL'] = True
         home_builder_pointers.assign_pointer_to_object(pull_obj,"Cabinet Pull Finish")  
-        if self.carcass_type == 'Base':
-            home_builder_utils.get_object_props(pull_obj).pointer_name = "Base Cabinet Pulls"
-        if self.carcass_type == 'Tall':
-            home_builder_utils.get_object_props(pull_obj).pointer_name = "Tall Cabinet Pulls"
-        if self.carcass_type == 'Upper':
-            home_builder_utils.get_object_props(pull_obj).pointer_name = "Upper Cabinet Pulls"
-
-    def add_drawer_pull(self,front):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
-
-        drawer_z_loc = front.obj_bp.pyclone.get_var('location.z',"drawer_z_loc")
-        drawer_x_loc = front.obj_bp.pyclone.get_var('location.x',"drawer_x_loc")
+        home_builder_utils.get_object_props(pull_obj).pointer_name = pointer.name
+        
+    def add_drawer_pull(self,front,pointer):
         drawer_front_width = front.obj_y.pyclone.get_var('location.y',"drawer_front_width")
         drawer_front_height = front.obj_x.pyclone.get_var('location.x',"drawer_front_height")
         front_thickness = front.obj_z.pyclone.get_var('location.z',"front_thickness")
         turn_off_pulls = self.get_prompt("Turn Off Pulls").get_var('turn_off_pulls')
         hide_drawer_front = front.get_prompt("Hide").get_var('hide_drawer_front')
 
-        pull_empty = self.add_empty('Pull Empty')
-        pull_empty.empty_display_size = .01
-
-        pull_pointer = props.pull_pointers["Drawer Pulls"]
-
-        pull_path = path.join(home_builder_paths.get_pull_path(),pull_pointer.category,pull_pointer.item_name + ".blend")
+        pull_path = path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
         pull_obj = home_builder_utils.get_object(pull_path)
         pull_obj['IS_CABINET_PULL'] = True
         home_builder_utils.get_object_props(pull_obj).pointer_name = "Drawer Pulls"
-        self.add_object(pull_obj)
-        pull_obj.parent = pull_empty
-        pull_empty.pyclone.loc_y('-front_thickness',[front_thickness])
-        pull_empty.pyclone.loc_z('drawer_z_loc+(drawer_front_height/2)',[drawer_z_loc,drawer_front_height])
-        pull_empty.pyclone.loc_x('drawer_x_loc+(fabs(drawer_front_width)/2)',[drawer_front_width,drawer_x_loc])
-        pull_empty.rotation_euler.y = math.radians(180)
+        front.add_object(pull_obj)
+        pull_obj.parent = front.obj_bp
+        pull_obj.pyclone.loc_x('(drawer_front_height/2)',[drawer_front_height])
+        pull_obj.pyclone.loc_y('(fabs(drawer_front_width)/2)*-1',[drawer_front_width])
+        pull_obj.pyclone.loc_z('front_thickness',[front_thickness])
+        pull_obj.rotation_euler.x = math.radians(-90)
+        pull_obj.rotation_euler.y = math.radians(0)
+        pull_obj.rotation_euler.z = math.radians(90)
         pull_obj.pyclone.hide('IF(turn_off_pulls,True,hide_drawer_front)',[turn_off_pulls,hide_drawer_front])
 
         home_builder_pointers.assign_pointer_to_object(pull_obj,"Cabinet Pull Finish")
@@ -314,6 +278,7 @@ class Doors(Cabinet_Exterior):
         front_thickness = self.get_prompt("Front Thickness").get_var('front_thickness')
         door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
         open_door = self.get_prompt("Open Door").get_var('open_door')
+        door_swing = self.get_prompt("Door Swing").get_var('door_swing')
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
@@ -322,37 +287,49 @@ class Doors(Cabinet_Exterior):
         lo_var = lo.get_var("lo_var")
         ro_var = ro.get_var("ro_var")
 
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+
+        front_pointer = None
+        pull_pointer = None
+        if self.carcass_type == 'Base':
+            front_pointer = props.cabinet_door_pointers["Base Cabinet Doors"]
+            pull_pointer = props.pull_pointers["Base Cabinet Pulls"]
+        if self.carcass_type == 'Tall':
+            front_pointer = props.cabinet_door_pointers["Tall Cabinet Doors"]
+            pull_pointer = props.pull_pointers["Tall Cabinet Pulls"]
+        if self.carcass_type == 'Upper':
+            front_pointer = props.cabinet_door_pointers["Upper Cabinet Doors"]
+            pull_pointer = props.pull_pointers["Upper Cabinet Pulls"]
+
         #LEFT DOOR
-        l_door_container = pc_types.Assembly()
-        l_door_container.create_assembly("Left Door Container")
-        l_door_container.obj_bp.parent = self.obj_bp
-        l_door_container.loc_x('-lo_var',[lo_var])
-        l_door_container.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
-        l_door_container.loc_z('-bo_var',[bo_var])
-        l_door_container.rot_x(value = math.radians(90))
-        l_door_container.rot_y(value = math.radians(-90))
-        l_door_container.rot_z('-door_rotation*open_door',[door_rotation,open_door])
-        l_door_container.dim_x('z+to_var+bo_var',[z,to_var,bo_var])
-        l_door_container.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)*-1',[door_swing,x,lo_var,ro_var,vertical_gap])            
-        l_door_container.dim_z('front_thickness',[front_thickness])
-        self.add_door_panel(l_door_container,is_left_door=True)
-        self.add_door_pull(l_door_container,is_left_door=True)
+        l_door = data_cabinet_parts.add_door_part(self,front_pointer)
+        l_door.loc_x('-lo_var',[lo_var])
+        l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
+        l_door.loc_z('-bo_var',[bo_var])
+        l_door.rot_x(value = math.radians(90))
+        l_door.rot_y(value = math.radians(-90))
+        l_door.rot_z('-door_rotation*open_door',[door_rotation,open_door])
+        l_door.dim_x('z+to_var+bo_var',[z,to_var,bo_var])
+        l_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)*-1',[door_swing,x,lo_var,ro_var,vertical_gap])            
+        l_door.dim_z('front_thickness',[front_thickness])
+        hide = l_door.get_prompt("Hide") 
+        hide.set_formula('IF(door_swing==1,True,False)',[door_swing])
+        self.add_door_pull(l_door,pull_pointer)
 
         #RIGHT DOOR
-        r_door_container = pc_types.Assembly()
-        r_door_container.create_assembly("Right Door Container")
-        r_door_container.obj_bp.parent = self.obj_bp
-        r_door_container.loc_x('x+ro_var',[x,ro_var])
-        r_door_container.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
-        r_door_container.loc_z('-bo_var',[bo_var])
-        r_door_container.rot_x(value = math.radians(90))
-        r_door_container.rot_y(value = math.radians(-90))
-        r_door_container.rot_z('door_rotation*open_door',[door_rotation,open_door])   
-        r_door_container.dim_x('z+to_var+bo_var',[z,to_var,bo_var])
-        r_door_container.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)',[door_swing,x,lo_var,ro_var,vertical_gap])     
-        r_door_container.dim_z('front_thickness',[front_thickness])
-        self.add_door_panel(r_door_container,is_left_door=False)
-        self.add_door_pull(r_door_container,is_left_door=False)
+        r_door = data_cabinet_parts.add_door_part(self,front_pointer)
+        r_door.loc_x('x+ro_var',[x,ro_var])
+        r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
+        r_door.loc_z('-bo_var',[bo_var])
+        r_door.rot_x(value = math.radians(90))
+        r_door.rot_y(value = math.radians(-90))
+        r_door.rot_z('door_rotation*open_door',[door_rotation,open_door])   
+        r_door.dim_x('z+to_var+bo_var',[z,to_var,bo_var])
+        r_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)',[door_swing,x,lo_var,ro_var,vertical_gap])     
+        r_door.dim_z('front_thickness',[front_thickness])
+        hide = r_door.get_prompt("Hide") 
+        hide.set_formula('IF(door_swing==0,True,False)',[door_swing])
+        self.add_door_pull(r_door,pull_pointer)
 
         self.set_prompts()
 
@@ -388,9 +365,10 @@ class Drawers(Cabinet_Exterior):
         
         drawer_z_loc = front_empty.pyclone.get_var('location.z',"drawer_z_loc")
 
-        pointer = props.cabinet_door_pointers["Drawer Fronts"]
+        front_pointer = props.cabinet_door_pointers["Drawer Fronts"]
+        pull_pointer = props.pull_pointers["Drawer Pulls"]
 
-        drawer_front = data_cabinet_parts.add_door_part(self,pointer)
+        drawer_front = data_cabinet_parts.add_door_part(self,front_pointer)
         drawer_front.set_name('Drawer Front')
         drawer_front.loc_x('-left_overlay',[left_overlay])
         drawer_front.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -400,9 +378,8 @@ class Drawers(Cabinet_Exterior):
         drawer_front.dim_x('drawer_front_height',[drawer_front_height])
         drawer_front.dim_y('(x+left_overlay+right_overlay)*-1',[x,left_overlay,right_overlay])
         drawer_front.dim_z('front_thickness',[front_thickness])
-        home_builder_utils.flip_normals(drawer_front)
 
-        self.add_drawer_pull(drawer_front)
+        self.add_drawer_pull(drawer_front,pull_pointer)
 
         return front_empty
 
@@ -503,41 +480,51 @@ class Door_Drawer(Cabinet_Exterior):
         lo_var = lo.get_var("lo_var")
         ro_var = ro.get_var("ro_var")
 
+        front_pointer = None
+        pull_pointer = None
+        if self.carcass_type == 'Base':
+            front_pointer = props.cabinet_door_pointers["Base Cabinet Doors"]
+            pull_pointer = props.pull_pointers["Base Cabinet Pulls"]
+        if self.carcass_type == 'Tall':
+            front_pointer = props.cabinet_door_pointers["Tall Cabinet Doors"]
+            pull_pointer = props.pull_pointers["Tall Cabinet Pulls"]
+        if self.carcass_type == 'Upper':
+            front_pointer = props.cabinet_door_pointers["Upper Cabinet Doors"]
+            pull_pointer = props.pull_pointers["Upper Cabinet Pulls"]
+        drawer_front_pointer = props.cabinet_door_pointers["Drawer Fronts"]
+        drawer_pull_pointer = props.pull_pointers["Drawer Pulls"]
+
         #LEFT DOOR
-        l_door_container = pc_types.Assembly()
-        l_door_container.create_assembly("Left Door Container")
-        l_door_container.obj_bp.parent = self.obj_bp
-        l_door_container.loc_x('-lo_var',[lo_var])
-        l_door_container.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
-        l_door_container.loc_z('-bo_var',[bo_var])
-        l_door_container.rot_x(value = math.radians(90))
-        l_door_container.rot_y(value = math.radians(-90))
-        l_door_container.rot_z('-door_rotation*open_door',[door_rotation,open_door])
-        l_door_container.dim_x('z+to_var+bo_var-top_df_height_var-h_gap',[z,to_var,bo_var,top_df_height_var,h_gap])
-        l_door_container.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)*-1',[door_swing,x,lo_var,ro_var,vertical_gap])            
-        l_door_container.dim_z('front_thickness',[front_thickness])
-        self.add_door_panel(l_door_container,is_left_door=True)
-        self.add_door_pull(l_door_container,is_left_door=True)
+        l_door = data_cabinet_parts.add_door_part(self,front_pointer)
+        l_door.loc_x('-lo_var',[lo_var])
+        l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
+        l_door.loc_z('-bo_var',[bo_var])
+        l_door.rot_x(value = math.radians(90))
+        l_door.rot_y(value = math.radians(-90))
+        l_door.rot_z('-door_rotation*open_door',[door_rotation,open_door])
+        l_door.dim_x('z+to_var+bo_var-top_df_height_var-h_gap',[z,to_var,bo_var,top_df_height_var,h_gap])
+        l_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)*-1',[door_swing,x,lo_var,ro_var,vertical_gap])            
+        l_door.dim_z('front_thickness',[front_thickness])
+        hide = l_door.get_prompt("Hide") 
+        hide.set_formula('IF(door_swing==1,True,False)',[door_swing])
+        self.add_door_pull(l_door,pull_pointer)
 
         #RIGHT DOOR
-        r_door_container = pc_types.Assembly()
-        r_door_container.create_assembly("Right Door Container")
-        r_door_container.obj_bp.parent = self.obj_bp
-        r_door_container.loc_x('x+ro_var',[x,ro_var])
-        r_door_container.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
-        r_door_container.loc_z('-bo_var',[bo_var])
-        r_door_container.rot_x(value = math.radians(90))
-        r_door_container.rot_y(value = math.radians(-90))
-        r_door_container.rot_z('door_rotation*open_door',[door_rotation,open_door])   
-        r_door_container.dim_x('z+to_var+bo_var-top_df_height_var-h_gap',[z,to_var,bo_var,top_df_height_var,h_gap])
-        r_door_container.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)',[door_swing,x,lo_var,ro_var,vertical_gap])     
-        r_door_container.dim_z('front_thickness',[front_thickness])
-        self.add_door_panel(r_door_container,is_left_door=False)
-        self.add_door_pull(r_door_container,is_left_door=False)
+        r_door = data_cabinet_parts.add_door_part(self,front_pointer)
+        r_door.loc_x('x+ro_var',[x,ro_var])
+        r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
+        r_door.loc_z('-bo_var',[bo_var])
+        r_door.rot_x(value = math.radians(90))
+        r_door.rot_y(value = math.radians(-90))
+        r_door.rot_z('door_rotation*open_door',[door_rotation,open_door])   
+        r_door.dim_x('z+to_var+bo_var-top_df_height_var-h_gap',[z,to_var,bo_var,top_df_height_var,h_gap])
+        r_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)',[door_swing,x,lo_var,ro_var,vertical_gap])     
+        r_door.dim_z('front_thickness',[front_thickness])
+        hide = r_door.get_prompt("Hide") 
+        hide.set_formula('IF(door_swing==0,True,False)',[door_swing])
+        self.add_door_pull(r_door,pull_pointer)
 
-        pointer = props.cabinet_door_pointers["Drawer Fronts"]
-
-        drawer_front = data_cabinet_parts.add_door_part(self,pointer)
+        drawer_front = data_cabinet_parts.add_door_part(self,drawer_front_pointer)
         drawer_front.set_name('Drawer Front')
         drawer_front.loc_x('-lo_var',[lo_var])
         drawer_front.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -547,10 +534,9 @@ class Door_Drawer(Cabinet_Exterior):
         drawer_front.dim_x('top_df_height_var',[top_df_height_var])
         drawer_front.dim_y('IF(add_two_drawer_fronts_var,(((x+lo_var+ro_var)-vertical_gap)/2)*-1,(x+lo_var+ro_var)*-1)',[add_two_drawer_fronts_var,x,lo_var,ro_var,vertical_gap])
         drawer_front.dim_z('front_thickness',[front_thickness])
-        home_builder_utils.flip_normals(drawer_front)
-        self.add_drawer_pull(drawer_front)
+        self.add_drawer_pull(drawer_front,drawer_pull_pointer)
 
-        drawer_front = data_cabinet_parts.add_door_part(self,pointer)
+        drawer_front = data_cabinet_parts.add_door_part(self,drawer_front_pointer)
         drawer_front.set_name('Drawer Front')
         drawer_front.loc_x('(x/2)+(vertical_gap/2)',[x,vertical_gap])
         drawer_front.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -562,7 +548,6 @@ class Door_Drawer(Cabinet_Exterior):
         drawer_front.dim_z('front_thickness',[front_thickness])
         hide = drawer_front.get_prompt('Hide')
         hide.set_formula('IF(add_two_drawer_fronts_var,False,True)',[add_two_drawer_fronts_var])
-        home_builder_utils.flip_normals(drawer_front)
-        self.add_drawer_pull(drawer_front)
+        self.add_drawer_pull(drawer_front,drawer_pull_pointer)
 
         self.set_prompts()

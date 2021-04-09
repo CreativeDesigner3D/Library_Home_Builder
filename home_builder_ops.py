@@ -21,6 +21,7 @@ from bpy.props import (StringProperty,
 
 from .pc_lib import pc_unit, pc_utils, pc_types
 from .cabinets import data_cabinet_carcass
+from .cabinets import data_cabinet_exteriors
 from .cabinets import data_cabinet_parts
 from .cabinets import cabinet_utils
 from . import home_builder_pointers
@@ -373,22 +374,14 @@ class home_builder_OT_update_scene_pulls(bpy.types.Operator):
         for pull in pull_objs:
             props = home_builder_utils.get_object_props(pull)
             exterior_bp = home_builder_utils.get_exterior_bp(pull)
-            for pointer in pull_pointers:
-                if pointer.name == props.pointer_name:
-                    pull_path = os.path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
-                    new_pull = home_builder_utils.get_object(pull_path)
-                    new_pull_props = home_builder_utils.get_object_props(new_pull)
-                    new_pull_props.pointer_name = pointer.name
-                    new_pull.parent = pull.parent
-                    new_pull["IS_CABINET_PULL"] = True
-                    context.view_layer.active_layer_collection.collection.objects.link(new_pull)
-                    home_builder_pointers.assign_pointer_to_object(new_pull,"Cabinet Pull Finish")
-                    if exterior_bp:
-                        exterior = pc_types.Assembly(exterior_bp)
-                        pull_length = exterior.get_prompt("Pull Length")    
-                        if pull_length:
-                            pull_length.set_value(round(new_pull.dimensions.x,2))  
-                        exterior_bp.location = exterior_bp.location 
+            exterior = data_cabinet_exteriors.Cabinet_Exterior(exterior_bp)
+            front_bp = home_builder_utils.get_cabinet_door_bp(pull)
+            front = pc_types.Assembly(front_bp)
+            pointer = pull_pointers[props.pointer_name]
+            if "Drawer" in pointer.name:
+                exterior.add_drawer_pull(front,pointer)
+            else:
+                exterior.add_door_pull(front,pointer)
 
         pc_utils.delete_obj_list(pull_objs)
         return {'FINISHED'}
@@ -400,7 +393,7 @@ class home_builder_OT_update_selected_pulls(bpy.types.Operator):
     
     def execute(self, context):
         pull_objs = []
-        scene_props = home_builder_utils.get_scene_props(context.scene)
+        scene_props = home_builder_utils.get_scene_props(context.scene) 
 
         for obj in context.selected_objects:
             if "IS_CABINET_PULL" in obj and obj["IS_CABINET_PULL"]:
@@ -408,25 +401,21 @@ class home_builder_OT_update_selected_pulls(bpy.types.Operator):
 
         for pull in pull_objs:
             props = home_builder_utils.get_object_props(pull)
+
             exterior_bp = home_builder_utils.get_exterior_bp(pull)
+
             pointer = TempPointer()
             pointer.name = props.pointer_name
             pointer.category = scene_props.pull_category
-            pointer.item_name = scene_props.pull_name            
-            pull_path = os.path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
-            new_pull = home_builder_utils.get_object(pull_path)
-            new_pull_props = home_builder_utils.get_object_props(new_pull)
-            new_pull_props.pointer_name = pointer.name
-            new_pull.parent = pull.parent
-            new_pull["IS_CABINET_PULL"] = True
-            context.view_layer.active_layer_collection.collection.objects.link(new_pull)
-            home_builder_pointers.assign_pointer_to_object(new_pull,"Cabinet Pull Finish")
-            if exterior_bp:
-                exterior = pc_types.Assembly(exterior_bp)
-                pull_length = exterior.get_prompt("Pull Length")    
-                if pull_length:
-                    pull_length.set_value(round(new_pull.dimensions.x,2))  
-                exterior_bp.location = exterior_bp.location 
+            pointer.item_name = scene_props.pull_name   
+
+            front_bp = home_builder_utils.get_cabinet_door_bp(pull)
+            front = pc_types.Assembly(front_bp)
+            exterior = data_cabinet_exteriors.Cabinet_Exterior(exterior_bp)
+            if "Drawer" in pointer.name:
+                exterior.add_drawer_pull(front,pointer)
+            else:
+                exterior.add_door_pull(front,pointer)
 
         pc_utils.delete_obj_list(pull_objs)
         return {'FINISHED'}
@@ -449,13 +438,8 @@ class home_builder_OT_update_all_cabinet_doors(bpy.types.Operator):
             pointer = scene_props.cabinet_door_pointers[props.pointer_name]
 
             old_door_panel = pc_types.Assembly(door_panel_bp)
-            old_door_panel_parent = pc_types.Assembly(door_panel_bp.parent)
-            new_door = data_cabinet_parts.add_door_part(old_door_panel_parent,pointer)
-
-            home_builder_utils.update_assembly_id_props(new_door,old_door_panel_parent)
-            home_builder_utils.replace_assembly(old_door_panel,new_door)
-            home_builder_utils.hide_empties(new_door.obj_bp)
-
+            exterior = data_cabinet_exteriors.Cabinet_Exterior(door_panel_bp.parent)
+            exterior.replace_front(old_door_panel,pointer)
         return {'FINISHED'}
 
 
@@ -489,12 +473,10 @@ class home_builder_OT_update_selected_cabinet_doors(bpy.types.Operator):
             pointer.item_name = scene_props.cabinet_door_name
 
             old_door_panel = pc_types.Assembly(door_panel_bp)
-            old_door_panel_parent = pc_types.Assembly(door_panel_bp.parent)
-            new_door = data_cabinet_parts.add_door_part(old_door_panel_parent,pointer)
 
-            home_builder_utils.update_assembly_id_props(new_door,old_door_panel_parent)
-            home_builder_utils.replace_assembly(old_door_panel,new_door)
-            home_builder_utils.hide_empties(new_door.obj_bp)
+            exterior = data_cabinet_exteriors.Cabinet_Exterior(door_panel_bp.parent)
+
+            exterior.replace_front(old_door_panel,pointer)
 
         return {'FINISHED'}
 
@@ -2072,6 +2054,278 @@ class home_builder_OT_update_object_materials(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_add_part(bpy.types.Operator):
+    bl_idname = "home_builder.add_part"
+    bl_label = "Add Part"
+    bl_description = "This adds a part to the selected assembly"
+    bl_options = {'UNDO'}
+    
+    #READONLY
+    object_name: bpy.props.StringProperty(name="Object Name")
+
+    #APPLIED PANEL
+    carcass_type: bpy.props.EnumProperty(name="Carcass Type",
+                                items=[('BASE',"Base","Use Base Pointer"),
+                                       ('TALL',"Tall","Use Tall Pointer"),
+                                       ('UPPER',"Upper","Use Upper Pointer")],
+                                default='BASE')  
+    add_left_panel: bpy.props.BoolProperty(name="Add Left Panel")
+    add_right_panel: bpy.props.BoolProperty(name="Add Right Panel")
+    add_back_panel: bpy.props.BoolProperty(name="Add Back Panel")
+    applied_panel_front_overlay: bpy.props.FloatProperty(name="Applied Panel Front Overlay",subtype='DISTANCE')
+    applied_panel_rear_overlay: bpy.props.FloatProperty(name="Applied Panel Rear Overlay",subtype='DISTANCE')
+    applied_panel_left_overlay: bpy.props.FloatProperty(name="Applied Panel Left Overlay",subtype='DISTANCE')
+    applied_panel_right_overlay: bpy.props.FloatProperty(name="Applied Panel Right Overlay",subtype='DISTANCE')
+
+    #COUNTERTOP
+    countertop_front_overlay: bpy.props.FloatProperty(name="Countertop Front Overlay",subtype='DISTANCE')
+    countertop_rear_overlay: bpy.props.FloatProperty(name="Countertop Rear Overlay",subtype='DISTANCE')
+    countertop_left_overlay: bpy.props.FloatProperty(name="Countertop Left Overlay",subtype='DISTANCE')
+    countertop_right_overlay: bpy.props.FloatProperty(name="Countertop Right Overlay",subtype='DISTANCE')    
+
+    #MOLDING
+    left_return: bpy.props.BoolProperty(name="Left Return")
+    right_return: bpy.props.BoolProperty(name="Right Return")    
+
+    def check(self, context):
+        return True
+    
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+        
+    def draw(self,context):
+        layout = self.layout
+        props = home_builder_utils.get_scene_props(context.scene)
+        if props.selected_part == 'APPLIED_PANEL':
+            layout.prop(self,'carcass_type')
+            layout.prop(self,'add_left_panel')
+            layout.prop(self,'add_right_panel')
+            layout.prop(self,'add_back_panel')
+            if self.add_left_panel or self.add_right_panel:
+                layout.prop(self,'applied_panel_front_overlay')
+                layout.prop(self,'applied_panel_rear_overlay')
+            if self.add_back_panel:
+                layout.prop(self,'applied_panel_left_overlay')
+                layout.prop(self,'applied_panel_right_overlay')
+
+        if props.selected_part == 'COUNTERTOP':
+            layout.prop(self,'countertop_front_overlay')
+            layout.prop(self,'countertop_rear_overlay')
+            layout.prop(self,'countertop_left_overlay')
+            layout.prop(self,'countertop_right_overlay')
+
+        if props.selected_part == 'MOLDING_BASE':
+            layout.prop(self,'left_return')
+            layout.prop(self,'right_return')
+
+        if props.selected_part == 'MOLDING_CROWN':
+            layout.prop(self,'left_return')
+            layout.prop(self,'right_return')
+
+        if props.selected_part == 'MOLDING_LIGHT':
+            layout.prop(self,'left_return')
+            layout.prop(self,'right_return')                      
+
+    def add_applied_panel(self,props,sel_assembly):
+        pointer = None
+        if self.carcass_type == 'BASE':
+            pointer = props.cabinet_door_pointers["Base Cabinet Doors"]
+        if self.carcass_type == 'TALL':
+            pointer = props.cabinet_door_pointers["Tall Cabinet Doors"]
+        if self.carcass_type == 'UPPER':
+            pointer = props.cabinet_door_pointers["Upper Cabinet Doors"]
+
+        if self.add_left_panel:
+            door = data_cabinet_parts.add_door_part(sel_assembly,pointer)
+            door.set_name("Applied Panel")
+            door.loc_x(value=0)
+            door.loc_y(value=sel_assembly.obj_y.location.y-self.applied_panel_front_overlay)
+            door.loc_z(value=0)
+            door.rot_x(value=0)
+            door.rot_y(value=math.radians(-90))
+            door.rot_z(value=0)
+            door.dim_x(value=sel_assembly.obj_z.location.z)
+            door.dim_y(value=math.fabs(sel_assembly.obj_y.location.y)+self.applied_panel_front_overlay+self.applied_panel_rear_overlay)
+            door.dim_z(value=pc_unit.inch(.75))      
+
+        if self.add_right_panel:
+            door = data_cabinet_parts.add_door_part(sel_assembly,pointer)
+            door.set_name("Applied Panel")
+            door.loc_x(value=sel_assembly.obj_x.location.x)
+            door.loc_y(value=-self.applied_panel_rear_overlay)
+            door.loc_z(value=0)
+            door.rot_x(value=0)
+            door.rot_y(value=math.radians(-90))
+            door.rot_z(value=math.radians(180))
+            door.dim_x(value=sel_assembly.obj_z.location.z)
+            door.dim_y(value=math.fabs(sel_assembly.obj_y.location.y)+self.applied_panel_front_overlay+self.applied_panel_rear_overlay)
+            door.dim_z(value=pc_unit.inch(.75))  
+
+        if self.add_back_panel:
+            door = data_cabinet_parts.add_door_part(sel_assembly,pointer)
+            door.set_name("Applied Back Panel")
+            door.loc_x(value=-self.applied_panel_left_overlay)
+            door.loc_y(value=0)
+            door.loc_z(value=0)
+            door.rot_x(value=0)
+            door.rot_y(value=math.radians(-90))
+            door.rot_z(value=math.radians(-90))
+            door.dim_x(value=sel_assembly.obj_z.location.z)
+            door.dim_y(value=sel_assembly.obj_x.location.x+self.applied_panel_left_overlay+self.applied_panel_right_overlay)
+            door.dim_z(value=pc_unit.inch(.75)) 
+
+    def add_countertop(self,props,sel_assembly):
+        ctop = data_cabinet_parts.add_countertop_part(sel_assembly)
+        ctop.set_name("Countertop")
+        ctop.loc_x(value=-self.countertop_left_overlay)
+        ctop.loc_y(value=self.countertop_rear_overlay)
+        ctop.loc_z(value=sel_assembly.obj_z.location.z)
+        ctop.rot_x(value=0)
+        ctop.rot_y(value=0)
+        ctop.rot_z(value=0)
+        ctop.dim_x(value=sel_assembly.obj_x.location.x+self.countertop_left_overlay+self.countertop_right_overlay)
+        ctop.dim_y(value=sel_assembly.obj_y.location.y-self.countertop_front_overlay-self.countertop_rear_overlay)
+        ctop.dim_z(value=pc_unit.inch(1.5)) 
+        home_builder_utils.flip_normals(ctop)
+        ctop.obj_bp.hide_viewport = False
+        ctop.obj_x.hide_viewport = False
+        ctop.obj_y.hide_viewport = False
+        ctop.obj_z.hide_viewport = False
+
+    def add_base_molding(self,props,sel_assembly):
+        molding_path = home_builder_paths.get_base_molding_path()
+        path = os.path.join(molding_path,"_Sample","BA01 4in.blend")
+        profile = home_builder_utils.get_object(path)
+
+        bpy.ops.curve.primitive_bezier_curve_add(enter_editmode=False)
+        obj_curve = bpy.context.active_object
+        obj_curve.name = "Base Molding"
+        obj_curve.parent = sel_assembly.obj_bp
+        obj_curve.modifiers.new("Edge Split",type='EDGE_SPLIT')     
+        obj_curve.data.splines.clear()   
+        obj_curve.data.bevel_mode = 'OBJECT'
+        obj_curve.data.bevel_object = profile
+        obj_curve.location = (0,0,0)
+        spline = obj_curve.data.splines.new('BEZIER')
+
+        if self.left_return:
+            spline.bezier_points.add(count=2)   
+            spline.bezier_points[0].co = (0,0,0)
+            spline.bezier_points[1].co = (0,sel_assembly.obj_y.location.y,0)
+            spline.bezier_points[2].co = (sel_assembly.obj_x.location.x,sel_assembly.obj_y.location.y,0)
+        else:
+            spline.bezier_points.add(count=1)   
+            spline.bezier_points[0].co = (0,sel_assembly.obj_y.location.y,0)
+            spline.bezier_points[1].co = (sel_assembly.obj_x.location.x,sel_assembly.obj_y.location.y,0)
+
+        if self.right_return:
+            spline.bezier_points.add(count=1) 
+            if self.left_return:
+                spline.bezier_points[3].co = (sel_assembly.obj_x.location.x,0,0)
+            else:
+                spline.bezier_points[2].co = (sel_assembly.obj_x.location.x,0,0)
+
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.curve.select_all(action='SELECT')
+        bpy.ops.curve.handle_type_set(type='VECTOR')
+        bpy.ops.object.editmode_toggle()
+
+    def add_crown_molding(self,props,sel_assembly):
+        molding_path = home_builder_paths.get_base_molding_path()
+        path = os.path.join(molding_path,"_Sample","BA01 4in.blend")
+        profile = home_builder_utils.get_object(path)
+        
+        bpy.ops.curve.primitive_bezier_curve_add(enter_editmode=False)
+        obj_curve = bpy.context.active_object
+        obj_curve.name = "Crown Molding"
+        obj_curve.parent = sel_assembly.obj_bp
+        obj_curve.modifiers.new("Edge Split",type='EDGE_SPLIT')     
+        obj_curve.data.splines.clear()   
+        obj_curve.data.bevel_mode = 'OBJECT'
+        obj_curve.data.bevel_object = profile
+        obj_curve.location = (0,0,0)
+        spline = obj_curve.data.splines.new('BEZIER')
+
+        if self.left_return:
+            spline.bezier_points.add(count=2)   
+            spline.bezier_points[0].co = (0,0,sel_assembly.obj_z.location.z)
+            spline.bezier_points[1].co = (0,sel_assembly.obj_y.location.y,sel_assembly.obj_z.location.z)
+            spline.bezier_points[2].co = (sel_assembly.obj_x.location.x,sel_assembly.obj_y.location.y,sel_assembly.obj_z.location.z)
+        else:
+            spline.bezier_points.add(count=1)   
+            spline.bezier_points[0].co = (0,sel_assembly.obj_y.location.y,sel_assembly.obj_z.location.z)
+            spline.bezier_points[1].co = (sel_assembly.obj_x.location.x,sel_assembly.obj_y.location.y,sel_assembly.obj_z.location.z)
+
+        if self.right_return:
+            spline.bezier_points.add(count=1) 
+            if self.left_return:
+                spline.bezier_points[3].co = (sel_assembly.obj_x.location.x,0,sel_assembly.obj_z.location.z)
+            else:
+                spline.bezier_points[2].co = (sel_assembly.obj_x.location.x,0,sel_assembly.obj_z.location.z)
+
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.curve.select_all(action='SELECT')
+        bpy.ops.curve.handle_type_set(type='VECTOR')
+        bpy.ops.object.editmode_toggle()
+
+    def add_light_molding(self,props,sel_assembly):
+        molding_path = home_builder_paths.get_base_molding_path()
+        path = os.path.join(molding_path,"_Sample","BA01 4in.blend")
+        profile = home_builder_utils.get_object(path)
+        
+        bpy.ops.curve.primitive_bezier_curve_add(enter_editmode=False)
+        obj_curve = bpy.context.active_object
+        obj_curve.name = "Light Molding"
+        obj_curve.parent = sel_assembly.obj_bp
+        obj_curve.modifiers.new("Edge Split",type='EDGE_SPLIT')     
+        obj_curve.data.splines.clear()   
+        obj_curve.data.bevel_mode = 'OBJECT'
+        obj_curve.data.bevel_object = profile
+        obj_curve.location = (0,0,0)
+        spline = obj_curve.data.splines.new('BEZIER')
+
+        if self.left_return:
+            spline.bezier_points.add(count=2)   
+            spline.bezier_points[0].co = (0,0,0)
+            spline.bezier_points[1].co = (0,sel_assembly.obj_y.location.y,0)
+            spline.bezier_points[2].co = (sel_assembly.obj_x.location.x,sel_assembly.obj_y.location.y,0)
+        else:
+            spline.bezier_points.add(count=1)   
+            spline.bezier_points[0].co = (0,sel_assembly.obj_y.location.y,0)
+            spline.bezier_points[1].co = (sel_assembly.obj_x.location.x,sel_assembly.obj_y.location.y,0)
+
+        if self.right_return:
+            spline.bezier_points.add(count=1) 
+            if self.left_return:
+                spline.bezier_points[3].co = (sel_assembly.obj_x.location.x,0,0)
+            else:
+                spline.bezier_points[2].co = (sel_assembly.obj_x.location.x,0,0)
+
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.curve.select_all(action='SELECT')
+        bpy.ops.curve.handle_type_set(type='VECTOR')
+        bpy.ops.object.editmode_toggle()
+
+    def execute(self,context):
+        obj = bpy.data.objects[self.object_name]
+        obj_bp = pc_utils.get_assembly_bp(obj)
+        sel_assembly = pc_types.Assembly(obj_bp)
+        props = home_builder_utils.get_scene_props(context.scene)
+
+        if props.selected_part == 'APPLIED_PANEL':
+            self.add_applied_panel(props,sel_assembly)
+        if props.selected_part == 'COUNTERTOP':
+            self.add_countertop(props,sel_assembly)
+        if props.selected_part == 'MOLDING_BASE':
+            self.add_base_molding(props,sel_assembly)
+        if props.selected_part == 'MOLDING_CROWN':
+            self.add_crown_molding(props,sel_assembly)
+        if props.selected_part == 'MOLDING_LIGHT':
+            self.add_light_molding(props,sel_assembly)                        
+                           
+        return {'FINISHED'}    
+
 classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
@@ -2115,6 +2369,7 @@ classes = (
     home_builder_OT_add_material_pointer,
     home_builder_OT_update_object_materials,
     home_builder_OT_create_cabinet_list,
+    home_builder_OT_add_part,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

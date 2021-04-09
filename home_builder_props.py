@@ -150,6 +150,14 @@ class Home_Builder_Scene_Props(PropertyGroup):
                              default='PYTHON',
                              update=home_builder_enums.update_active_asset_tab)
 
+    selected_part: EnumProperty(name="Part",
+                                items=[('APPLIED_PANEL',"Applied Panel","Add Applied Panel"),
+                                       ('COUNTERTOP',"Countertop","Add Countertop"),
+                                       ('MOLDING_BASE',"Molding Base","Molding Base"),
+                                       ('MOLDING_CROWN',"Molding Crown","Molding Crown"),
+                                       ('MOLDING_LIGHT',"Molding Light","Molding Light")],
+                                default='APPLIED_PANEL')   
+
     sidebar_tabs: EnumProperty(name="Sidebar Tabs",
                           items=[('PROPERTIES',"Properties","Properties"),
                                  ('TOOLS',"Tools","Tools")],
@@ -180,7 +188,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                            default=False)    
     show_report_options: bpy.props.BoolProperty(name="Show Report Options",
                                            description="Show Report Options",
-                                           default=False)                                                                                                                               
+                                           default=False)                    
+    show_add_part_options: bpy.props.BoolProperty(name="Show Add Part Options",
+                                           description="Show Add Part Options",
+                                           default=False)                                                                                                                                                                        
     active_category: StringProperty(name="Active Category")
 
     wall_height: FloatProperty(name="Wall Height",default=pc_unit.inch(96),subtype='DISTANCE')
