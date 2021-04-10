@@ -122,11 +122,15 @@ class Cabinet_Exterior(pc_types.Assembly):
         home_builder_utils.hide_empties(new_front.obj_bp)
 
     def add_door_pull(self,front,pointer):
+        pull_length = self.get_prompt("Pull Length")  
+        if not pull_length:
+            return #DON'T ADD PULLS TO APPLIED ENDS
+
         pull_path = path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
         pull_obj = home_builder_utils.get_object(pull_path) 
         front.add_object(pull_obj)
 
-        pull_length = self.get_prompt("Pull Length")  
+        
         pull_length.set_value(round(pull_obj.dimensions.x,2))
 
         #VARS
