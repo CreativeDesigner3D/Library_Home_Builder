@@ -947,11 +947,11 @@ class home_builder_OT_save_asset_to_library(Operator):
     bl_description = "This will save the current file to the active library"
     bl_options = {'UNDO'}
     
-    object_libraries = {'CABINET_PULLS','ENTRY_DOOR_HANDLES','FAUCETS'}
+    object_libraries = {'CABINET_PULLS','ENTRY_DOOR_HANDLES','FAUCETS','MOLDINGS'}
     assembly_libraries = {'BUILT_IN_APPLIANCES','CABINET_DOORS','CABINET_PARTS',
-                            'COOKTOPS','DISHWASHERS','ENTRY_DOOR_FRAMES','ENTRY_DOOR_PANELS',
-                            'RANGE_HOODS','RANGES','REFRIGERATORS','SINKS','WINDOW_FRAMES',
-                            'WINDOW_INSERTS'}
+                          'COOKTOPS','DISHWASHERS','ENTRY_DOOR_FRAMES','ENTRY_DOOR_PANELS',
+                          'RANGE_HOODS','RANGES','REFRIGERATORS','SINKS','WINDOW_FRAMES',
+                          'WINDOW_INSERTS'}
     material_libraries = {'MATERIALS'}
 
     @classmethod
