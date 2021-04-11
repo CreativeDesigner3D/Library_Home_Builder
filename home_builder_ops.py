@@ -1744,7 +1744,7 @@ class home_builder_OT_create_2d_cabinet_views(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class home_builder_OT_create_cabinet_list(bpy.types.Operator):
+class home_builder_OT_create_cabinet_list_report(bpy.types.Operator):
     bl_idname = "home_builder.create_cabinet_list_report"
     bl_label = "Create Cabinet List Report"
     
@@ -1811,7 +1811,7 @@ class home_builder_OT_create_cabinet_list(bpy.types.Operator):
         doc = SimpleDocTemplate(filepath, pagesize=A4,leftMargin=.25*inch,rightMargin=.25*inch,topMargin=.25*inch,bottomMargin=.25*inch)        
         
         elements = []
-        self.draw_report_header(elements, "Cutlist Report")
+        self.draw_report_header(elements, "Cabinet List Report")
         elements.append(self.draw_cabinets(cabinets))
         doc.build(elements)     
         os.system('start "Title" /D "' + bpy.app.tempdir + '" "' + filename + '"')
@@ -2432,7 +2432,7 @@ classes = (
     home_builder_OT_update_product_material_group,
     home_builder_OT_add_material_pointer,
     home_builder_OT_update_object_materials,
-    home_builder_OT_create_cabinet_list,
+    home_builder_OT_create_cabinet_list_report,
     home_builder_OT_add_part,
 )
 

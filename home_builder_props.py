@@ -156,7 +156,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                        ('COUNTERTOP',"Countertop","Add Countertop"),
                                        ('MOLDING_BASE',"Molding Base","Molding Base"),
                                        ('MOLDING_CROWN',"Molding Crown","Molding Crown"),
-                                       ('MOLDING_LIGHT',"Molding Light","Molding Light")],
+                                       ('MOLDING_LIGHT',"Molding Light Rail","Molding Light Rail")],
                                 default='APPLIED_PANEL')   
 
     sidebar_tabs: EnumProperty(name="Sidebar Tabs",

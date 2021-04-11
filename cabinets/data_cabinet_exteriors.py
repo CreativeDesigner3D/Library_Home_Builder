@@ -446,7 +446,7 @@ class Door_Drawer(Cabinet_Exterior):
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
-        self.create_assembly("Doors")
+        self.create_assembly("Door Drawer")
         self.obj_bp["IS_DOORS_BP"] = True
         self.obj_bp["IS_EXTERIOR_BP"] = True
         # self.obj_bp["EXTERIOR_NAME"] = "DOORS"
