@@ -9,7 +9,8 @@ from . import data_parts
 
 class Mesh_Wall(pc_types.Assembly):
     show_in_library = True
-    category_name = "Walls"
+    category_name = "ROOMS"
+    subcategory_name = "WALLS"
     
     def render(self):
         self.draw_wall()
@@ -84,7 +85,8 @@ class Mesh_Wall(pc_types.Assembly):
 
 class Wall_Framed(pc_types.Assembly):
     show_in_library = True
-    category_name = "Walls"
+    category_name = "ROOMS"
+    subcategory_name = "WALLS"
 
     def render(self):
         self.draw_wall()
@@ -186,7 +188,8 @@ class Wall_Framed(pc_types.Assembly):
 
 class Wall_Brick(pc_types.Assembly):
     show_in_library = True
-    category_name = "Walls"
+    category_name = "ROOMS"
+    subcategory_name = "WALLS"
 
     def render(self):
         self.draw_wall()
@@ -311,7 +314,8 @@ class Wall_Brick(pc_types.Assembly):
 
 class Room(pc_types.Assembly):
     show_in_library = True
-    category_name = "Walls"
+    category_name = "ROOMS"
+    subcategory_name = "WALLS"
 
     def draw(self):
         start_time = time.time()
@@ -342,7 +346,7 @@ class Room(pc_types.Assembly):
         #Get Prompt Variables
         wall_thickness = wall_thickness.get_var("wall_thickness")
 
-        front_wall = self.add_assembly(Wall())
+        front_wall = self.add_assembly(Mesh_Wall())
         front_wall.draw_wall()
         front_wall.obj_bp.location = (0,0,0)
         front_wall.obj_bp.parent = self.obj_bp        
@@ -355,7 +359,7 @@ class Room(pc_types.Assembly):
         front_wall.dim_y('wall_thickness',[wall_thickness])
         front_wall.dim_z('height',[height])
 
-        back_wall = self.add_assembly(Wall())
+        back_wall = self.add_assembly(Mesh_Wall())
         back_wall.draw_wall()
         back_wall.obj_bp.location = (0,0,0)
         back_wall.obj_bp.parent = self.obj_bp            
@@ -368,7 +372,7 @@ class Room(pc_types.Assembly):
         back_wall.dim_y('wall_thickness',[wall_thickness])
         back_wall.dim_z('height',[height])
 
-        left_wall = self.add_assembly(Wall())
+        left_wall = self.add_assembly(Mesh_Wall())
         left_wall.draw_wall()
         left_wall.obj_bp.location = (0,0,0)
         left_wall.obj_bp.parent = self.obj_bp            
@@ -381,7 +385,7 @@ class Room(pc_types.Assembly):
         left_wall.dim_y('wall_thickness',[wall_thickness])
         left_wall.dim_z('height',[height])      
 
-        right_wall = self.add_assembly(Wall())
+        right_wall = self.add_assembly(Mesh_Wall())
         right_wall.draw_wall()
         right_wall.obj_bp.location = (0,0,0)
         right_wall.obj_bp.parent = self.obj_bp            

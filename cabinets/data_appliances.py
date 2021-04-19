@@ -39,7 +39,8 @@ def get_refrigerator(category,assembly_name):
 
 class Range(pc_types.Assembly):
     show_in_library = True
-    category_name = 'Appliances'
+    category_name = 'KITCHENS'
+    subcategory_name = "APPLIANCES"
     obj = None
 
     range_appliance = None
@@ -123,7 +124,8 @@ class Range(pc_types.Assembly):
 
 class Refrigerator(pc_types.Assembly):
     show_in_library = True
-    category_name = 'Appliances'
+    category_name = 'KITCHENS'
+    subcategory_name = "APPLIANCES"
     obj = None
 
     refrigerator = None
@@ -181,7 +183,8 @@ class Refrigerator(pc_types.Assembly):
 
 class Microwave(pc_types.Assembly):
     show_in_library = True
-    category_name = 'Appliances'
+    category_name = 'KITCHENS'
+    subcategory_name = "APPLIANCES"
     obj = None
 
     def draw(self):
@@ -193,7 +196,8 @@ class Microwave(pc_types.Assembly):
 
 class Range_Hood(pc_types.Assembly):
     show_in_library = True
-    category_name = 'Appliances'
+    category_name = 'KITCHENS'
+    subcategory_name = "APPLIANCES"
     obj = None
 
     def draw(self):
@@ -205,7 +209,8 @@ class Range_Hood(pc_types.Assembly):
 
 class Dishwasher(pc_types.Assembly):
     show_in_library = True
-    category_name = 'Appliances'
+    category_name = 'KITCHENS'
+    subcategory_name = "APPLIANCES"
     obj = None
 
     dishwasher = None
@@ -280,9 +285,11 @@ class Dishwasher(pc_types.Assembly):
         self.obj_y.location.y = -props.base_cabinet_depth
         self.obj_z.location.z = props.base_cabinet_height
 
+
 class Sink(pc_types.Assembly):
     # show_in_library = True
-    category_name = 'Appliances'
+    category_name = 'KITCHENS'
+    subcategory_name = "APPLIANCES"
     obj = None
 
     def draw(self):
@@ -294,7 +301,8 @@ class Sink(pc_types.Assembly):
 
 class Cook_Top(pc_types.Assembly):
     # show_in_library = True
-    category_name = 'Appliances'
+    category_name = 'KITCHENS'
+    subcategory_name = "APPLIANCES"
     obj = None
 
     def draw(self):

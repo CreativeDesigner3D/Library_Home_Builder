@@ -42,6 +42,9 @@ def get_range_hood(category,assembly_name):
 
 class Cabinet(pc_types.Assembly):
 
+    category_name = "KITCHENS"
+    subcategory_name = "CABINETS"
+
     left_filler = None
     right_filler = None
     countertop = None
@@ -223,7 +226,6 @@ class Cabinet(pc_types.Assembly):
 
 class Standard_Cabinet(Cabinet):
     show_in_library = True
-    category_name = "Cabinets"
     
     width = pc_unit.inch(18)
     calculators = []
@@ -320,7 +322,6 @@ class Standard_Cabinet(Cabinet):
 
 class Stacked_Cabinet(Cabinet):
     show_in_library = True
-    category_name = "Cabinets"
     
     width = pc_unit.inch(18)
     height = pc_unit.inch(84)

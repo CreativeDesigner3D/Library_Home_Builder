@@ -3,8 +3,9 @@ from . import data_doors_windows
 
 class Window_Small(data_doors_windows.Standard_Window):
     show_in_library = True
-    category_name = "Doors and Windows"
-    
+    category_name = "ROOMS"
+    subcategory_name = "WINDOWS"
+
     def __init__(self):
         self.width = pc_unit.inch(36)
         self.height = pc_unit.inch(40)
@@ -12,7 +13,8 @@ class Window_Small(data_doors_windows.Standard_Window):
 
 class Window_Large(data_doors_windows.Standard_Window):
     show_in_library = True
-    category_name = "Doors and Windows"
+    category_name = "ROOMS"
+    subcategory_name = "WINDOWS"
     
     def __init__(self):
         self.width = pc_unit.inch(70)
@@ -21,7 +23,8 @@ class Window_Large(data_doors_windows.Standard_Window):
 
 class Door_Single(data_doors_windows.Standard_Door):
     show_in_library = True
-    category_name = "Doors and Windows"
+    category_name = "ROOMS"
+    subcategory_name = "DOORS"
     
     def __init__(self):
         self.width = pc_unit.inch(36)
@@ -29,7 +32,8 @@ class Door_Single(data_doors_windows.Standard_Door):
 
 class Door_Double(data_doors_windows.Standard_Door):
     show_in_library = True
-    category_name = "Doors and Windows"
+    category_name = "ROOMS"
+    subcategory_name = "DOORS"
     
     def __init__(self):
         self.width = pc_unit.inch(72)

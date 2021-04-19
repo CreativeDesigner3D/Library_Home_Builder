@@ -21,6 +21,7 @@ def get_default_material_pointers():
     #MISC
     pointers.append(("Glass","_Sample","Glass"))
     pointers.append(("Shelf Holes","_Sample","Machining"))
+    pointers.append(("Hanging Rod","_Sample","Polished Chrome"))
 
     #WALLS FLOOR
     pointers.append(("Walls","_Sample","Wall Paint"))
@@ -365,4 +366,10 @@ def assign_double_sided_pointers(assembly):
                 if pointer.name == 'W1':
                     pointer.pointer_name = "Cabinet Exposed Edges"
                 if pointer.name == 'W2':
-                    pointer.pointer_name = "Cabinet Exposed Edges"                    
+                    pointer.pointer_name = "Cabinet Exposed Edges"      
+
+def assign_hanging_rods_pointers(assembly):
+    for child in assembly.obj_bp.children:
+        if child.type == 'MESH':
+            for pointer in child.pyclone.pointers:
+                pointer.pointer_name = "Hanging Rod"                                  

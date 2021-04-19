@@ -82,11 +82,13 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
                     asset = self.assets.add()
                     asset.name = name.replace("_"," ")
                     asset.category_name = obj.category_name
-                    if asset.category_name == 'Closets':
-                        asset.subcategory_name = obj.subcategory_name
-                        asset.library_path = os.path.join(library_path,asset.category_name,asset.subcategory_name)
-                    else:
-                        asset.library_path = os.path.join(library_path,asset.category_name)
+                    asset.subcategory_name = obj.subcategory_name
+                    asset.library_path = os.path.join(library_path,asset.category_name,asset.subcategory_name)
+                    # if asset.category_name == 'Closets':
+                    #     asset.subcategory_name = obj.subcategory_name
+                    #     asset.library_path = os.path.join(library_path,asset.category_name,asset.subcategory_name)
+                    # else:
+                    #     asset.library_path = os.path.join(library_path,asset.category_name)
                     asset.package_name = module.__name__.split(".")[-2]
                     asset.module_name = module.__name__.split(".")[-1]
                     asset.class_name = name
@@ -898,24 +900,30 @@ class Home_Builder_Scene_Props(PropertyGroup):
             appliance_box = asset_right_col.box()
             appliance_box.label(text="Appliances")
             appliance_col = appliance_box.column(align=True)
+
+            door_box = asset_right_col.box()
+            door_box.label(text="Doors")
+            door_col = door_box.column(align=True)
+
+            window_box = asset_right_col.box()
+            window_box.label(text="Windows")
+            window_col = window_box.column(align=True)
+
             wm_props = home_builder_utils.get_wm_props(bpy.context.window_manager)
-
-            door_window_box = asset_right_col.box()
-            door_window_box.label(text="Doors and Windows")
-            door_window_col = door_window_box.column(align=True)
-
             for asset in wm_props.assets:
                 text = asset.name
-                if asset.category_name == 'Appliances':
+                if asset.category_name == 'KITCHENS' and asset.subcategory_name == 'APPLIANCES':
                     appliance_col.prop(asset,'is_selected',text=text)            
-                if asset.category_name == 'Cabinets':
+                if asset.category_name == 'KITCHENS' and asset.subcategory_name == 'CABINETS':
                     cabinet_col.prop(asset,'is_selected',text=text)
-                if asset.category_name == 'Closets':
+                if asset.category_name == 'CLOSETS':
                     closet_col.prop(asset,'is_selected',text=text)                    
-                if asset.category_name == 'Walls': 
+                if asset.category_name == 'ROOMS' and asset.subcategory_name == 'WALLS': 
                     wall_col.prop(asset,'is_selected',text=text)
-                if asset.category_name == 'Doors and Windows':
-                    door_window_col.prop(asset,'is_selected',text=text)     
+                if asset.category_name == 'ROOMS'and asset.subcategory_name == 'DOORS':
+                    door_col.prop(asset,'is_selected',text=text)     
+                if asset.category_name == 'ROOMS'and asset.subcategory_name == 'WINDOWS':
+                    window_col.prop(asset,'is_selected',text=text)                      
         else:
             row = right_col.row()
             row.scale_y = 1.3

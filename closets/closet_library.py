@@ -11,3 +11,13 @@ class Shelves(data_closet_inserts.Shelves):
 
     def __init__(self):
         pass    
+
+class Hanging_Rod(data_closet_inserts.Hanging_Rod):
+
+    def __init__(self):
+        pass        
+
+class Doors(data_closet_inserts.Doors):
+
+    def __init__(self):
+        pass            

@@ -35,6 +35,35 @@ def add_closet_array_part(assembly):
     home_builder_pointers.assign_materials_to_assembly(part)
     return part
 
+def add_closet_hangers(assembly):
+    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Closets","Hangers.blend")
+    if path.exists(part_path):
+        part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+        part.obj_bp['IS_HANGERS_BP'] = True
+        assembly.add_assembly(part)
+        part.obj_bp.empty_display_size = .001
+        part.obj_x.empty_display_size = .001
+        part.obj_y.empty_display_size = .001
+        part.obj_z.empty_display_size = .001
+        part.obj_prompts.empty_display_size = .001    
+        home_builder_utils.add_bevel(part)
+        return part    
+
+def add_closet_oval_hanging_rod(assembly):
+    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Closets","Oval Hanging Rod.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp['IS_HANGING_ROD_BP'] = True
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
+    home_builder_utils.add_bevel(part)
+    home_builder_pointers.assign_hanging_rods_pointers(part)
+    home_builder_pointers.assign_materials_to_assembly(part)
+    return part
+
 def add_closet_opening(assembly):
     part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Opening","Opening.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
@@ -45,5 +74,20 @@ def add_closet_opening(assembly):
     part.obj_y.empty_display_size = .001
     part.obj_z.empty_display_size = .001
     part.obj_prompts.empty_display_size = .001    
-    home_builder_utils.add_bevel(part)
+    # home_builder_utils.add_bevel(part)
+    return part    
+
+def add_door_part(assembly,pointer):
+    part_path = home_builder_paths.get_cabinet_door_panel_path(pointer)
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    assembly.add_assembly(part)
+    part.obj_bp["IS_CABINET_DOOR_PANEL"] = True
+    props = home_builder_utils.get_object_props(part.obj_bp)
+    props.pointer_name = pointer.name
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001
+    home_builder_pointers.assign_materials_to_assembly(part)
     return part    

@@ -10,7 +10,7 @@ from .. import home_builder_pointers
 
 class Closet_Starter(pc_types.Assembly):
     show_in_library = True
-    category_name = "Closets"
+    category_name = "CLOSETS"
     subcategory_name = "FLOOR_PANELS"
 
     opening_qty = 4
