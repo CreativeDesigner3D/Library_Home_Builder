@@ -26,8 +26,10 @@ from .walls import data_walls
 from .doors_windows import door_window_library
 from .cabinets import cabinet_library
 from .cabinets import data_appliances
+from .closets import closet_library
 
 library_modules = [cabinet_library,
+                   closet_library,
                    data_walls,
                    door_window_library,
                    data_appliances]
@@ -49,6 +51,7 @@ class Asset(PropertyGroup):
     package_name: StringProperty(name="Package Name")
     module_name: StringProperty(name="Module Name")
     category_name: StringProperty(name="Category Name")
+    subcategory_name: StringProperty(name="Subcategory Name")
     class_name: StringProperty(name="Class Name")
 
 
@@ -79,15 +82,30 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
                     asset = self.assets.add()
                     asset.name = name.replace("_"," ")
                     asset.category_name = obj.category_name
-                    asset.library_path = os.path.join(library_path,asset.category_name)
+                    if asset.category_name == 'Closets':
+                        asset.subcategory_name = obj.subcategory_name
+                        asset.library_path = os.path.join(library_path,asset.category_name,asset.subcategory_name)
+                    else:
+                        asset.library_path = os.path.join(library_path,asset.category_name)
                     asset.package_name = module.__name__.split(".")[-2]
                     asset.module_name = module.__name__.split(".")[-1]
                     asset.class_name = name
 
     def get_asset(self,filepath):
+        import importlib.util
         directory, file = os.path.split(filepath)
         filename, ext = os.path.splitext(file)   
-                
+        spec = importlib.util.spec_from_file_location("module.name",os.path.join(directory,filename+".py"))
+        foo = importlib.util.module_from_spec(spec)
+        # print('MY VAR',foo.my_var)
+        # print('FOO',foo)
+        spec.loader.exec_module(foo)
+        c = foo.Item()
+        c.name()
+        # print('MY VAR',foo.my_var)
+        # print('SCRIPT',script)
+        # print("SCRIPT_PATH",os.path.join(directory,filename+".py"))
+        # print('GET ASSET',filepath)
         #TODO:GET RIGHT CLASS
         for asset in self.assets:
             if asset.library_path in filepath and filename == asset.name:
@@ -109,6 +127,26 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
 def update_active_asset_index(self,context):
     active_asset = self.active_asset_collection[self.active_asset_index]
     self.active_assets = active_asset.name
+
+def update_closet_tabs(self,context):
+    # props = home_builder_utils.get_scene_props(context.scene)
+    # props.active_subcategory = self.category
+    path = os.path.join(home_builder_paths.get_library_path(),"Closets",self.closet_tabs)
+    if os.path.exists(path):
+        pc_utils.update_file_browser_path(context,path)
+
+def update_library_path(self,context):
+    root_path = os.path.join(home_builder_paths.get_library_path(),self.library_tabs)
+    if self.library_tabs == 'ROOMS':
+        final_path = os.path.join(root_path,self.room_tabs)
+    if self.library_tabs == 'KITCHENS':
+        final_path = os.path.join(root_path,self.kitchen_tabs)
+    if self.library_tabs == 'BATHS':
+        final_path = os.path.join(root_path,self.bath_tabs)       
+    if self.library_tabs == 'CLOSETS':
+        final_path = os.path.join(root_path,self.closet_tabs)      
+    if os.path.exists(final_path):
+        pc_utils.update_file_browser_path(context,final_path)       
 
 class Home_Builder_Scene_Props(PropertyGroup):    
     ui_tabs: EnumProperty(name="UI Tabs",
@@ -159,6 +197,49 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                        ('MOLDING_LIGHT',"Molding Light Rail","Molding Light Rail")],
                                 default='APPLIED_PANEL')   
 
+    library_tabs: EnumProperty(name="Library Tabs",
+                          items=[('ROOMS',"Rooms","Show the Room Library"),
+                                 ('KITCHENS',"Kitchens","Show the Kitchen Library"),
+                                 ('BATHS',"Baths","Show the Bathroom Library"),
+                                 ('CLOSETS',"Closets","Show the Closet Library")],
+                          default='ROOMS',
+                          update=update_library_path)
+
+    room_tabs: EnumProperty(name="Room Tabs",
+                          items=[('WALLS',"Walls","Show the Walls"),
+                                 ('DOORS',"Doors","Show the Doors"),
+                                 ('WINDOWS',"Windows","Show the Windows"),
+                                 ('OBSTACLES',"Obstacles","Show the Obstacles")],
+                          default='WALLS',
+                          update=update_library_path)
+
+    kitchen_tabs: EnumProperty(name="Kitchen Tabs",
+                          items=[('APPLIANCES',"Appliances","Show the Appliances"),
+                                 ('CABINETS',"Cabinets","Show the Cabinets"),
+                                 ('PARTS',"Parts","Show the Parts"),
+                                 ('CUSTOM_CABINETS',"Custom Cabinets","Show the Custom Cabinets"),
+                                 ('DECORATIONS',"Decorations","Show the Kitchen Decorations")],
+                          default='APPLIANCES',
+                          update=update_library_path)
+
+    bath_tabs: EnumProperty(name="Bath Tabs",
+                          items=[('FIXTURES',"Fixtures","Show the Bathroom Fixtures"),
+                                 ('VANITIES',"Vanities","Show the Bathroom Vanities"),
+                                 ('MIRRORS',"Mirrors","Show the Bathroom Mirrors"),
+                                 ('DECORATIONS',"Decorations","Show the Bathroom Decorations")],
+                          default='FIXTURES',
+                          update=update_library_path)
+
+    closet_tabs: EnumProperty(name="Closet Tabs",
+                          items=[('FLOOR_PANELS',"Floor Panels","Show the Floor Mounted Closet Panels"),
+                                 ('HANGING_PANELS',"Hanging Panels","Show the Hanging Closet Panels"),
+                                 ('INSERTS',"Inserts","Show the Closet Inserts"),
+                                 ('ISLANDS',"Islands","Show the Closet Islands"),
+                                 ('CLOSET_ACCESSORIES',"Accessories","Show the Closet Accessories"),
+                                 ('CLOSET_PARTS',"Parts","Show the Closet Parts")],
+                          default='FLOOR_PANELS',
+                          update=update_library_path)
+
     sidebar_tabs: EnumProperty(name="Sidebar Tabs",
                           items=[('PROPERTIES',"Properties","Properties"),
                                  ('TOOLS',"Tools","Tools")],
@@ -192,8 +273,13 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                            default=False)                    
     show_add_part_options: bpy.props.BoolProperty(name="Show Add Part Options",
                                            description="Show Add Part Options",
-                                           default=False)                                                                                                                                                                        
+                                           default=False)     
+    show_closet_options: bpy.props.BoolProperty(name="Show Closet Options",
+                                           description="Show Closet Options",
+                                           default=False)           
+
     active_category: StringProperty(name="Active Category")
+    active_subcategory: StringProperty(name="Active Subcategory")
 
     wall_height: FloatProperty(name="Wall Height",default=pc_unit.inch(96),subtype='DISTANCE')
     wall_thickness: FloatProperty(name="Wall Thickness",default=pc_unit.inch(6),subtype='DISTANCE')
@@ -801,6 +887,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
             cabinet_box.label(text="Cabinets")
             cabinet_col = cabinet_box.column(align=True)
 
+            closet_box = asset_left_col.box()
+            closet_box.label(text="Closets")
+            closet_col = closet_box.column(align=True)
+
             wall_box = asset_left_col.box()
             wall_box.label(text="Walls")
             wall_col = wall_box.column(align=True)
@@ -820,6 +910,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
                     appliance_col.prop(asset,'is_selected',text=text)            
                 if asset.category_name == 'Cabinets':
                     cabinet_col.prop(asset,'is_selected',text=text)
+                if asset.category_name == 'Closets':
+                    closet_col.prop(asset,'is_selected',text=text)                    
                 if asset.category_name == 'Walls': 
                     wall_col.prop(asset,'is_selected',text=text)
                 if asset.category_name == 'Doors and Windows':

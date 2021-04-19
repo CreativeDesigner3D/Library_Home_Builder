@@ -114,40 +114,93 @@ class room_builder_OT_drop(Operator):
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
+        wm_props = home_builder_utils.get_wm_props(context.window_manager)
 
         directory, file = os.path.split(self.filepath)
         filename, ext = os.path.splitext(file)
 
-        if props.active_category == 'Archipack':
-            if not hasattr(bpy.types,'ARCHIPACK_OT_wall2_draw'):
-                bpy.ops.home_builder.archipack_not_enabled('INVOKE_DEFAULT')
-                return {'FINISHED'}
-            if 'Wall' in filename:
-                bpy.ops.archipack.wall2_draw('INVOKE_DEFAULT')
-            if 'Door' in filename:
-                bpy.ops.archipack.door_draw('INVOKE_DEFAULT')
-            if 'Window' in filename:
-                bpy.ops.archipack.window_draw('INVOKE_DEFAULT')
-            if 'Fence' in filename:
-                bpy.ops.archipack.fence('INVOKE_DEFAULT')
-            if 'Stairs' in filename:
-                bpy.ops.archipack.stair('INVOKE_DEFAULT')
+        if props.library_tabs == 'ROOMS':
+            if props.room_tabs == 'WALLS':
+                bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
+            if props.room_tabs == 'DOORS':
+                bpy.ops.home_builder.place_door_window(filepath=self.filepath)
+            if props.room_tabs == 'WINDOWS':
+                bpy.ops.home_builder.place_door_window(filepath=self.filepath)
+            if props.room_tabs == 'OBSTACLES':
+                pass                
 
-        if props.active_category == 'Appliances':
-            bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
+        if props.library_tabs == 'KITCHENS':
+            if props.kitchen_tabs == 'APPLIANCES':
+                bpy.ops.home_builder.place_appliance(filepath=self.filepath)
+            if props.kitchen_tabs == 'CABINETS':
+                bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
+            if props.kitchen_tabs == 'PARTS':
+                pass
+            if props.kitchen_tabs == 'CUSTOM_CABINETS':
+                pass
+            if props.kitchen_tabs == 'DECORATIONS':
+                pass
 
-        if props.active_category == 'Doors and Windows':
-            bpy.ops.home_builder.place_door_window(filepath=self.filepath)
+        if props.library_tabs == 'BATHS':
+            if props.bath_tabs == 'FIXTURES':
+                pass
+            if props.bath_tabs == 'VANITIES':
+                pass
+            if props.bath_tabs == 'MIRRORS':
+                pass
+            if props.bath_tabs == 'DECORATIONS':
+                pass                    
 
-        if props.active_category == 'Cabinets':
-            bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
+        if props.library_tabs == 'CLOSETS':
+            if props.closet_tabs == 'FLOOR_PANELS':
+                bpy.ops.home_builder.place_closet(filepath=self.filepath)
+            if props.closet_tabs == 'HANGING_PANELS':
+                bpy.ops.home_builder.place_closet(filepath=self.filepath)
+            if props.closet_tabs == 'INSERTS':
+                bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
+            if props.closet_tabs == 'ISLANDS':
+                pass
+            if props.closet_tabs == 'CLOSET_ACCESSORIES':
+                pass
+            if props.closet_tabs == 'CLOSET_PARTS':
+                pass                           
 
-        if props.active_category == 'Custom Cabinets':
-            obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
-            bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name)
+        # if props.active_category == 'Archipack':
+        #     if not hasattr(bpy.types,'ARCHIPACK_OT_wall2_draw'):
+        #         bpy.ops.home_builder.archipack_not_enabled('INVOKE_DEFAULT')
+        #         return {'FINISHED'}
+        #     if 'Wall' in filename:
+        #         bpy.ops.archipack.wall2_draw('INVOKE_DEFAULT')
+        #     if 'Door' in filename:
+        #         bpy.ops.archipack.door_draw('INVOKE_DEFAULT')
+        #     if 'Window' in filename:
+        #         bpy.ops.archipack.window_draw('INVOKE_DEFAULT')
+        #     if 'Fence' in filename:
+        #         bpy.ops.archipack.fence('INVOKE_DEFAULT')
+        #     if 'Stairs' in filename:
+        #         bpy.ops.archipack.stair('INVOKE_DEFAULT')
 
-        if props.active_category == 'Walls':
-            bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
+        # if props.active_category == 'Appliances':
+        #     bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
+
+        # if props.active_category == 'Doors and Windows':
+        #     bpy.ops.home_builder.place_door_window(filepath=self.filepath)
+
+        # if props.active_category == 'Cabinets':
+        #     bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
+
+        # if props.active_category == 'Closets':
+        #     if props.closet_tabs == 'INSERTS':
+        #         bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
+        #     if props.closet_tabs == 'FLOOR_PANELS':
+        #         bpy.ops.home_builder.place_closet(filepath=self.filepath)
+
+        # if props.active_category == 'Custom Cabinets':
+        #     obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
+        #     bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name)
+
+        # if props.active_category == 'Walls':
+        #     bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
 
         return {'FINISHED'}
 
@@ -167,10 +220,36 @@ class home_builder_OT_change_library_category(bpy.types.Operator):
             if not os.path.exists(path):
                 os.makedirs(path)
             pc_utils.update_file_browser_path(context,path)
+        elif props.active_category == "Closets":
+            path = os.path.join(home_builder_paths.get_library_path(),props.active_category)
+            dirs = os.listdir(path)
+            for d in dirs:
+                path = os.path.join(path,d)
+                if os.path.isdir(path):
+                    props.active_subcategory = d
+            sub_path = os.path.join(home_builder_paths.get_library_path(),props.active_category,props.active_subcategory)
+            if os.path.exists(sub_path):
+                pc_utils.update_file_browser_path(context,sub_path)                    
         else:
             path = os.path.join(home_builder_paths.get_library_path(),self.category)
             if os.path.exists(path):
                 pc_utils.update_file_browser_path(context,path)
+        return {'FINISHED'}
+
+
+class home_builder_OT_change_closet_category(bpy.types.Operator):
+    bl_idname = "home_builder.change_closet_category"
+    bl_label = "Change Closet Category"
+    bl_description = "This changes the closet category"
+
+    category: bpy.props.StringProperty(subtype="DIR_PATH")
+
+    def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        props.active_subcategory = self.category
+        path = os.path.join(home_builder_paths.get_library_path(),"Closets",self.category)
+        if os.path.exists(path):
+            pc_utils.update_file_browser_path(context,path)
         return {'FINISHED'}
 
 
@@ -587,10 +666,10 @@ class home_builder_OT_render_asset_thumbnails(Operator):
 
         #DRAW ASSET
         file.write("item = eval('Library_Home_Builder." + asset.package_name + "." + asset.module_name + "." + asset.class_name + "()')" + "\n")
-        file.write("if hasattr(item,'pre_draw'):\n")
-        file.write("    item.pre_draw()\n")        
-        file.write("if hasattr(item,'draw'):\n")
-        file.write("    item.draw()\n")
+        # file.write("if hasattr(item,'pre_draw'):\n")
+        # file.write("    item.pre_draw()\n")        
+        # file.write("if hasattr(item,'draw'):\n")
+        # file.write("    item.draw()\n")
         # file.write("if hasattr(item,'draw_door'):\n")
         # file.write("    item.draw_door()\n")      
         # file.write("if hasattr(item,'draw_wall'):\n")
@@ -2104,6 +2183,21 @@ class home_builder_OT_update_object_materials(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_reload_library(bpy.types.Operator):
+    bl_idname = "home_builder.reload_library"
+    bl_label = "Reload Library"
+    bl_description = "This updates the library path"
+    bl_options = {'UNDO'}
+    
+    object_name: bpy.props.StringProperty(name="Object Name")
+
+    def execute(self,context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        props.library_tabs = 'ROOMS'
+        props.room_tabs = 'WALLS'
+        return {'FINISHED'}
+
+
 class home_builder_OT_add_part(bpy.types.Operator):
     bl_idname = "home_builder.add_part"
     bl_label = "Add Part"
@@ -2393,6 +2487,7 @@ classes = (
     room_builder_OT_activate,
     room_builder_OT_drop,
     home_builder_OT_change_library_category,
+    home_builder_OT_change_closet_category,
     home_builder_OT_disconnect_constraint,
     home_builder_OT_draw_floor_plane,
     home_builder_OT_add_room_light,
@@ -2434,6 +2529,7 @@ classes = (
     home_builder_OT_update_object_materials,
     home_builder_OT_create_cabinet_list_report,
     home_builder_OT_add_part,
+    home_builder_OT_reload_library,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

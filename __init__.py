@@ -10,10 +10,12 @@ from .pc_lib import pc_utils
 from . import home_builder_props
 from . import home_builder_ui
 from . import home_builder_ops
+from . import home_builder_drop_ops
 from . import home_builder_pointers
 from . import home_builder_utils
 from .walls import wall_ops
 from .cabinets import cabinet_ops
+from .closets import closet_ops
 from .doors_windows import door_window_ops
 from bpy.app.handlers import persistent
 
@@ -47,8 +49,10 @@ def register():
     home_builder_props.register()
     home_builder_ui.register()
     home_builder_ops.register()
+    home_builder_drop_ops.register()
     wall_ops.register()
     cabinet_ops.register()
+    closet_ops.register()
     door_window_ops.register()
 
     load_library_on_file_load()
@@ -59,8 +63,10 @@ def unregister():
     home_builder_props.unregister()
     home_builder_ui.unregister()
     home_builder_ops.unregister()
+    home_builder_drop_ops.unregister()
     wall_ops.unregister()
     cabinet_ops.unregister()
+    closet_ops.unregister()
     door_window_ops.unregister()
 
     bpy.app.handlers.load_post.remove(load_library_on_file_load)  

@@ -299,16 +299,18 @@ class Standard_Cabinet(Cabinet):
             self.get_calculators(child)
 
     def render(self):
-        left_side = None
-        right_side = None
+        self.pre_draw()
+        self.draw()
+        # left_side = None
+        # right_side = None
 
-        for child in self.carcass.obj_bp.children:
-            if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
-                left_side = pc_types.Assembly(child)
-            if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
-                right_side = pc_types.Assembly(child)
-            if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
-                back = pc_types.Assembly(child)
+        # for child in self.carcass.obj_bp.children:
+        #     if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
+        #         left_side = pc_types.Assembly(child)
+        #     if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
+        #         right_side = pc_types.Assembly(child)
+        #     if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
+        #         back = pc_types.Assembly(child)
 
         self.get_calculators(self.obj_bp)
 

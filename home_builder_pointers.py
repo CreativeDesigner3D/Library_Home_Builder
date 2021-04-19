@@ -365,4 +365,4 @@ def assign_double_sided_pointers(assembly):
                 if pointer.name == 'W1':
                     pointer.pointer_name = "Cabinet Exposed Edges"
                 if pointer.name == 'W2':
-                    pointer.pointer_name = "Cabinet Exposed Edges"
+                    pointer.pointer_name = "Cabinet Exposed Edges"                    

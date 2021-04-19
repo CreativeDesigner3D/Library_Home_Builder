@@ -41,6 +41,22 @@ def get_cabinet_bp(obj):
     elif obj.parent:
         return get_cabinet_bp(obj.parent)
 
+def get_closet_bp(obj):
+    if not obj:
+        return None    
+    if "IS_CLOSET_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_bp(obj.parent)
+
+def get_opening_bp(obj):
+    if not obj:
+        return None    
+    if "IS_OPENING_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_opening_bp(obj.parent)
+
 def get_carcass_bp(obj):
     if not obj:
         return None    

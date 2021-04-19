@@ -5,6 +5,7 @@ from ..pc_lib import pc_utils, pc_types, pc_unit
 from .. import home_builder_utils
 from .. import home_builder_enums
 from . import data_doors_windows
+from . import door_window_library
 
 class home_builder_OT_place_door_window(bpy.types.Operator):
     bl_idname = "home_builder.place_door_window"
@@ -31,8 +32,12 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def create_assembly(self,context):
-        wm_props = home_builder_utils.get_wm_props(context.window_manager)
-        self.assembly = wm_props.get_asset(self.filepath)        
+        directory, file = os.path.split(self.filepath)
+        filename, ext = os.path.splitext(file)
+
+        self.assembly = eval("door_window_library." + filename.replace(" ","_") + "()")
+
+        # self.assembly = wm_props.get_asset(self.filepath)        
         self.assembly.draw_assembly()
         self.set_child_properties(self.assembly.obj_bp)
 
