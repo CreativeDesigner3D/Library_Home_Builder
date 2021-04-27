@@ -67,8 +67,8 @@ def event_is_pass_through(event):
     else:
         return False
 
-class room_builder_OT_activate(Operator):
-    bl_idname = "room_builder.activate"
+class home_builder_OT_activate(Operator):
+    bl_idname = "home_builder.activate"
     bl_label = "Activate Room Builder"
     bl_description = "This activates the room builder"
     bl_options = {'UNDO'}
@@ -92,82 +92,6 @@ class room_builder_OT_activate(Operator):
             home_builder_pointers.update_pointer_properties()
 
         pc_utils.update_file_browser_path(context,path)
-        return {'FINISHED'}
-
-
-class room_builder_OT_drop(Operator):
-    bl_idname = "room_builder.drop"
-    bl_label = "Activate Room Builder"
-    bl_description = "This is called when an asset is dropped from the home builder library"
-    bl_options = {'UNDO'}
-    
-    filepath: StringProperty(name='Library Name')
-
-    def get_custom_cabinet(self,context,filepath):
-        parent = None
-        with bpy.data.libraries.load(filepath, False, False) as (data_from, data_to):
-                data_to.objects = data_from.objects
-        for obj in data_to.objects:
-            if obj.parent is None:
-                parent = obj          
-            context.view_layer.active_layer_collection.collection.objects.link(obj)
-        home_builder_utils.assign_current_material_index(parent)
-        return parent
-
-    def execute(self, context):
-        props = home_builder_utils.get_scene_props(context.scene)
-        wm_props = home_builder_utils.get_wm_props(context.window_manager)
-
-        directory, file = os.path.split(self.filepath)
-        filename, ext = os.path.splitext(file)
-
-        if props.library_tabs == 'ROOMS':
-            if props.room_tabs == 'WALLS':
-                bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
-            if props.room_tabs == 'DOORS':
-                bpy.ops.home_builder.place_door_window(filepath=self.filepath)
-            if props.room_tabs == 'WINDOWS':
-                bpy.ops.home_builder.place_door_window(filepath=self.filepath)
-            if props.room_tabs == 'OBSTACLES':
-                pass                
-
-        if props.library_tabs == 'KITCHENS':
-            if props.kitchen_tabs == 'APPLIANCES':
-                bpy.ops.home_builder.place_appliance(filepath=self.filepath)
-            if props.kitchen_tabs == 'CABINETS':
-                bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
-            if props.kitchen_tabs == 'PARTS':
-                pass
-            if props.kitchen_tabs == 'CUSTOM_CABINETS':
-                obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
-                bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name)
-            if props.kitchen_tabs == 'DECORATIONS':
-                pass
-
-        if props.library_tabs == 'BATHS':
-            if props.bath_tabs == 'FIXTURES':
-                pass
-            if props.bath_tabs == 'VANITIES':
-                pass
-            if props.bath_tabs == 'MIRRORS':
-                pass
-            if props.bath_tabs == 'DECORATIONS':
-                pass                    
-
-        if props.library_tabs == 'CLOSETS':
-            if props.closet_tabs == 'FLOOR_PANELS':
-                bpy.ops.home_builder.place_closet(filepath=self.filepath)
-            if props.closet_tabs == 'HANGING_PANELS':
-                bpy.ops.home_builder.place_closet(filepath=self.filepath)
-            if props.closet_tabs == 'INSERTS':
-                bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
-            if props.closet_tabs == 'ISLANDS':
-                pass
-            if props.closet_tabs == 'CLOSET_ACCESSORIES':
-                pass
-            if props.closet_tabs == 'CLOSET_PARTS':
-                pass                           
-
         return {'FINISHED'}
 
 #REMOVE
@@ -2450,8 +2374,7 @@ class home_builder_OT_add_part(bpy.types.Operator):
         return {'FINISHED'}    
 
 classes = (
-    room_builder_OT_activate,
-    room_builder_OT_drop,
+    home_builder_OT_activate,
     home_builder_OT_change_library_category,
     home_builder_OT_change_closet_category,
     home_builder_OT_disconnect_constraint,

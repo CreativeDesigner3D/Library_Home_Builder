@@ -73,6 +73,81 @@ def has_height_collision(active_assembly,assembly):
     if cab2_z_2 >= cab1_z_1 and cab2_z_2 <= cab1_z_2:
         return True
 
+class home_builder_OT_drop(Operator):
+    bl_idname = "home_builder.drop"
+    bl_label = "Home Builder Drop"
+    bl_description = "This is called when an asset is dropped from the home builder library"
+    bl_options = {'UNDO'}
+    
+    filepath: StringProperty(name='Library Name')
+
+    def get_custom_cabinet(self,context,filepath):
+        parent = None
+        with bpy.data.libraries.load(filepath, False, False) as (data_from, data_to):
+                data_to.objects = data_from.objects
+        for obj in data_to.objects:
+            if obj.parent is None:
+                parent = obj          
+            context.view_layer.active_layer_collection.collection.objects.link(obj)
+        home_builder_utils.assign_current_material_index(parent)
+        return parent
+
+    def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        wm_props = home_builder_utils.get_wm_props(context.window_manager)
+
+        directory, file = os.path.split(self.filepath)
+        filename, ext = os.path.splitext(file)
+
+        if props.library_tabs == 'ROOMS':
+            if props.room_tabs == 'WALLS':
+                bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
+            if props.room_tabs == 'DOORS':
+                bpy.ops.home_builder.place_door_window(filepath=self.filepath)
+            if props.room_tabs == 'WINDOWS':
+                bpy.ops.home_builder.place_door_window(filepath=self.filepath)
+            if props.room_tabs == 'OBSTACLES':
+                bpy.ops.home_builder.place_wall_obstacle(filepath=self.filepath)                
+
+        if props.library_tabs == 'KITCHENS':
+            if props.kitchen_tabs == 'APPLIANCES':
+                bpy.ops.home_builder.place_appliance(filepath=self.filepath)
+            if props.kitchen_tabs == 'CABINETS':
+                bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
+            if props.kitchen_tabs == 'PARTS':
+                pass
+            if props.kitchen_tabs == 'CUSTOM_CABINETS':
+                obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
+                bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name)
+            if props.kitchen_tabs == 'DECORATIONS':
+                pass
+
+        if props.library_tabs == 'BATHS':
+            if props.bath_tabs == 'FIXTURES':
+                pass
+            if props.bath_tabs == 'VANITIES':
+                pass
+            if props.bath_tabs == 'MIRRORS':
+                pass
+            if props.bath_tabs == 'DECORATIONS':
+                pass                    
+
+        if props.library_tabs == 'CLOSETS':
+            if props.closet_tabs == 'FLOOR_PANELS':
+                bpy.ops.home_builder.place_closet(filepath=self.filepath)
+            if props.closet_tabs == 'HANGING_PANELS':
+                bpy.ops.home_builder.place_closet(filepath=self.filepath)
+            if props.closet_tabs == 'INSERTS':
+                bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
+            if props.closet_tabs == 'ISLANDS':
+                pass
+            if props.closet_tabs == 'CLOSET_ACCESSORIES':
+                pass
+            if props.closet_tabs == 'CLOSET_PARTS':
+                pass                           
+
+        return {'FINISHED'}
+
 class home_builder_OT_place_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.place_cabinet"
     bl_label = "Place Cabinet"
@@ -1554,11 +1629,103 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_place_wall_obstacle(bpy.types.Operator):
+    bl_idname = "home_builder.place_wall_obstacle"
+    bl_label = "Place Wall Obstacle"
+    
+    filepath: bpy.props.StringProperty(name="Filepath",default="Error")
+
+    obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+
+    current_wall = None
+
+    starting_point = ()
+
+    obj = None
+    exclude_objects = []
+
+    def reset_properties(self):
+        self.current_wall = None
+        self.starting_point = ()
+        self.obj = None
+        self.exclude_objects = []
+
+    def execute(self, context):
+        self.reset_properties()
+        self.get_object(context)
+        context.window_manager.modal_handler_add(self)
+        context.area.tag_redraw()
+        return {'RUNNING_MODAL'}
+
+    def get_object(self,context):
+        directory, file = os.path.split(self.filepath)
+        filename, ext = os.path.splitext(file)
+        self.obj = home_builder_utils.get_object(os.path.join(directory,filename+".blend"))
+        context.view_layer.active_layer_collection.collection.objects.link(self.obj)
+        self.set_child_properties(self.obj)
+
+    def set_child_properties(self,obj):  
+        if obj.type == 'MESH':
+            obj.display_type = 'WIRE'            
+        for child in obj.children:
+            self.set_child_properties(child)
+
+    def set_placed_properties(self,obj):
+        if obj.type == 'MESH' and obj.hide_render == False:
+            obj.display_type = 'TEXTURED'          
+        for child in obj.children:
+            self.set_placed_properties(child) 
+
+    def modal(self, context, event):
+        bpy.ops.object.select_all(action='DESELECT')
+
+        context.view_layer.update()
+        self.mouse_x = event.mouse_x
+        self.mouse_y = event.mouse_y
+
+        selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
+
+        self.position_object(selected_point,selected_obj)
+
+        if event_is_place_asset(event):
+            return self.finish(context)
+            
+        if event_is_cancel_command(event):
+            return self.cancel_drop(context)
+
+        if event_is_pass_through(event):
+            return {'PASS_THROUGH'}
+
+        return {'RUNNING_MODAL'}
+
+    def position_object(self,selected_point,selected_obj):
+        wall_bp = home_builder_utils.get_wall_bp(selected_obj)
+        if wall_bp:
+            self.obj.parent = wall_bp
+            self.obj.matrix_world[0][3] = selected_point[0]
+            self.obj.matrix_world[1][3] = selected_point[1]
+            self.obj.matrix_world[2][3] = selected_point[2] 
+            self.obj.rotation_euler.z = 0
+
+    def cancel_drop(self,context):
+        pc_utils.delete_object_and_children(self.obj)
+        return {'CANCELLED'}
+
+    def finish(self,context):
+        context.window.cursor_set('DEFAULT')
+        self.set_placed_properties(self.obj) 
+        bpy.ops.object.select_all(action='DESELECT')
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
+
 classes = (
+    home_builder_OT_drop,
     home_builder_OT_place_cabinet,
     home_builder_OT_place_appliance,
     home_builder_OT_place_closet,
     home_builder_OT_place_closet_insert,
+    home_builder_OT_place_wall_obstacle,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
