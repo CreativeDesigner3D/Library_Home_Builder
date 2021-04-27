@@ -23,7 +23,7 @@ def get_material_path():
     return os.path.join(get_asset_folder_path(),'Materials') 
 
 def get_custom_cabinet_library_path():
-    return os.path.join(get_asset_folder_path(),"Custom Cabinets")   
+    return os.path.join(get_asset_folder_path(),"KITCHENS","CUSTOM_CABINETS")   
 
 def get_cabinet_parts_path():
     return os.path.join(get_asset_folder_path(),'Cabinet Parts') 

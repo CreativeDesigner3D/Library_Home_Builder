@@ -773,7 +773,7 @@ class home_builder_OT_save_custom_cabinet(Operator):
         return obj_list
 
     def get_thumbnail_path(self):
-        return os.path.join(home_builder_paths.get_library_path(),"thumbnail.blend")
+        return os.path.join(home_builder_paths.get_asset_folder_path(),"KITCHENS","thumbnail.blend")
 
     def execute(self, context):
         if bpy.data.filepath == "":
