@@ -879,39 +879,48 @@ class home_builder_OT_place_closet(bpy.types.Operator):
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
 
-    def accumulate_z_rotation(self,selected_obj,start = 0,total = True):
-        ##recursive parent traverser accumulating all rotations ie. total heirarchy rotation
-        rotations = [start]
-        if selected_obj.parent:
-            
-            if total:
-                rotations.append(selected_obj.parent.rotation_euler.z)
-                return self.accumulate_z_rotation(selected_obj.parent,sum(rotations))
+    def get_left_wall_product(self):
+        for con in self.current_wall.obj_bp.constraints:
+            if con.type == 'COPY_LOCATION':
+                target = con.target
+                wall_bp = home_builder_utils.get_wall_bp(target)
+                inside_angle = math.degrees(wall_bp.rotation_euler.z - self.current_wall.obj_bp.rotation_euler.z)
+                if inside_angle > 0 or inside_angle < -269:
+                    pass
+                    # print('inside_corner',inside_angle)
+                else:
+                    # print('OUTSIDE')
+                    return None
+                for child in wall_bp.children:
+                    closet_bp = home_builder_utils.get_closet_bp(child)
+                    if closet_bp:
+                        return closet_bp
+
+    def get_right_wall_product(self):
+        props = home_builder_utils.get_object_props(self.current_wall.obj_x)
+        if props.connected_object:
+            # print("CONNECTED",props.connected_object)
+            wall_bp = home_builder_utils.get_wall_bp(props.connected_object)
+            inside_angle = math.degrees(self.current_wall.obj_bp.rotation_euler.z - wall_bp.rotation_euler.z)
+            if inside_angle > 0 or inside_angle < -269:
+                print('inside_corner',inside_angle)
             else:
-                ## breaks after one parent
-                return selected_obj.parent.rotation_euler.z
-        else:
-            return start
+                print('OUTSIDE')
+                return None
+            for child in wall_bp.children:
+                closet_bp = home_builder_utils.get_closet_bp(child)
+                if closet_bp:
+                    return closet_bp
 
-    def rotate_to_normal(self,selected_normal):
-        ## cabinet vector
-        base_vect = Vector((0, -1, 0))
+        # if self.current_wall.obj_bp
 
-        if selected_normal.y == 1:
-            ## if Vector(0,1,0) it is a negative vector relationship with cabinet Vector(0,-1,0)
-            ## quaternion calcs fail with these, 180 rotation is all thats required
-            self.cabinet.obj_bp.rotation_euler.z =+ math.radians(180)
-
-        else:
-            ## Vector.rotation_difference() returns quaternion rotation so change mode
-            self.cabinet.obj_bp.rotation_mode = 'QUATERNION'
-            ## quaternion calc - required rotation to align cab to face
-            rot_quat = base_vect.rotation_difference(selected_normal)
-
-            self.cabinet.obj_bp.rotation_quaternion = rot_quat
-            self.cabinet.obj_bp.rotation_mode = 'XYZ'
+    def select_children(self,obj):
+        obj.select_set(True)
+        for child in obj.children:
+            self.select_children(child)
 
     def position_cabinet(self,mouse_location,selected_obj,event,cursor_z,selected_normal):
+        self.cabinet.obj_bp.parent = None
 
         ##get roatations from parent heirarchy
         if selected_obj is not None:
@@ -921,8 +930,8 @@ class home_builder_OT_place_closet(bpy.types.Operator):
             self.drop = True
 
             ##get rotations from parent heirarchy
-            parented_rotation_sum = self.accumulate_z_rotation(selected_obj)
-            self.select_obj_unapplied_rot = selected_obj.rotation_euler.z + parented_rotation_sum
+            # parented_rotation_sum = self.accumulate_z_rotation(selected_obj)
+            # self.select_obj_unapplied_rot = selected_obj.rotation_euler.z + parented_rotation_sum
         else:
             self.drop = False
             self.select_obj_unapplied_rot = 0
@@ -996,15 +1005,32 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 
             self.placement = 'WALL'
             self.current_wall = pc_types.Assembly(wall_bp)
-            self.cabinet.obj_bp.rotation_euler = self.current_wall.obj_bp.rotation_euler
+            self.cabinet.obj_bp.parent = self.current_wall.obj_bp
+            self.cabinet.obj_bp.location = (0,0,0)
+            # self.cabinet.obj_bp.rotation_euler = self.current_wall.obj_bp.rotation_euler
             ## negative vectors aka directly opposing (cabinet and wall)
             ## in this instance quaternion calcs fail and 180 rotation used to handle
-            if self.selected_normal.y == 1:
-                self.cabinet.obj_bp.rotation_euler.z += math.radians(180)
-            self.cabinet.obj_bp.location.x = self.current_wall.obj_bp.matrix_world[0][3]
-            self.cabinet.obj_bp.location.y = self.current_wall.obj_bp.matrix_world[1][3]
-            self.cabinet.obj_bp.location.z = self.base_height + wall_bp.location.z
+            # if self.selected_normal.y == 1:
+            #     self.cabinet.obj_bp.rotation_euler.z += math.radians(180)
+
+            # self.cabinet.obj_bp.location.x = self.current_wall.obj_bp.matrix_world[0][3]
+            # self.cabinet.obj_bp.location.y = self.current_wall.obj_bp.matrix_world[1][3]
+            # self.cabinet.obj_bp.location.z = self.base_height + wall_bp.location.z
             self.cabinet.obj_x.location.x = self.current_wall.obj_x.location.x
+            self.select_children(self.cabinet.obj_bp)
+
+            left_product_bp = self.get_left_wall_product()
+            if left_product_bp:
+                left_product = pc_types.Assembly(left_product_bp)
+                depth = math.fabs(left_product.obj_y.location.y)
+                self.cabinet.obj_bp.location.x += depth + pc_unit.inch(12)
+                self.cabinet.obj_x.location.x -= depth + pc_unit.inch(12)
+
+            right_product_bp = self.get_right_wall_product()
+            if right_product_bp:
+                right_product = pc_types.Assembly(right_product_bp)
+                depth = math.fabs(right_product.obj_y.location.y)
+                self.cabinet.obj_x.location.x -= depth + pc_unit.inch(12)
 
             #TODO: Look for return walls and set offsets based on other closets
         else:
@@ -1021,16 +1047,17 @@ class home_builder_OT_place_closet(bpy.types.Operator):
             ## or ray cast doesn't hit anything returning Vector(0,0,0) ie selected_object
             ## is None and self.drop is False
 
-            if selected_normal.z == 0:
-                if self.drop:
-                    self.rotate_to_normal(selected_normal)
-                    self.cabinet.obj_bp.rotation_euler.z += self.select_obj_unapplied_rot
+            # if selected_normal.z == 0:
+            #     if self.drop:
+            #         # self.rotate_to_normal(selected_normal)
+            #         self.cabinet.obj_bp.rotation_euler.z += self.select_obj_unapplied_rot
 
-            ## else its not a wall object so treat as free standing cabinet, take rotation of floor
-            ## could prob also use transform orientation to allow for custom transform orientations
-            else:
-                self.cabinet.obj_bp.rotation_euler.z = selected_obj.rotation_euler.z
+            # ## else its not a wall object so treat as free standing cabinet, take rotation of floor
+            # ## could prob also use transform orientation to allow for custom transform orientations
+            # else:
+            #     self.cabinet.obj_bp.rotation_euler.z = selected_obj.rotation_euler.z
 
+            self.cabinet.obj_bp.rotation_euler.z = selected_obj.rotation_euler.z
             self.cabinet.obj_bp.location.z = self.base_height + cursor_z
 
     def get_cabinet(self,context):
@@ -1113,23 +1140,24 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 
     def confirm_placement(self,context):
         if self.current_wall:
-            x_loc = pc_utils.calc_distance((self.cabinet.obj_bp.location.x,self.cabinet.obj_bp.location.y,0),
-                                           (self.current_wall.obj_bp.matrix_local[0][3],self.current_wall.obj_bp.matrix_local[1][3],0))
+            # x_loc = pc_utils.calc_distance((self.cabinet.obj_bp.location.x,self.cabinet.obj_bp.location.y,0),
+            #                                (self.current_wall.obj_bp.matrix_local[0][3],self.current_wall.obj_bp.matrix_local[1][3],0))
 
-            ## if backside, Vector(0,1,0) this is a negative vector relationship with cabinet Vector(0,-1,0)
-            ## quaternion calcs fail with these, 180 rotation is all thats required
+            # ## if backside, Vector(0,1,0) this is a negative vector relationship with cabinet Vector(0,-1,0)
+            # ## quaternion calcs fail with these, 180 rotation is all thats required
 
-            if self.selected_normal.y == 1:
-                self.cabinet.obj_bp.rotation_euler = (0, 0,math.radians(180))
-                self.cabinet.obj_bp.location = (0, self.current_wall.obj_y.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
-            elif self.selected_cabinet:
-                self.cabinet.obj_bp.rotation_euler = self.selected_cabinet.obj_bp.rotation_euler
-                self.cabinet.obj_bp.location = (0, self.selected_cabinet.obj_bp.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
-            else:
-                self.cabinet.obj_bp.rotation_euler = (0, 0, 0)
-                self.cabinet.obj_bp.location = (0, 0, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
-            self.cabinet.obj_bp.parent = self.current_wall.obj_bp
-            self.cabinet.obj_bp.location.x = x_loc
+            # if self.selected_normal.y == 1:
+            #     self.cabinet.obj_bp.rotation_euler = (0, 0,math.radians(180))
+            #     self.cabinet.obj_bp.location = (0, self.current_wall.obj_y.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
+            # elif self.selected_cabinet:
+            #     self.cabinet.obj_bp.rotation_euler = self.selected_cabinet.obj_bp.rotation_euler
+            #     self.cabinet.obj_bp.location = (0, self.selected_cabinet.obj_bp.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
+            # else:
+            #     self.cabinet.obj_bp.rotation_euler = (0, 0, 0)
+            #     self.cabinet.obj_bp.location = (0, 0, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
+            # self.cabinet.obj_bp.parent = self.current_wall.obj_bp
+            # self.cabinet.obj_bp.location.x = x_loc
+            self.cabinet.opening_qty = int(round(self.current_wall.obj_x.location.x / pc_unit.inch(38),0))
 
 
         if self.placement == 'LEFT':
@@ -1334,17 +1362,18 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         opening_bp = home_builder_utils.get_opening_bp(selected_obj)
 
         if opening_bp:
-            opening = pc_types.Assembly(opening_bp)
-            for child in opening.obj_bp.children:
-                if child.type == 'MESH':
-                    child.select_set(True)
-            self.cabinet.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
-            self.cabinet.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
-            self.cabinet.obj_bp.location.z = opening.obj_bp.matrix_world[2][3]
-            self.cabinet.obj_x.location.x = opening.obj_x.location.x
-            self.cabinet.obj_y.location.y = opening.obj_x.location.y
-            self.cabinet.obj_z.location.z = opening.obj_x.location.z
-            return opening
+            if "IS_FILLED" not in opening_bp:
+                opening = pc_types.Assembly(opening_bp)
+                for child in opening.obj_bp.children:
+                    if child.type == 'MESH':
+                        child.select_set(True)
+                self.cabinet.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
+                self.cabinet.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
+                self.cabinet.obj_bp.location.z = opening.obj_bp.matrix_world[2][3]
+                self.cabinet.obj_x.location.x = opening.obj_x.location.x
+                self.cabinet.obj_y.location.y = opening.obj_x.location.y
+                self.cabinet.obj_z.location.z = opening.obj_x.location.z
+                return opening
 
     def get_cabinet(self,context):
 
@@ -1400,11 +1429,14 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
             self.cabinet.obj_y.location.y = opening.obj_y.location.y
             self.cabinet.obj_z.location.z = opening.obj_z.location.z
 
+            opening.obj_bp["IS_FILLED"] = True
             home_builder_utils.copy_drivers(opening.obj_bp,self.cabinet.obj_bp)
             home_builder_utils.copy_drivers(opening.obj_x,self.cabinet.obj_x)
             home_builder_utils.copy_drivers(opening.obj_y,self.cabinet.obj_y)
             home_builder_utils.copy_drivers(opening.obj_z,self.cabinet.obj_z)
             home_builder_utils.copy_drivers(opening.obj_prompts,self.cabinet.obj_prompts)
+            for child in opening.obj_bp.children:
+                child.hide_viewport = True
 
         self.delete_reference_object()
 

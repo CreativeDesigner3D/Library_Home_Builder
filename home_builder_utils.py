@@ -57,6 +57,14 @@ def get_opening_bp(obj):
     elif obj.parent:
         return get_opening_bp(obj.parent)
 
+def get_closet_shelves_bp(obj):
+    if not obj:
+        return None    
+    if "IS_SHELVES_INSERT" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_shelves_bp(obj.parent)
+
 def get_carcass_bp(obj):
     if not obj:
         return None    

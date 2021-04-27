@@ -17,7 +17,22 @@ class Hanging_Rod(data_closet_inserts.Hanging_Rod):
     def __init__(self):
         pass        
 
-class Doors(data_closet_inserts.Doors):
+class Double_Hang(data_closet_inserts.Hanging_Rod):
 
     def __init__(self):
-        pass            
+        self.is_double = True        
+
+class Base_Doors(data_closet_inserts.Base_Doors):
+
+    def __init__(self):
+        pass          
+
+class Tall_Doors(data_closet_inserts.Tall_Doors):
+
+    def __init__(self):
+        pass             
+
+class Upper_Doors(data_closet_inserts.Upper_Doors):
+
+    def __init__(self):
+        pass             

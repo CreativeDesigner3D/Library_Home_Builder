@@ -130,7 +130,6 @@ class Cabinet_Exterior(pc_types.Assembly):
         pull_obj = home_builder_utils.get_object(pull_path) 
         front.add_object(pull_obj)
 
-        
         pull_length.set_value(round(pull_obj.dimensions.x,2))
 
         #VARS

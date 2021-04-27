@@ -13,6 +13,13 @@ def add_door_prompts(assembly):
 def add_drawer_prompts(assembly):
     assembly.add_prompt("Open Drawer",'PERCENTAGE',0)
 
+def add_pull_prompts(assembly):
+    assembly.add_prompt("Base Pull Vertical Location",'DISTANCE',pc_unit.inch(1.5))
+    assembly.add_prompt("Tall Pull Vertical Location",'DISTANCE',pc_unit.inch(45))
+    assembly.add_prompt("Upper Pull Vertical Location",'DISTANCE',pc_unit.inch(1.5))
+    assembly.add_prompt("Pull Horizontal Location",'DISTANCE',pc_unit.inch(2))
+    assembly.add_prompt("Pull Length",'DISTANCE',pc_unit.inch(0))
+    
 def add_front_overlay_prompts(assembly):
     assembly.add_prompt("Inset Front",'CHECKBOX',False)
     assembly.add_prompt("Door to Cabinet Gap",'DISTANCE',pc_unit.inch(.125))    
@@ -27,3 +34,7 @@ def add_front_overlay_prompts(assembly):
     assembly.add_prompt("Right Reveal",'DISTANCE',pc_unit.inch(.0625))
     assembly.add_prompt("Vertical Gap",'DISTANCE',pc_unit.inch(.125))
     assembly.add_prompt("Horizontal Gap",'DISTANCE',pc_unit.inch(.125))
+
+def add_closet_thickness_prompts(assembly):
+    assembly.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75))
+    assembly.add_prompt("Panel Thickness",'DISTANCE',pc_unit.inch(.75))

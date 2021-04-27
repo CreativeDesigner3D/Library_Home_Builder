@@ -4,6 +4,7 @@ import math
 from os import path
 from ..pc_lib import pc_types, pc_unit, pc_utils
 
+from . import common_prompts
 from . import data_closet_parts
 from .. import home_builder_utils
 from .. import home_builder_pointers
@@ -179,10 +180,9 @@ class Closet_Starter(pc_types.Assembly):
         height = self.obj_z.pyclone.get_var('location.z','height')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
 
-        panel_thickness = self.add_prompt("Panel Thickness",'DISTANCE',pc_unit.inch(1)) 
-        panel_thickness_var = panel_thickness.get_var("panel_thickness_var")
-        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(1)) 
-        shelf_thickness_var = shelf_thickness.get_var("shelf_thickness_var")        
+        common_prompts.add_closet_thickness_prompts(self)
+        panel_thickness_var = self.get_prompt("Panel Thickness").get_var("panel_thickness_var")
+        shelf_thickness_var = self.get_prompt("Shelf Thickness").get_var("shelf_thickness_var")        
         closet_kick_height = self.add_prompt("Closet Kick Height",'DISTANCE',pc_unit.inch(2.5)) 
         closet_kick_height_var = closet_kick_height.get_var("closet_kick_height_var")
         closet_kick_setback = self.add_prompt("Closet Kick Setback",'DISTANCE',pc_unit.inch(1.125)) 

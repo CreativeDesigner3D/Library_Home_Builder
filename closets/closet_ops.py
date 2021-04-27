@@ -307,6 +307,103 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             #         box.label(text=carcass.exterior.obj_bp.name)
             #         carcass.exterior.draw_prompts(box,context)
 
+
+class home_builder_OT_closet_door_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_door_prompts"
+    bl_label = "Closet Door Prompts"
+
+    width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
+    height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
+    depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
+
+    product_tabs: bpy.props.EnumProperty(name="Product Tabs",
+                                         items=[('MAIN',"Main","Main Options"),
+                                                ('CONSTRUCTION',"Construction","Construction Options"),
+                                                ('MACHINING',"Machining","Machining Options")])
+
+    opening_1_height: bpy.props.EnumProperty(name="Opening 1 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    opening_2_height: bpy.props.EnumProperty(name="Opening 2 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    opening_3_height: bpy.props.EnumProperty(name="Opening 3 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    opening_4_height: bpy.props.EnumProperty(name="Opening 4 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    opening_5_height: bpy.props.EnumProperty(name="Opening 5 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    opening_6_height: bpy.props.EnumProperty(name="Opening 6 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    opening_7_height: bpy.props.EnumProperty(name="Opening 7 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    opening_8_height: bpy.props.EnumProperty(name="Opening 8 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    closet = None
+    calculators = []
+
+    def check(self, context):
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=500)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_closet_bp(context.object)
+        self.closet = data_closets.Closet_Starter(bp)
+        self.get_calculators(self.closet.obj_bp)
+
+    def draw(self, context):
+        layout = self.layout
+
+
+class home_builder_OT_closet_shelves_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_shelves_prompts"
+    bl_label = "Closet Shelves Prompts"
+
+    insert = None
+    calculators = []
+
+    def check(self, context):
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=200)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_closet_shelves_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
+
+    def draw(self, context):
+        layout = self.layout
+        shelf_qty = self.insert.get_prompt("Shelf Quantity")
+        layout.prop(shelf_qty,'quantity_value',text="Shelf Quantity")
+
+
 class home_builder_OT_show_closet_properties(bpy.types.Operator):
     bl_idname = "home_builder.show_closet_properties"
     bl_label = "Show Closet Properties"
@@ -331,6 +428,7 @@ class home_builder_OT_show_closet_properties(bpy.types.Operator):
 classes = (
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
+    home_builder_OT_closet_shelves_prompts,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

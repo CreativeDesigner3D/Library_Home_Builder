@@ -77,14 +77,16 @@ class room_builder_OT_activate(Operator):
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
-        library_path = home_builder_paths.get_library_path()
-        dirs = os.listdir(library_path)
+        library_path = os.path.join(home_builder_paths.get_library_path(),props.library_tabs)
 
-        if props.active_category in dirs:
-            path = os.path.join(library_path,props.active_category)
-        else:
-            props.active_category = dirs[0]
-            path = os.path.join(library_path,props.active_category)
+        if props.library_tabs == 'ROOMS':
+            path = os.path.join(library_path,props.room_tabs)
+        if props.library_tabs == 'KITCHENS':
+            path = os.path.join(library_path,props.kitchen_tabs)
+        if props.library_tabs == 'BATHS':
+            path = os.path.join(library_path,props.bath_tabs)
+        if props.library_tabs == 'CLOSETS':
+            path = os.path.join(library_path,props.closet_tabs)       
 
         if len(props.material_pointer_groups) == 0:
             home_builder_pointers.update_pointer_properties()
@@ -137,7 +139,8 @@ class room_builder_OT_drop(Operator):
             if props.kitchen_tabs == 'PARTS':
                 pass
             if props.kitchen_tabs == 'CUSTOM_CABINETS':
-                pass
+                obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
+                bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name)
             if props.kitchen_tabs == 'DECORATIONS':
                 pass
 
@@ -165,46 +168,9 @@ class room_builder_OT_drop(Operator):
             if props.closet_tabs == 'CLOSET_PARTS':
                 pass                           
 
-        # if props.active_category == 'Archipack':
-        #     if not hasattr(bpy.types,'ARCHIPACK_OT_wall2_draw'):
-        #         bpy.ops.home_builder.archipack_not_enabled('INVOKE_DEFAULT')
-        #         return {'FINISHED'}
-        #     if 'Wall' in filename:
-        #         bpy.ops.archipack.wall2_draw('INVOKE_DEFAULT')
-        #     if 'Door' in filename:
-        #         bpy.ops.archipack.door_draw('INVOKE_DEFAULT')
-        #     if 'Window' in filename:
-        #         bpy.ops.archipack.window_draw('INVOKE_DEFAULT')
-        #     if 'Fence' in filename:
-        #         bpy.ops.archipack.fence('INVOKE_DEFAULT')
-        #     if 'Stairs' in filename:
-        #         bpy.ops.archipack.stair('INVOKE_DEFAULT')
-
-        # if props.active_category == 'Appliances':
-        #     bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
-
-        # if props.active_category == 'Doors and Windows':
-        #     bpy.ops.home_builder.place_door_window(filepath=self.filepath)
-
-        # if props.active_category == 'Cabinets':
-        #     bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
-
-        # if props.active_category == 'Closets':
-        #     if props.closet_tabs == 'INSERTS':
-        #         bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
-        #     if props.closet_tabs == 'FLOOR_PANELS':
-        #         bpy.ops.home_builder.place_closet(filepath=self.filepath)
-
-        # if props.active_category == 'Custom Cabinets':
-        #     obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
-        #     bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name)
-
-        # if props.active_category == 'Walls':
-        #     bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
-
         return {'FINISHED'}
 
-
+#REMOVE
 class home_builder_OT_change_library_category(bpy.types.Operator):
     bl_idname = "home_builder.change_library_category"
     bl_label = "Change Library Category"
@@ -236,7 +202,7 @@ class home_builder_OT_change_library_category(bpy.types.Operator):
                 pc_utils.update_file_browser_path(context,path)
         return {'FINISHED'}
 
-
+#REMOVE
 class home_builder_OT_change_closet_category(bpy.types.Operator):
     bl_idname = "home_builder.change_closet_category"
     bl_label = "Change Closet Category"

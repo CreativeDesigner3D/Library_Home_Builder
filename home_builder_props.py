@@ -130,15 +130,8 @@ def update_active_asset_index(self,context):
     active_asset = self.active_asset_collection[self.active_asset_index]
     self.active_assets = active_asset.name
 
-def update_closet_tabs(self,context):
-    # props = home_builder_utils.get_scene_props(context.scene)
-    # props.active_subcategory = self.category
-    path = os.path.join(home_builder_paths.get_library_path(),"Closets",self.closet_tabs)
-    if os.path.exists(path):
-        pc_utils.update_file_browser_path(context,path)
-
 def update_library_path(self,context):
-    root_path = os.path.join(home_builder_paths.get_library_path(),self.library_tabs)
+    root_path = os.path.join(home_builder_paths.get_asset_folder_path(),self.library_tabs)
     if self.library_tabs == 'ROOMS':
         final_path = os.path.join(root_path,self.room_tabs)
     if self.library_tabs == 'KITCHENS':
@@ -146,7 +139,7 @@ def update_library_path(self,context):
     if self.library_tabs == 'BATHS':
         final_path = os.path.join(root_path,self.bath_tabs)       
     if self.library_tabs == 'CLOSETS':
-        final_path = os.path.join(root_path,self.closet_tabs)      
+        final_path = os.path.join(root_path,self.closet_tabs)     
     if os.path.exists(final_path):
         pc_utils.update_file_browser_path(context,final_path)       
 
