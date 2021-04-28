@@ -390,7 +390,7 @@ def update_file_browser_path(context, path):
                         params.use_filter_image = True
 
 
-def register_library(name, activate_id, drop_id, icon):
+def register_library(name, activate_id, drop_id, namespace, icon):
     """ This registers a library with PyClone
     """
     pyclone = get_wm_props(bpy.context.window_manager)
@@ -398,6 +398,7 @@ def register_library(name, activate_id, drop_id, icon):
         pyclone.add_library(name=name,
                             activate_id=activate_id,
                             drop_id=drop_id,
+                            namespace=namespace,
                             icon=icon)
 
 

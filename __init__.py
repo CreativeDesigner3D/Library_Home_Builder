@@ -36,6 +36,7 @@ def load_library_on_file_load(scene=None):
     pc_utils.register_library(name="Home Builder Library",
                               activate_id='home_builder.activate',
                               drop_id='home_builder.drop',
+                              namespace="home_builder",
                               icon='HOME')
     wm_props = home_builder_utils.get_wm_props(bpy.context.window_manager)
     wm_props.get_assets()

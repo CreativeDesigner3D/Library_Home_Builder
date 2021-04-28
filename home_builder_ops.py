@@ -77,7 +77,7 @@ class home_builder_OT_activate(Operator):
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
-        library_path = os.path.join(home_builder_paths.get_library_path(),props.library_tabs)
+        library_path = os.path.join(home_builder_paths.get_asset_folder_path(),props.library_tabs)
 
         if props.library_tabs == 'ROOMS':
             path = os.path.join(library_path,props.room_tabs)

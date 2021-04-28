@@ -384,7 +384,6 @@ class HOME_BUILDER_UL_assets(bpy.types.UIList):
 
 
 classes = (
-    FILEBROWSER_PT_home_builder_headers,
     HOME_BUILDER_MT_category_menu,
     HOME_BUILDER_MT_closet_category_menu,
     HOME_BUILDER_PT_library_settings,
