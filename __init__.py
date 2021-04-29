@@ -61,17 +61,20 @@ def register():
     bpy.app.handlers.load_post.append(load_pointers)
 
 def unregister():
-    home_builder_props.unregister()
-    home_builder_ui.unregister()
-    home_builder_ops.unregister()
-    home_builder_drop_ops.unregister()
-    wall_ops.unregister()
-    cabinet_ops.unregister()
-    closet_ops.unregister()
-    door_window_ops.unregister()
+    try:
+        home_builder_props.unregister()
+        home_builder_ui.unregister()
+        home_builder_ops.unregister()
+        home_builder_drop_ops.unregister()
+        wall_ops.unregister()
+        cabinet_ops.unregister()
+        closet_ops.unregister()
+        door_window_ops.unregister()
 
-    bpy.app.handlers.load_post.remove(load_library_on_file_load)  
-    bpy.app.handlers.load_post.remove(load_pointers)
+        bpy.app.handlers.load_post.remove(load_library_on_file_load)  
+        bpy.app.handlers.load_post.remove(load_pointers)
 
-    pc_utils.unregister_library("Home Builder Library")
+        pc_utils.unregister_library("Home Builder Library")
+    except:
+        pass
 
