@@ -12,9 +12,6 @@ class Mesh_Wall(pc_types.Assembly):
     category_name = "ROOMS"
     subcategory_name = "WALLS"
     
-    def render(self):
-        self.draw_wall()
-
     def draw_wall(self):
         self.create_assembly("Wall Mesh")
         props = home_builder_utils.get_scene_props(bpy.context.scene)
@@ -87,9 +84,6 @@ class Wall_Framed(pc_types.Assembly):
     show_in_library = True
     category_name = "ROOMS"
     subcategory_name = "WALLS"
-
-    def render(self):
-        self.draw_wall()
 
     def draw_wall(self):
         start_time = time.time()
@@ -190,9 +184,6 @@ class Wall_Brick(pc_types.Assembly):
     show_in_library = True
     category_name = "ROOMS"
     subcategory_name = "WALLS"
-
-    def render(self):
-        self.draw_wall()
 
     def draw_wall(self):
         start_time = time.time()     
@@ -312,10 +303,13 @@ class Wall_Brick(pc_types.Assembly):
         home_builder_pointers.assign_pointer_to_assembly(brick1,"Bricks")
         home_builder_pointers.assign_pointer_to_assembly(brick2,"Bricks")
 
-class Room(pc_types.Assembly):
+class Square_Room(pc_types.Assembly):
     show_in_library = True
     category_name = "ROOMS"
     subcategory_name = "WALLS"
+
+    def render(self):
+        self.draw()
 
     def draw(self):
         start_time = time.time()
@@ -346,56 +340,72 @@ class Room(pc_types.Assembly):
         #Get Prompt Variables
         wall_thickness = wall_thickness.get_var("wall_thickness")
 
-        front_wall = self.add_assembly(Mesh_Wall())
-        front_wall.draw_wall()
-        front_wall.obj_bp.location = (0,0,0)
-        front_wall.obj_bp.parent = self.obj_bp        
-        front_wall.set_name("Front Wall")
-        front_wall.loc_x(value=0)
-        front_wall.loc_y(value=0)
-        front_wall.loc_z(value=0)
-        front_wall.rot_z(value=math.radians(0))
-        front_wall.dim_x('length',[length])
-        front_wall.dim_y('wall_thickness',[wall_thickness])
-        front_wall.dim_z('height',[height])
+        wall = Mesh_Wall()
+        wall.draw_wall()
+        left_wall = self.add_assembly(wall)
+        # left_wall.draw_wall()
+        left_wall.obj_bp.location = (0,0,0)
+        left_wall.obj_bp.parent = self.obj_bp            
+        left_wall.set_name("Left Wall")
+        left_wall.loc_x(value=0)
+        left_wall.loc_y(value=0)
+        left_wall.loc_z(value=0)
+        left_wall.rot_z(value=math.radians(90))
+        left_wall.dim_x('depth',[depth])
+        left_wall.dim_y('wall_thickness',[wall_thickness])
+        left_wall.dim_z('height',[height])      
+        left_wall.get_prompt("Left Angle").set_value(-45)
+        left_wall.get_prompt("Right Angle").set_value(45)  
 
-        back_wall = self.add_assembly(Mesh_Wall())
-        back_wall.draw_wall()
+        wall = Mesh_Wall()
+        wall.draw_wall()
+        back_wall = self.add_assembly(wall)
+        # back_wall.draw_wall()
         back_wall.obj_bp.location = (0,0,0)
         back_wall.obj_bp.parent = self.obj_bp            
         back_wall.set_name("Back Wall")
         back_wall.loc_x(value=0)
-        back_wall.loc_y('depth-wall_thickness',[depth,wall_thickness])
+        back_wall.loc_y('depth',[depth])
         back_wall.loc_z(value=0)
         back_wall.rot_z(value=math.radians(0))
         back_wall.dim_x('length',[length])
         back_wall.dim_y('wall_thickness',[wall_thickness])
         back_wall.dim_z('height',[height])
+        back_wall.get_prompt("Left Angle").set_value(-45)
+        back_wall.get_prompt("Right Angle").set_value(45)   
 
-        left_wall = self.add_assembly(Mesh_Wall())
-        left_wall.draw_wall()
-        left_wall.obj_bp.location = (0,0,0)
-        left_wall.obj_bp.parent = self.obj_bp            
-        left_wall.set_name("Left Wall")
-        left_wall.loc_x('length',[length])
-        left_wall.loc_y('wall_thickness',[wall_thickness])
-        left_wall.loc_z(value=0)
-        left_wall.rot_z(value=math.radians(90))
-        left_wall.dim_x('depth-(wall_thickness*2)',[depth,wall_thickness])
-        left_wall.dim_y('wall_thickness',[wall_thickness])
-        left_wall.dim_z('height',[height])      
-
-        right_wall = self.add_assembly(Mesh_Wall())
-        right_wall.draw_wall()
+        wall = Mesh_Wall()
+        wall.draw_wall()
+        right_wall = self.add_assembly(wall)
+        # right_wall.draw_wall()
         right_wall.obj_bp.location = (0,0,0)
         right_wall.obj_bp.parent = self.obj_bp            
         right_wall.set_name("Right Wall")
-        right_wall.loc_x(value=0)
-        right_wall.loc_y('wall_thickness',[wall_thickness])
+        right_wall.loc_x('length',[length])
+        right_wall.loc_y('depth',[depth])
         right_wall.loc_z(value=0)
-        right_wall.rot_z(value=math.radians(90))
-        right_wall.dim_x('depth-(wall_thickness*2)',[depth,wall_thickness])
-        right_wall.dim_y('-wall_thickness',[wall_thickness])
-        right_wall.dim_z('height',[height])            
+        right_wall.rot_z(value=math.radians(-90))
+        right_wall.dim_x('depth',[depth])
+        right_wall.dim_y('wall_thickness',[wall_thickness])
+        right_wall.dim_z('height',[height])       
+        right_wall.get_prompt("Left Angle").set_value(-45)
+        right_wall.get_prompt("Right Angle").set_value(45)
+
+        wall = Mesh_Wall()
+        wall.draw_wall()
+        front_wall = self.add_assembly(wall)
+        # front_wall.draw_wall()
+        front_wall.obj_bp.location = (0,0,0)
+        front_wall.obj_bp.parent = self.obj_bp        
+        front_wall.set_name("Front Wall")
+        front_wall.loc_x('length',[length])
+        front_wall.loc_y(value=0)
+        front_wall.loc_z(value=0)
+        front_wall.rot_z(value=math.radians(180))
+        front_wall.dim_x('length',[length])
+        front_wall.dim_y('wall_thickness',[wall_thickness])
+        front_wall.dim_z('height',[height])
+        front_wall.get_prompt("Left Angle").set_value(-45)
+        front_wall.get_prompt("Right Angle").set_value(45)
 
         print("ROOM: Draw Time --- %s seconds ---" % (time.time() - start_time))   

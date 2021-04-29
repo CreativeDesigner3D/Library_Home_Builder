@@ -24,6 +24,7 @@ from .pc_lib import pc_unit, pc_utils, pc_types
 from .cabinets import cabinet_library
 from .cabinets import data_appliances
 from .closets import closet_library
+from .walls import data_walls
 
 # from .cabinets import data_cabinet_carcass
 # from .cabinets import data_cabinet_exteriors
@@ -101,7 +102,10 @@ class home_builder_OT_drop(Operator):
 
         if props.library_tabs == 'ROOMS':
             if props.room_tabs == 'WALLS':
-                bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
+                if filename == 'Pick Points':
+                    bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
+                else:
+                    bpy.ops.home_builder.place_room(filepath=self.filepath)
             if props.room_tabs == 'DOORS':
                 bpy.ops.home_builder.place_door_window(filepath=self.filepath)
             if props.room_tabs == 'WINDOWS':
@@ -147,6 +151,132 @@ class home_builder_OT_drop(Operator):
                 pass                           
 
         return {'FINISHED'}
+
+
+class home_builder_OT_place_room(bpy.types.Operator):
+    bl_idname = "home_builder.place_room"
+    bl_label = "Place Room"
+    
+    filepath: bpy.props.StringProperty(name="Filepath",default="Error")
+
+    obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+
+    current_wall = None
+
+    starting_point = ()
+
+    parent_obj_dict = {}
+    all_objects = []
+    meshes = []
+    empties = []
+
+    def reset_properties(self):
+        self.current_wall = None
+        self.starting_point = ()
+        self.parent_obj_dict = {}
+        self.all_objects = []
+
+    def execute(self, context):
+        self.reset_properties()
+        self.create_drawing_plane(context)
+        self.get_object(context)
+        context.window_manager.modal_handler_add(self)
+        context.area.tag_redraw()
+        return {'RUNNING_MODAL'}
+
+    def collect_room_data(self,obj):
+        if obj.type == 'MESH':
+            self.meshes.append(obj)
+        if obj.type == 'EMPTY':
+            self.empties.append(obj)
+        for child in obj.children:
+            self.collect_room_data(child)
+
+    def get_object(self,context):
+        directory, file = os.path.split(self.filepath)
+        filename, ext = os.path.splitext(file)
+        self.room = eval("data_walls." + filename.replace(" ","_") + "()")
+
+        if hasattr(self.room,'pre_draw'):
+            self.room.pre_draw()
+        else:
+            self.room.draw()
+
+        for obj in self.room.obj_bp.children:
+            self.all_objects.append(obj)
+
+        self.room.set_name(filename)
+        self.collect_room_data(self.room.obj_bp)
+        for empty in self.empties:
+            empty.hide_viewport = True
+
+    def set_placed_properties(self,obj):
+        if "obj_x" in obj:
+            obj.hide_viewport = True     
+        if "obj_y" in obj:
+            obj.hide_viewport = True   
+        if "obj_z" in obj:
+            obj.hide_viewport = True   
+        if "obj_bp" in obj:
+            obj.hide_viewport = True           
+        if obj.type == 'MESH' and obj.hide_render == False:
+            obj.display_type = 'TEXTURED'
+
+    def modal(self, context, event):
+        bpy.ops.object.select_all(action='DESELECT')
+
+        context.view_layer.update()
+        self.mouse_x = event.mouse_x
+        self.mouse_y = event.mouse_y
+
+        selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.meshes)
+
+        self.position_object(selected_point,selected_obj)
+
+        if event_is_place_asset(event):
+            return self.finish(context)
+            
+        if event_is_cancel_command(event):
+            return self.cancel_drop(context)
+
+        if event_is_pass_through(event):
+            return {'PASS_THROUGH'}
+
+        return {'RUNNING_MODAL'}
+
+    def position_object(self,selected_point,selected_obj):
+        self.room.obj_bp.location = selected_point
+
+    def cancel_drop(self,context):
+        obj_list = []
+        obj_list.append(self.drawing_plane)
+        for obj in self.all_objects:
+            obj_list.append(obj)
+        pc_utils.delete_obj_list(obj_list)
+        return {'CANCELLED'}
+
+    def create_drawing_plane(self,context):
+        bpy.ops.mesh.primitive_plane_add()
+        plane = context.active_object
+        plane.location = (0,0,0)
+        self.drawing_plane = context.active_object
+        self.drawing_plane.display_type = 'WIRE'
+        self.drawing_plane.dimensions = (100,100,1)
+
+    def finish(self,context):
+        context.window.cursor_set('DEFAULT')
+        bpy.ops.object.select_all(action='DESELECT')
+        if self.drawing_plane:
+            pc_utils.delete_obj_list([self.drawing_plane])
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj, location in self.parent_obj_dict.items():
+            obj.select_set(True)  
+            context.view_layer.objects.active = obj     
+        for obj in self.all_objects:
+            self.set_placed_properties(obj) 
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
 
 class home_builder_OT_place_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.place_cabinet"
@@ -1762,7 +1892,6 @@ class home_builder_OT_place_bathroom_fixture(bpy.types.Operator):
 
     def set_placed_properties(self,obj):
         if "obj_x" in obj:
-            print('OBJX',obj)
             obj.hide_viewport = True     
         if "obj_y" in obj:
             obj.hide_viewport = True   
@@ -1950,6 +2079,7 @@ class home_builder_OT_place_decoration(bpy.types.Operator):
 
 classes = (
     home_builder_OT_drop,
+    home_builder_OT_place_room,
     home_builder_OT_place_cabinet,
     home_builder_OT_place_appliance,
     home_builder_OT_place_closet,
