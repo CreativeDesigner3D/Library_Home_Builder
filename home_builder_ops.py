@@ -592,7 +592,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         return os.path.join(bpy.app.tempdir,'thumb_temp.py')
 
     def get_thumbnail_path(self):
-        return os.path.join(home_builder_paths.get_library_path(),"thumbnail.blend")
+        return os.path.join(home_builder_paths.get_asset_folder_path(),"thumbnail.blend")
 
     def execute(self, context):
         wm_props = home_builder_utils.get_wm_props(context.window_manager)

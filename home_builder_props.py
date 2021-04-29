@@ -75,7 +75,7 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
         for asset in self.assets:
             self.assets.remove(0)
 
-        library_path = home_builder_paths.get_library_path()
+        library_path = home_builder_paths.get_asset_folder_path()
         for module in library_modules:
             for name, obj in inspect.getmembers(module):
                 if hasattr(obj,'show_in_library') and name != 'ops' and obj.show_in_library:
