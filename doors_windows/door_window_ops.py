@@ -91,19 +91,8 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
             mod.object = obj_bool
             mod.operation = 'DIFFERENCE'
 
-    def parent_to_wall(self,obj_wall_bp):
-        z_loc = self.assembly.obj_bp.location.z
-        x_loc = pc_utils.calc_distance((self.assembly.obj_bp.location.x,self.assembly.obj_bp.location.y,0),
-                                       (obj_wall_bp.matrix_local[0][3],obj_wall_bp.matrix_local[1][3],0))
-        self.assembly.obj_bp.location = (0,0,0)
-        self.assembly.obj_bp.rotation_euler = (0,0,0)
-        self.assembly.obj_bp.parent = obj_wall_bp
-        self.assembly.obj_bp.location.x = x_loc
-        self.assembly.obj_bp.location.z = z_loc
-        # if "IS_WINDOW_BP" in self.assembly.obj_bp:
-        #     self.assembly.obj_bp.location.z = self.window_z_location  
-        # else:
-        #     self.assembly.obj_bp.location.z = 0  
+    def confirm_placement(self):
+        self.assembly.obj_bp.location.y = 0
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -116,8 +105,7 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
 
         if self.event_is_place_first_point(event):
             self.add_boolean_modifier(selected_obj)
-            if selected_obj.parent:
-                self.parent_to_wall(selected_obj.parent)
+            self.confirm_placement()
             if hasattr(self.assembly,'add_doors'):
                 self.assembly.add_doors()
             self.set_placed_properties(self.assembly.obj_bp)
@@ -170,13 +158,10 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
         if selected_obj:
             wall_bp = selected_obj.parent
             if self.assembly.obj_bp and wall_bp:
-                self.assembly.obj_bp.rotation_euler.z = wall_bp.rotation_euler.z
-                self.assembly.obj_bp.location.x = selected_point[0]
-                self.assembly.obj_bp.location.y = selected_point[1]
-                # if "IS_WINDOW_BP" in self.assembly.obj_bp:
-                #     self.assembly.obj_bp.location.z = self.window_z_location
-                # else:
-                #     self.assembly.obj_bp.location.z = 0
+                self.assembly.obj_bp.parent = wall_bp
+                self.assembly.obj_bp.matrix_world[0][3] = selected_point[0]
+                self.assembly.obj_bp.matrix_world[1][3] = selected_point[1]
+                self.assembly.obj_bp.rotation_euler.z = 0
 
     def cancel_drop(self,context):
         pc_utils.delete_object_and_children(self.assembly.obj_bp)

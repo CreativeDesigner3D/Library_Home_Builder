@@ -76,6 +76,19 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         self.current_wall.obj_z.location.z = props.wall_height
         self.set_child_properties(self.current_wall.obj_bp)
 
+        self.dim = pc_types.Dimension()
+        self.dim.create_dimension()
+        self.dim.obj_bp.rotation_euler.y = 0
+        self.dim.obj_y.location.y = pc_unit.inch(20)
+        self.dim.obj_bp.parent = self.current_wall.obj_bp
+        self.dim.obj_x.location.x = self.current_wall.obj_x.location.x
+        self.dim.obj_bp.location.z = self.current_wall.obj_z.location.z + .01
+        self.dim.get_prompt("Font Size").set_value(.2)
+        self.dim.get_prompt("Arrow Height").set_value(pc_unit.inch(4))
+        self.dim.get_prompt("Arrow Length").set_value(pc_unit.inch(5))
+        self.dim.get_prompt("Line Thickness").set_value(pc_unit.inch(.5))
+        self.dim.update_dim_text()        
+
     def connect_walls(self):
         constraint_obj = self.previous_wall.obj_x
         constraint = self.current_wall.obj_bp.constraints.new('COPY_LOCATION')
@@ -127,6 +140,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             return {'RUNNING_MODAL'}
             
         if self.event_is_place_next_point(event):
+            pc_utils.delete_object_and_children(self.dim.obj_bp)
             self.set_placed_properties(self.current_wall.obj_bp)
             self.create_wall()
             self.connect_walls()
@@ -215,6 +229,15 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
                 else:
                     self.current_wall.obj_bp.rotation_euler.z = math.radians(-90) + parent_rot
                 self.current_wall.obj_x.location.x = math.fabs(y)
+            self.dim.obj_x.location.x = self.current_wall.obj_x.location.x
+            
+            if self.current_wall.obj_bp.rotation_euler.z > math.radians(179):
+                self.dim.obj_text.scale.x = -1
+                self.dim.obj_text.scale.y = -1
+            else:
+                self.dim.obj_text.scale.x = 1
+                self.dim.obj_text.scale.y = 1
+            self.dim.update_dim_text()
 
     def hide_empties(self,obj):
         for child in obj.children:
@@ -233,6 +256,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             self.hide_empties(obj.parent)
         print("Wall Unwrap: Draw Time --- %s seconds ---" % (time.time() - start_time))
 
+        pc_utils.delete_object_and_children(self.dim.obj_bp)
         obj_list = []
         obj_list.append(self.drawing_plane)
         obj_list.append(self.current_wall.obj_bp)

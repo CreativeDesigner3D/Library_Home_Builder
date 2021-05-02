@@ -363,6 +363,95 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.rotation_quaternion = rot_quat
             self.cabinet.obj_bp.rotation_mode = 'XYZ'
 
+    def position_cabinet_on_wall(self,mouse_location,wall_bp):
+        self.placement = 'WALL'
+        self.current_wall = pc_types.Assembly(wall_bp)
+        self.cabinet.obj_bp.parent = wall_bp
+        self.cabinet.obj_bp.matrix_world[0][3] = mouse_location[0]
+        self.cabinet.obj_bp.matrix_world[1][3] = mouse_location[1]              
+        self.cabinet.obj_bp.location.z = self.base_height + wall_bp.location.z
+        if self.selected_normal.y == 1:
+            #BACK SIDE OF WALL
+            self.cabinet.obj_bp.rotation_euler.z = math.radians(180)
+        else:
+            self.cabinet.obj_bp.rotation_euler.z = 0
+
+    def position_cabinet_next_to_cabinet(self,mouse_location,cabinet_bp,selected_obj):
+        self.selected_cabinet = pc_types.Assembly(cabinet_bp)
+        wall_bp = home_builder_utils.get_wall_bp(cabinet_bp)
+
+        sel_cabinet_world_loc = (self.selected_cabinet.obj_bp.matrix_world[0][3],
+                                    self.selected_cabinet.obj_bp.matrix_world[1][3],
+                                    self.selected_cabinet.obj_bp.matrix_world[2][3])
+        
+        sel_cabinet_x_world_loc = (self.selected_cabinet.obj_x.matrix_world[0][3],
+                                    self.selected_cabinet.obj_x.matrix_world[1][3],
+                                    self.selected_cabinet.obj_x.matrix_world[2][3])
+
+        dist_to_bp = pc_utils.calc_distance(mouse_location,sel_cabinet_world_loc)
+        dist_to_x = pc_utils.calc_distance(mouse_location,sel_cabinet_x_world_loc)
+        rot = self.selected_cabinet.obj_bp.rotation_euler.z
+
+        if wall_bp:
+            self.current_wall = pc_types.Assembly(wall_bp)
+            self.cabinet.obj_bp.parent = wall_bp
+        
+        if has_height_collision(self.cabinet,self.selected_cabinet):
+            ## Allows back of cabinet snapping
+            ## only way to get back consistently is through getting parent rotation of the back is always
+            ## 1.5707963705062866 very close to 0.5 * pi have chucked back to 5 decimal - that precison scares me :)
+            ## So wall parenting for non island bench parenting continues to work properly
+            ## have added the total input for the accumulate_z function so only
+            ## grabs first parent here (not wall_bp but all for non island setting
+            if not wall_bp and int(self.accumulate_z_rotation(selected_obj,0,False)*10000) == 15707:
+                rot += math.radians(180)
+                x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * self.cabinet.obj_x.location.x
+                y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * self.cabinet.obj_x.location.x
+
+            elif dist_to_bp < dist_to_x:
+                self.placement = 'LEFT'
+                self.cabinet.obj_bp.matrix_world[0][3] = self.selected_cabinet.obj_bp.matrix_world[0][3]
+                self.cabinet.obj_bp.matrix_world[1][3] = self.selected_cabinet.obj_bp.matrix_world[1][3]  
+                self.cabinet.obj_bp.location.x -= self.cabinet.obj_x.location.x
+                self.cabinet.obj_bp.rotation_euler.z = 0   
+            else:
+                self.placement = 'RIGHT'
+                self.cabinet.obj_bp.matrix_world[0][3] = self.selected_cabinet.obj_x.matrix_world[0][3]
+                self.cabinet.obj_bp.matrix_world[1][3] = self.selected_cabinet.obj_x.matrix_world[1][3] 
+                self.cabinet.obj_bp.rotation_euler.z = 0                    
+        else:              
+            cabinet_width = self.cabinet.obj_x.location.x
+            sel_cabinet_width = self.selected_cabinet.obj_x.location.x
+            self.cabinet.obj_bp.matrix_world[0][3] = self.selected_cabinet.obj_bp.matrix_world[0][3]
+            self.cabinet.obj_bp.matrix_world[1][3] = self.selected_cabinet.obj_bp.matrix_world[1][3]   
+            self.cabinet.obj_bp.location.x += (sel_cabinet_width/2)  - (cabinet_width/2)
+
+    def position_cabinet_on_object(self,mouse_location,event,selected_obj,cursor_z):
+        self.cabinet.obj_bp.parent = None
+        if event.type == 'LEFT_ARROW' and event.value == 'PRESS':
+            self.cabinet.obj_bp.rotation_euler.z -= math.radians(90)
+        if event.type == 'RIGHT_ARROW' and event.value == 'PRESS':
+            self.cabinet.obj_bp.rotation_euler.z += math.radians(90)   
+
+        self.cabinet.obj_bp.location.x = mouse_location[0]
+        self.cabinet.obj_bp.location.y = mouse_location[1]
+
+        ## if selected object is vertical ie wall
+        ## or ray cast doesn't hit anything returning Vector(0,0,0) ie selected_object
+        ## is None and self.drop is False
+
+        if self.selected_normal.z == 0:
+            if self.drop:
+                self.rotate_to_normal(self.selected_normal)
+                self.cabinet.obj_bp.rotation_euler.z += self.select_obj_unapplied_rot
+
+        ## else its not a wall object so treat as free standing cabinet, take rotation of floor
+        ## could prob also use transform orientation to allow for custom transform orientations
+        else:
+            self.cabinet.obj_bp.rotation_euler.z = selected_obj.rotation_euler.z
+
+        self.cabinet.obj_bp.location.z = self.base_height + cursor_z
+
     def position_cabinet(self,mouse_location,selected_obj,event,cursor_z,selected_normal):
 
         ##get roatations from parent heirarchy
@@ -388,100 +477,11 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         wall_bp = home_builder_utils.get_wall_bp(selected_obj)
 
         if cabinet_bp:
-            self.selected_cabinet = pc_types.Assembly(cabinet_bp)
-
-            sel_cabinet_world_loc = (self.selected_cabinet.obj_bp.matrix_world[0][3],
-                                     self.selected_cabinet.obj_bp.matrix_world[1][3],
-                                     self.selected_cabinet.obj_bp.matrix_world[2][3])
-            
-            sel_cabinet_x_world_loc = (self.selected_cabinet.obj_x.matrix_world[0][3],
-                                       self.selected_cabinet.obj_x.matrix_world[1][3],
-                                       self.selected_cabinet.obj_x.matrix_world[2][3])
-
-            dist_to_bp = pc_utils.calc_distance(mouse_location,sel_cabinet_world_loc)
-            dist_to_x = pc_utils.calc_distance(mouse_location,sel_cabinet_x_world_loc)
-            rot = self.selected_cabinet.obj_bp.rotation_euler.z
-            x_loc = 0
-            y_loc = 0
-
-            if wall_bp:
-                self.current_wall = pc_types.Assembly(wall_bp)
-                rot += self.current_wall.obj_bp.rotation_euler.z
-            
-            if has_height_collision(self.cabinet,self.selected_cabinet):
-                ## Allows back of cabinet snapping
-                ## only way to get back consistently is through getting parent rotation of the back is always
-                ## 1.5707963705062866 very close to 0.5 * pi have chucked back to 5 decimal - that precison scares me :)
-                ## So wall parenting for non island bench parenting continues to work properly
-                ## have added the total input for the accumulate_z function so only
-                ## grabs first parent here (not wall_bp but all for non island setting
-
-                if not wall_bp and int(self.accumulate_z_rotation(selected_obj,0,False)*10000) == 15707:
-                    rot += math.radians(180)
-                    x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * self.cabinet.obj_x.location.x
-                    y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * self.cabinet.obj_x.location.x
-
-                elif dist_to_bp < dist_to_x:
-                    self.placement = 'LEFT'
-                    add_x_loc = 0
-                    add_y_loc = 0
-
-                    # if sel_product.obj_bp.mv.placement_type == 'Corner':
-                    #     rot += math.radians(90)
-                    #     add_x_loc = math.cos(rot) * sel_product.obj_y.location.y
-                    #     add_y_loc = math.sin(rot) * sel_product.obj_y.location.y
-                    x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * self.cabinet.obj_x.location.x + add_x_loc
-                    y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * self.cabinet.obj_x.location.x + add_y_loc
-                else:
-                    self.placement = 'RIGHT'
-                    x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] + math.cos(rot) * self.selected_cabinet.obj_x.location.x
-                    y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] + math.sin(rot) * self.selected_cabinet.obj_x.location.x
-            else:
-                x_loc = self.selected_cabinet.obj_bp.matrix_world[0][3] - math.cos(rot) * ((self.cabinet.obj_x.location.x/2) - (self.selected_cabinet.obj_x.location.x/2))
-                y_loc = self.selected_cabinet.obj_bp.matrix_world[1][3] - math.sin(rot) * ((self.cabinet.obj_x.location.x/2) - (self.selected_cabinet.obj_x.location.x/2))                
-
-            self.cabinet.obj_bp.rotation_euler.z = rot
-            self.cabinet.obj_bp.location.x = x_loc
-            self.cabinet.obj_bp.location.y = y_loc
-
+            self.position_cabinet_next_to_cabinet(mouse_location,cabinet_bp,selected_obj)
         elif wall_bp:
-
-            self.placement = 'WALL'
-            self.current_wall = pc_types.Assembly(wall_bp)
-            self.cabinet.obj_bp.rotation_euler = self.current_wall.obj_bp.rotation_euler
-            ## negative vectors aka directly opposing (cabinet and wall)
-            ## in this instance quaternion calcs fail and 180 rotation used to handle
-            if self.selected_normal.y == 1:
-                self.cabinet.obj_bp.rotation_euler.z += math.radians(180)
-            self.cabinet.obj_bp.location.x = mouse_location[0]
-            self.cabinet.obj_bp.location.y = mouse_location[1]
-            self.cabinet.obj_bp.location.z = self.base_height + wall_bp.location.z
-
+            self.position_cabinet_on_wall(mouse_location,wall_bp)
         else:
-
-            if event.type == 'LEFT_ARROW' and event.value == 'PRESS':
-                self.cabinet.obj_bp.rotation_euler.z -= math.radians(90)
-            if event.type == 'RIGHT_ARROW' and event.value == 'PRESS':
-                self.cabinet.obj_bp.rotation_euler.z += math.radians(90)   
-
-            self.cabinet.obj_bp.location.x = mouse_location[0]
-            self.cabinet.obj_bp.location.y = mouse_location[1]
-
-            ## if selected object is vertical ie wall
-            ## or ray cast doesn't hit anything returning Vector(0,0,0) ie selected_object
-            ## is None and self.drop is False
-
-            if selected_normal.z == 0:
-                if self.drop:
-                    self.rotate_to_normal(selected_normal)
-                    self.cabinet.obj_bp.rotation_euler.z += self.select_obj_unapplied_rot
-
-            ## else its not a wall object so treat as free standing cabinet, take rotation of floor
-            ## could prob also use transform orientation to allow for custom transform orientations
-            else:
-                self.cabinet.obj_bp.rotation_euler.z = selected_obj.rotation_euler.z
-
-            self.cabinet.obj_bp.location.z = self.base_height + cursor_z
+            self.position_cabinet_on_object(mouse_location,event,selected_obj,cursor_z)
 
     def get_cabinet(self,context):
         directory, file = os.path.split(self.filepath)
@@ -551,15 +551,18 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
             if self.selected_normal.y == 1:
                 self.cabinet.obj_bp.rotation_euler = (0, 0,math.radians(180))
-                self.cabinet.obj_bp.location = (0, self.current_wall.obj_y.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
+                self.cabinet.obj_bp.location.y = self.current_wall.obj_y.location.y
+                # self.cabinet.obj_bp.location = (0, self.current_wall.obj_y.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
             elif self.selected_cabinet:
                 self.cabinet.obj_bp.rotation_euler = self.selected_cabinet.obj_bp.rotation_euler
-                self.cabinet.obj_bp.location = (0, self.selected_cabinet.obj_bp.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
+                self.cabinet.obj_bp.location.y = self.selected_cabinet.obj_bp.location.y
+                # self.cabinet.obj_bp.location = (0, self.selected_cabinet.obj_bp.location.y, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
             else:
                 self.cabinet.obj_bp.rotation_euler = (0, 0, 0)
-                self.cabinet.obj_bp.location = (0, 0, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
-            self.cabinet.obj_bp.parent = self.current_wall.obj_bp
-            self.cabinet.obj_bp.location.x = x_loc
+                self.cabinet.obj_bp.location.y = 0
+                # self.cabinet.obj_bp.location = (0, 0, self.cabinet.obj_bp.location.z - self.current_wall.obj_bp.location.z)
+            # self.cabinet.obj_bp.parent = self.current_wall.obj_bp
+            # self.cabinet.obj_bp.location.x = x_loc
 
         if self.placement == 'LEFT':
             self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
