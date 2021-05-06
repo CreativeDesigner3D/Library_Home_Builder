@@ -23,6 +23,8 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
 
     starting_point = ()
 
+    typed_value = ""
+
     assembly = None
     obj = None
     exclude_objects = []
@@ -125,8 +127,40 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         self.drawing_plane.display_type = 'WIRE'
         self.drawing_plane.dimensions = (100,100,1)
 
+    def set_type_value(self,event):
+        if event.value == 'PRESS':
+            if event.type == "ONE" or event.type == "NUMPAD_1":
+                self.typed_value += "1"
+            if event.type == "TWO" or event.type == "NUMPAD_2":
+                self.typed_value += "2"
+            if event.type == "THREE" or event.type == "NUMPAD_3":
+                self.typed_value += "3"
+            if event.type == "FOUR" or event.type == "NUMPAD_4":
+                self.typed_value += "4"
+            if event.type == "FIVE" or event.type == "NUMPAD_5":
+                self.typed_value += "5"
+            if event.type == "SIX" or event.type == "NUMPAD_6":
+                self.typed_value += "6"
+            if event.type == "SEVEN" or event.type == "NUMPAD_7":
+                self.typed_value += "7"
+            if event.type == "EIGHT" or event.type == "NUMPAD_8":
+                self.typed_value += "8"
+            if event.type == "NINE" or event.type == "NUMPAD_9":
+                self.typed_value += "9"
+            if event.type == "ZERO" or event.type == "NUMPAD_0":
+                self.typed_value += "0"
+            if event.type == "PERIOD" or event.type == "NUMPAD_PERIOD":
+                last_value = self.typed_value[-1:]
+                if last_value != ".":
+                    self.typed_value += "."
+            if event.type == 'BACK_SPACE':
+                if self.typed_value != "":
+                    self.typed_value = self.typed_value[:-1]
+
     def modal(self, context, event):
         context.area.tag_redraw()
+        self.set_type_value(event)
+
         self.mouse_x = event.mouse_x
         self.mouse_y = event.mouse_y
 
@@ -144,6 +178,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             self.set_placed_properties(self.current_wall.obj_bp)
             self.create_wall()
             self.connect_walls()
+            self.typed_value = ""
             self.starting_point = (selected_point[0],selected_point[1],selected_point[2])
             return {'RUNNING_MODAL'}
 
@@ -209,6 +244,16 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             self.current_wall.obj_prompts.location = self.current_wall.obj_prompts.location
             self.previous_wall.obj_prompts.location = self.previous_wall.obj_prompts.location   
 
+    def set_wall_length(self,length):
+        if self.typed_value == "":
+            self.current_wall.obj_x.location.x = math.fabs(length)
+        else:
+            value = eval(self.typed_value)
+            if bpy.context.scene.unit_settings.system == 'METRIC':
+                self.current_wall.obj_x.location.x = pc_unit.millimeter(float(value))
+            else:
+                self.current_wall.obj_x.location.x = pc_unit.inch(float(value))     
+
     def position_object(self,selected_point,selected_obj):
         if self.starting_point == ():
             self.current_wall.obj_bp.location = selected_point
@@ -221,14 +266,15 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
                     self.current_wall.obj_bp.rotation_euler.z = math.radians(0) + parent_rot
                 else:
                     self.current_wall.obj_bp.rotation_euler.z = math.radians(180) + parent_rot
-                self.current_wall.obj_x.location.x = math.fabs(x)
-                
+                self.set_wall_length(x)
+           
             if math.fabs(y) > math.fabs(x):
                 if y > 0:
                     self.current_wall.obj_bp.rotation_euler.z = math.radians(90) + parent_rot
                 else:
                     self.current_wall.obj_bp.rotation_euler.z = math.radians(-90) + parent_rot
-                self.current_wall.obj_x.location.x = math.fabs(y)
+                self.set_wall_length(y)
+            
             self.dim.obj_x.location.x = self.current_wall.obj_x.location.x
             
             if self.current_wall.obj_bp.rotation_euler.z > math.radians(179):

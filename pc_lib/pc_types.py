@@ -679,8 +679,12 @@ class Dimension(Assembly):
 
     def update_dim_text(self):
         #TODO: Setup all unit types
-        text = str(round(pc_unit.meter_to_inch(self.obj_x.location.x),2))
-        self.obj_text.data.body = text + '"'
+        if bpy.context.scene.unit_settings.system == 'METRIC':
+            text = str(round(pc_unit.meter_to_millimeter(self.obj_x.location.x),2))
+            self.obj_text.data.body = text + 'mm'
+        else:
+            text = str(round(pc_unit.meter_to_inch(self.obj_x.location.x),2))
+            self.obj_text.data.body = text + '"'
         bpy.context.view_layer.update()
 
         div_factor = 1
