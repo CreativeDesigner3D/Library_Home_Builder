@@ -169,6 +169,8 @@ class Cabinet_Exterior(pc_types.Assembly):
         front_thickness = front.obj_z.pyclone.get_var('location.z',"front_thickness")
         turn_off_pulls = self.get_prompt("Turn Off Pulls").get_var('turn_off_pulls')
         hide_drawer_front = front.get_prompt("Hide").get_var('hide_drawer_front')
+        center_pull = self.get_prompt("Center Pull On Front").get_var('center_pull')
+        vert_loc = self.get_prompt("Drawer Pull Vertical Location").get_var('vert_loc')
 
         pull_path = path.join(home_builder_paths.get_pull_path(),pointer.category,pointer.item_name + ".blend")
         pull_obj = home_builder_utils.get_object(pull_path)
@@ -176,7 +178,7 @@ class Cabinet_Exterior(pc_types.Assembly):
         home_builder_utils.get_object_props(pull_obj).pointer_name = "Drawer Pulls"
         front.add_object(pull_obj)
         pull_obj.parent = front.obj_bp
-        pull_obj.pyclone.loc_x('(drawer_front_height/2)',[drawer_front_height])
+        pull_obj.pyclone.loc_x('IF(center_pull,(drawer_front_height/2),drawer_front_height-vert_loc)',[drawer_front_height,center_pull,vert_loc])
         pull_obj.pyclone.loc_y('(fabs(drawer_front_width)/2)*-1',[drawer_front_width])
         pull_obj.pyclone.loc_z('front_thickness',[front_thickness])
         pull_obj.rotation_euler.x = math.radians(-90)
@@ -194,6 +196,8 @@ class Cabinet_Exterior(pc_types.Assembly):
         top_drawer_front_height = self.get_prompt("Top Drawer Front Height")
         carcass_type = self.get_prompt("Carcass Type")
         add_two_drawer_fronts = self.get_prompt("Add Two Drawer Fronts")
+        center_pulls_on_front = self.get_prompt("Center Pull On Front")
+        drawer_pull_vertical_location = self.get_prompt("Drawer Pull Vertical Location")
 
         if open_door:
             open_door.draw(layout,allow_edit=False)
@@ -222,7 +226,15 @@ class Cabinet_Exterior(pc_types.Assembly):
                 row.prop(upper_pull_location,'distance_value',text="Z")                       
             if carcass_type.get_value() == 'Drawer':
                 pass            
-        
+
+        if center_pulls_on_front:
+            row = layout.row()
+            row.prop(center_pulls_on_front,'checkbox_value',text="Center Drawer Pulls")
+
+            if drawer_pull_vertical_location:
+                if center_pulls_on_front.get_value() == False:
+                    row.prop(drawer_pull_vertical_location,'distance_value',text="Pull Location")
+
         if add_two_drawer_fronts:
             row = layout.row()
             row.label(text="Add Two Drawer Fronts")
@@ -457,6 +469,7 @@ class Door_Drawer(Cabinet_Exterior):
         common_prompts.add_front_overlay_prompts(self)
         common_prompts.add_pull_prompts(self)
         common_prompts.add_thickness_prompts(self)
+        common_prompts.add_drawer_pull_prompts(self)
 
         door_swing_prompt = self.get_prompt("Door Swing")
         door_swing_prompt.set_value(self.door_swing)
