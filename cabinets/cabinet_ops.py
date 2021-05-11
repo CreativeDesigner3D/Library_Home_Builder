@@ -1120,6 +1120,9 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             finished_bottom = carcass.get_prompt("Finished Bottom")
             toe_kick_height = carcass.get_prompt("Toe Kick Height")
             toe_kick_setback = carcass.get_prompt("Toe Kick Setback")
+            blind_panel_location = carcass.get_prompt("Blind Panel Location")
+            blind_panel_width = carcass.get_prompt("Blind Panel Width")
+            blind_panel_reveal = carcass.get_prompt("Blind Panel Reveal")
             # add_bottom_light = carcass.get_prompt("Add Bottom Light")
             # add_top_light = carcass.get_prompt("Add Top Light")
             # add_side_light = carcass.get_prompt("Add Side Light")
@@ -1128,6 +1131,14 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             box = col.box()
             row = box.row()
             row.label(text="Carcass - " + carcass.obj_bp.name)
+
+            if blind_panel_location and blind_panel_width and blind_panel_reveal:
+                row = box.row()
+                blind_panel_location.draw(row,allow_edit=False)  
+                row = box.row()
+                row.label(text="Blind Options:")  
+                row.prop(blind_panel_width,'distance_value',text="Width")
+                row.prop(blind_panel_reveal,'distance_value',text="Reveal")  
 
             if toe_kick_height and toe_kick_setback:
                 row = box.row()

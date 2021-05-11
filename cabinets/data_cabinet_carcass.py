@@ -204,6 +204,30 @@ class Carcass(pc_types.Assembly):
         toe_kick.dim_z('material_thickness',[material_thickness])
         return toe_kick
 
+    def add_blind_panel(self):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        toe_kick_height = self.get_prompt("Toe Kick Height").get_var("toe_kick_height")
+        material_thickness = self.get_prompt("Material Thickness").get_var("material_thickness")
+        blind_panel_location = self.get_prompt("Blind Panel Location").get_var("blind_panel_location")
+        blind_panel_width = self.get_prompt("Blind Panel Width").get_var("blind_panel_width")
+        blind_panel_reveal = self.get_prompt("Blind Panel Reveal").get_var("blind_panel_reveal")
+
+        blind_panel = data_cabinet_parts.add_double_sided_part(self)
+        blind_panel.obj_bp["IS_BLIND_PANEL_BP"] = True
+        blind_panel.set_name('Blind Panel')
+        blind_panel.loc_x('IF(blind_panel_location==0,material_thickness,width-material_thickness-blind_panel_width-blind_panel_reveal)',
+                          [blind_panel_location,material_thickness,width,blind_panel_width,blind_panel_reveal])
+        blind_panel.loc_y('depth',[depth])
+        blind_panel.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])
+        blind_panel.rot_y(value=math.radians(-90))
+        blind_panel.rot_z(value=math.radians(90))
+        blind_panel.dim_x('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
+        blind_panel.dim_y('-blind_panel_width-blind_panel_reveal',[depth,blind_panel_width,blind_panel_reveal])
+        blind_panel.dim_z('-material_thickness',[material_thickness])
+        return blind_panel
+
     def add_cabinet_sides(self,add_toe_kick_notch):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
@@ -488,6 +512,87 @@ class Carcass(pc_types.Assembly):
         
         return insert
 
+    def add_blind_exterior(self,insert):
+        # x_loc_carcass = self.obj_bp.pyclone.get_var('location.x','x_loc_carcass')
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        material_thickness = self.get_prompt('Material Thickness').get_var('material_thickness')
+        carcass_type = self.get_prompt("Carcass Type")
+        blind_panel_location = self.get_prompt("Blind Panel Location").get_var("blind_panel_location")
+        blind_panel_width = self.get_prompt("Blind Panel Width").get_var("blind_panel_width")
+        blind_panel_reveal = self.get_prompt("Blind Panel Reveal").get_var("blind_panel_reveal")
+        
+        #ADD NAME OF EXTERIOR TO 
+        #PASS PROMPTS IN CORRECT
+        insert.carcass_type = carcass_type.get_value()
+
+        insert = self.add_assembly(insert)
+        insert.loc_x('IF(blind_panel_location==0,material_thickness+blind_panel_width+blind_panel_reveal,material_thickness)',
+                     [blind_panel_location,width,blind_panel_width,blind_panel_reveal,material_thickness])
+        insert.loc_y('depth',[depth])
+        if carcass_type.get_value() == "Upper": #UPPER CABINET
+            insert.loc_z('material_thickness',[material_thickness])
+            insert.dim_z('height-(material_thickness*2)',[height,material_thickness])
+        else:
+            toe_kick_height = self.get_prompt('Toe Kick Height').get_var('toe_kick_height')
+            insert.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])
+            insert.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
+        
+        insert.dim_x('width-(material_thickness*2)-blind_panel_width-blind_panel_reveal',[width,material_thickness,blind_panel_width,blind_panel_reveal])
+        insert.dim_y('fabs(depth)-material_thickness',[depth,material_thickness])
+        insert.obj_x.empty_display_size = .001
+        insert.obj_y.empty_display_size = .001
+        insert.obj_z.empty_display_size = .001
+        insert.obj_bp.empty_display_size = .001
+        insert.obj_prompts.empty_display_size = .001
+
+        bpy.context.view_layer.update()
+
+        # calculator = insert.get_calculator('Front Height Calculator')
+        # if calculator:
+        #     calculator.calculate()
+        
+        return insert
+
+    def add_blind_interior(self,insert):
+        # x_loc_carcass = self.obj_bp.pyclone.get_var('location.x','x_loc_carcass')
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        material_thickness = self.get_prompt('Material Thickness').get_var('material_thickness')
+        carcass_type = self.get_prompt("Carcass Type")
+
+        #ADD NAME OF EXTERIOR TO 
+        #PASS PROMPTS IN CORRECT
+        insert.carcass_type = carcass_type.get_value()
+
+        insert = self.add_assembly(insert)
+        insert.loc_x('material_thickness',[material_thickness])
+        insert.loc_y('depth+material_thickness',[depth,material_thickness])
+        if carcass_type.get_value() == "Upper": #UPPER CABINET
+            insert.loc_z('material_thickness',[material_thickness])
+            insert.dim_z('height-(material_thickness*2)',[height,material_thickness])
+        else:
+            toe_kick_height = self.get_prompt('Toe Kick Height').get_var('toe_kick_height')
+            insert.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])
+            insert.dim_z('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
+        
+        insert.dim_x('width-(material_thickness*2)',[width,material_thickness])
+        insert.dim_y('fabs(depth)-(material_thickness*2)',[depth,material_thickness])
+        insert.obj_x.empty_display_size = .001
+        insert.obj_y.empty_display_size = .001
+        insert.obj_z.empty_display_size = .001
+        insert.obj_bp.empty_display_size = .001
+        insert.obj_prompts.empty_display_size = .001
+
+        bpy.context.view_layer.update()
+
+        # calculator = insert.get_calculator('Front Height Calculator')
+        # if calculator:
+        #     calculator.calculate()
+        
+        return insert
 
 class Base_Advanced(Carcass):
 

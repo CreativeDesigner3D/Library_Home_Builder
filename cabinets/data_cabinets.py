@@ -45,6 +45,8 @@ class Cabinet(pc_types.Assembly):
     category_name = "KITCHENS"
     subcategory_name = "CABINETS"
 
+    corner_type = ""
+
     left_filler = None
     right_filler = None
     countertop = None
@@ -58,6 +60,9 @@ class Cabinet(pc_types.Assembly):
         super().__init__(obj_bp=obj_bp)  
         self.carcasses = []
         if obj_bp:
+            corner_type = self.get_prompt("Corner Type")
+            if corner_type:
+                self.corner_type = corner_type.get_value()
             for child in obj_bp.children:
                 if "IS_LEFT_FILLER_BP" in child:
                     self.left_filler = pc_types.Assembly(child)
@@ -303,16 +308,6 @@ class Standard_Cabinet(Cabinet):
     def render(self):
         self.pre_draw()
         self.draw()
-        # left_side = None
-        # right_side = None
-
-        # for child in self.carcass.obj_bp.children:
-        #     if "IS_LEFT_SIDE_BP" in child and child["IS_LEFT_SIDE_BP"]:
-        #         left_side = pc_types.Assembly(child)
-        #     if "IS_RIGHT_SIDE_BP" in child and child["IS_RIGHT_SIDE_BP"]:
-        #         right_side = pc_types.Assembly(child)
-        #     if "IS_BACK_BP" in child and child["IS_BACK_BP"]:
-        #         back = pc_types.Assembly(child)
 
         self.get_calculators(self.obj_bp)
 
@@ -405,3 +400,97 @@ class Stacked_Cabinet(Cabinet):
     def render(self):
         self.pre_draw()
         self.draw()
+
+
+class Blind_Corner_Cabinet(Cabinet):
+    show_in_library = True
+    
+    width = pc_unit.inch(48)
+    calculators = []
+
+    # carcass = None
+    # interior = None
+    # exterior = None
+    # splitter = None
+
+    def draw(self):
+        start_time = time.time()
+        
+        self.obj_bp["IS_CABINET_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.cabinet_prompts" 
+        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_cabinet_menu"
+        self.obj_y['IS_MIRROR'] = True
+
+        common_prompts.add_blind_cabinet_prompts(self.carcass)
+        self.carcass.add_blind_panel()
+
+        carcass_type = self.carcass.get_prompt("Carcass Type")
+        if self.carcass.interior:
+            self.carcass.add_blind_interior(self.carcass.interior)        
+        if self.carcass.exterior:
+            self.carcass.add_blind_exterior(self.carcass.exterior)
+        # if self.carcass.splitter:
+        #     self.carcass.add_insert(self.carcass.splitter)            
+
+        #BASE CABINET
+        if carcass_type.get_value() == 'Base':
+            self.add_countertop()
+            common_prompts.add_sink_prompts(self)
+            common_prompts.add_cooktop_prompts(self)
+
+        print("Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
+
+    def pre_draw(self):
+        self.create_assembly()
+        self.corner_type = "Blind"
+
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+
+        common_prompts.add_cabinet_prompts(self)
+        common_prompts.add_filler_prompts(self)
+        
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        left_adjment_width = self.get_prompt("Left Adjustment Width").get_var('left_adjment_width')
+        right_adjment_width = self.get_prompt("Right Adjustment Width").get_var('right_adjment_width')
+
+        self.carcass = self.add_assembly(self.carcass)
+        self.carcass.set_name('Carcass')
+        self.carcass.loc_x('left_adjment_width',[left_adjment_width])
+        self.carcass.loc_y(value=0)
+        self.carcass.loc_z(value=0)
+        self.carcass.dim_x('width-left_adjment_width-right_adjment_width',[width,left_adjment_width,right_adjment_width])
+        self.carcass.dim_y('depth',[depth])
+        self.carcass.dim_z('height',[height])
+
+        corner_type = self.get_prompt("Corner Type")
+        corner_type.set_value("Blind")
+
+        carcass_type = self.carcass.get_prompt("Carcass Type")
+        self.obj_x.location.x = self.width 
+        if carcass_type.get_value() == 'Base':
+            self.obj_y.location.y = -props.base_cabinet_depth
+            self.obj_z.location.z = props.base_cabinet_height
+        if carcass_type.get_value() == 'Tall':
+            self.obj_y.location.y = -props.tall_cabinet_depth
+            self.obj_z.location.z = props.tall_cabinet_height
+        if carcass_type.get_value() == 'Upper':
+            self.obj_y.location.y = -props.upper_cabinet_depth
+            self.obj_z.location.z = props.upper_cabinet_height
+            self.obj_bp.location.z = props.height_above_floor - props.upper_cabinet_height
+
+    def get_calculators(self,obj):
+        for cal in obj.pyclone.calculators:
+            self.calculators.append(cal)
+        for child in obj.children:
+            self.get_calculators(child)
+
+    def render(self):
+        self.pre_draw()
+        self.draw()
+
+        self.get_calculators(self.obj_bp)
+
+        for cal in self.calculators:
+            cal.calculate()        

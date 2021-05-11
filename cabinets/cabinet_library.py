@@ -69,6 +69,16 @@ class Base_1_Door_1_Drawer(data_cabinets.Standard_Cabinet):
         # self.splitter = None
 
 
+class Base_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
+
+    def __init__(self):
+        self.carcass = data_cabinet_carcass.Base_Advanced()
+        self.carcass.interior = data_cabinet_interiors.Shelves()
+        self.carcass.exterior = data_cabinet_exteriors.Doors()
+        # self.carcass.exterior.cabinet_type = 'Base'
+        self.splitter = None
+
+
 class Tall_1_Door(data_cabinets.Standard_Cabinet):
 
     def __init__(self):

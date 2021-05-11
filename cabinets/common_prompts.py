@@ -1,7 +1,10 @@
+import bpy
 from ..pc_lib import pc_types, pc_unit, pc_utils
+from .. import home_builder_utils
 
 def add_cabinet_prompts(assembly):
     assembly.add_prompt("Cabinet Type",'TEXT',"")
+    assembly.add_prompt("Corner Type",'TEXT',"")
 
 def add_stacked_cabinet_prompts(assembly):
     assembly.add_prompt("Bottom Cabinet Height",'DISTANCE',pc_unit.inch(50))
@@ -27,6 +30,13 @@ def add_door_prompts(assembly):
     door_swing.combobox_columns = 3
     assembly.add_prompt("Door Rotation",'ANGLE',120)
     assembly.add_prompt("Open Door",'PERCENTAGE',0)
+
+def add_blind_cabinet_prompts(assembly):
+    props = home_builder_utils.get_scene_props(bpy.context.scene)
+    blind_panel_location = assembly.add_prompt("Blind Panel Location",'COMBOBOX',0,["Left","Right"])
+    blind_panel_location.combobox_columns = 2
+    assembly.add_prompt("Blind Panel Width",'DISTANCE',pc_unit.inch(21))  
+    assembly.add_prompt("Blind Panel Reveal",'DISTANCE',pc_unit.inch(3))  
 
 def add_drawer_prompts(assembly):
     assembly.add_prompt("Open Drawer",'PERCENTAGE',0)

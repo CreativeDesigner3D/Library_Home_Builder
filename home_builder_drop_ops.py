@@ -23,6 +23,7 @@ from mathutils import Vector
 from .pc_lib import pc_unit, pc_utils, pc_types
 from .cabinets import cabinet_library
 from .cabinets import data_appliances
+from .cabinets import data_cabinets
 from .closets import closet_library
 from .walls import data_walls
 
@@ -363,6 +364,17 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.rotation_quaternion = rot_quat
             self.cabinet.obj_bp.rotation_mode = 'XYZ'
 
+    def get_next_wall(self):
+        if not self.current_wall:
+            return None
+
+        props = home_builder_utils.get_object_props(self.current_wall.obj_x)
+        if props.connected_object:
+            wall_bp = home_builder_utils.get_wall_bp(props.connected_object)
+            return pc_types.Assembly(wall_bp)
+
+        return None
+
     def position_cabinet_on_wall(self,mouse_location,wall_bp):
         self.placement = 'WALL'
         self.current_wall = pc_types.Assembly(wall_bp)
@@ -370,6 +382,20 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         self.cabinet.obj_bp.matrix_world[0][3] = mouse_location[0]
         self.cabinet.obj_bp.matrix_world[1][3] = mouse_location[1]              
         self.cabinet.obj_bp.location.z = self.base_height + wall_bp.location.z
+        wall_length = self.current_wall.obj_x.location.x
+        cabinet_width = self.cabinet.obj_x.location.x
+        x_loc = self.cabinet.obj_bp.location.x
+
+        #SNAP TO LEFT
+        if x_loc < .25:
+            self.placement = "WALL_LEFT"
+            self.cabinet.obj_bp.location.x = 0
+
+        #SNAP TO RIGHT
+        if x_loc > wall_length - cabinet_width:
+            self.placement = "WALL_RIGHT"
+            self.cabinet.obj_bp.location.x = wall_length - cabinet_width
+
         if self.selected_normal.y == 1:
             #BACK SIDE OF WALL
             self.cabinet.obj_bp.rotation_euler.z = math.radians(180)
@@ -377,7 +403,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.obj_bp.rotation_euler.z = 0
 
     def position_cabinet_next_to_cabinet(self,mouse_location,cabinet_bp,selected_obj):
-        self.selected_cabinet = pc_types.Assembly(cabinet_bp)
+        self.selected_cabinet = data_cabinets.Cabinet(cabinet_bp)
         wall_bp = home_builder_utils.get_wall_bp(cabinet_bp)
 
         sel_cabinet_world_loc = (self.selected_cabinet.obj_bp.matrix_world[0][3],
@@ -391,6 +417,19 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         dist_to_bp = pc_utils.calc_distance(mouse_location,sel_cabinet_world_loc)
         dist_to_x = pc_utils.calc_distance(mouse_location,sel_cabinet_x_world_loc)
         rot = self.selected_cabinet.obj_bp.rotation_euler.z
+
+        #TODO: Implement Placement of Corner Cabinets
+        # if self.selected_cabinet.corner_type == 'Blind':
+        #     next_wall = self.get_next_wall()
+        #     if next_wall:
+        #         pass
+        #     else:
+        #         self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
+        #         self.cabinet.obj_bp.rotation_euler = self.selected_cabinet.obj_bp.rotation_euler
+        #         self.cabinet.obj_bp.rotation_euler.z += math.radians(-90)
+        #         self.cabinet.obj_bp.location = self.selected_cabinet.obj_bp.location
+        #         self.cabinet.obj_bp.location.x += self.selected_cabinet.obj_x.location.x
+        #         self.cabinet.obj_bp.location.y += self.selected_cabinet.obj_y.location.y
 
         if wall_bp:
             self.current_wall = pc_types.Assembly(wall_bp)
