@@ -1099,17 +1099,21 @@ class Home_Builder_Scene_Props(PropertyGroup):
                 row.prop_enum(self, "closet_tabs", 'CLOSET_PARTS')   
 
             if self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS':
-                obj_bp = pc_utils.get_assembly_bp(context.object)
+                if context.object:
+                    obj_bp = pc_utils.get_assembly_bp(context.object)
 
-                if obj_bp:
-                    row = main_box.row()
-                    row.label(text='Selected Assembly: ' + obj_bp.name)
-                    row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
-                    row = main_box.row()
-                    row.operator('home_builder.save_custom_cabinet',text="Save Custom Cabinet",icon='SCREEN_BACK')    
+                    if obj_bp:
+                        row = main_box.row()
+                        row.label(text='Selected Assembly: ' + obj_bp.name)
+                        row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
+                        row = main_box.row()
+                        row.operator('home_builder.save_custom_cabinet',text="Save Custom Cabinet",icon='SCREEN_BACK')    
+                    else:
+                        row = main_box.row()
+                        row.label(text='Select Assembly to Save')   
                 else:
                     row = main_box.row()
-                    row.label(text='Selected Assembly to Save')   
+                    row.label(text='No Object Selected')                       
 
 
     @classmethod

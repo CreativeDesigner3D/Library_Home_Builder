@@ -89,7 +89,8 @@ class home_builder_OT_drop(Operator):
                 data_to.objects = data_from.objects
         for obj in data_to.objects:
             if obj.parent is None:
-                parent = obj          
+                parent = obj     
+                parent['IS_CABINET_BP'] = True     
             context.view_layer.active_layer_collection.collection.objects.link(obj)
         home_builder_utils.assign_current_material_index(parent)
         return parent
