@@ -5,131 +5,6 @@ from . import home_builder_paths
 from .pc_lib import pc_utils
 from .cabinets import data_cabinets
 
-class FILEBROWSER_PT_home_builder_headers(bpy.types.Panel):
-    bl_space_type = 'FILE_BROWSER'
-    bl_region_type = 'UI'
-    bl_label = "Library"
-    bl_category = "Attributes"
-    bl_options = {'HIDE_HEADER'}
-
-    @classmethod
-    def poll(cls, context):
-        if len(context.area.spaces) > 1:
-            pyclone = pc_utils.get_scene_props(context.scene)
-            if pyclone.active_library_name == 'Home Builder Library':
-                return True   
-        return False
-
-    def library_path_not_correct(self,context,props):
-        current_path = context.space_data.params.directory.decode('utf-8')
-        if not os.path.exists(current_path):
-            return True
-        if props.library_tabs not in current_path:
-            return True
-        if props.library_tabs == 'ROOMS':
-            if props.room_tabs not in current_path:
-                return True
-        if props.library_tabs == 'KITCHENS':
-            if props.kitchen_tabs not in current_path:
-                return True
-        if props.library_tabs == 'BATHS':
-            if props.bath_tabs not in current_path:
-                return True
-        if props.library_tabs == 'CLOSETS':
-            if props.closet_tabs not in current_path:
-                return True                    
-        return False
-
-    def draw(self, context):
-        layout = self.layout
-        main_box = layout.box()
-        col = main_box.column()
-        props = home_builder_utils.get_scene_props(context.scene)
-
-        row = col.row()
-        row.scale_y = 1.3       
-        row.label(text="Home Builder v0.1",icon='HOME') 
-        row.separator()
-        row.popover(panel="HOME_BUILDER_PT_library_settings",text="Settings",icon='SETTINGS')
-
-        if self.library_path_not_correct(context,props):
-            main_box.operator('home_builder.reload_library')
-        else:
-            box = main_box.box()
-            box.label(text="Library")
-            lib_col = box.column(align=True)
-            row = lib_col.row(align=True)
-            row.scale_y = 1.3
-            row.prop_enum(props, "library_tabs", 'ROOMS') 
-            row.prop_enum(props, "library_tabs", 'KITCHENS') 
-            row.prop_enum(props, "library_tabs", 'BATHS')  
-            row.prop_enum(props, "library_tabs", 'CLOSETS') 
-
-            if props.library_tabs == 'ROOMS':
-                box = main_box.box()
-                box.label(text="Rooms")
-                col = box.column(align=True)
-                row = col.row(align=True)
-                row.scale_y = 1.3
-                row.prop_enum(props, "room_tabs", 'WALLS') 
-                row.prop_enum(props, "room_tabs", 'DOORS') 
-                row.prop_enum(props, "room_tabs", 'WINDOWS')  
-                row.prop_enum(props, "room_tabs", 'OBSTACLES')  
-
-            if props.library_tabs == 'KITCHENS':
-                box = main_box.box()
-                box.label(text="Kitchens")
-                col = box.column(align=True)
-                row = col.row(align=True)
-                row.scale_y = 1.3
-                row.prop_enum(props, "kitchen_tabs", 'APPLIANCES') 
-                row.prop_enum(props, "kitchen_tabs", 'CABINETS') 
-                row.prop_enum(props, "kitchen_tabs", 'PARTS')  
-                row = col.row(align=True)
-                row.scale_y = 1.3                
-                row.prop_enum(props, "kitchen_tabs", 'CUSTOM_CABINETS')  
-                row.prop_enum(props, "kitchen_tabs", 'DECORATIONS')  
-
-            if props.library_tabs == 'BATHS':
-                box = main_box.box()
-                box.label(text="Bathroom")
-                col = box.column(align=True)
-                row = col.row(align=True)
-                row.scale_y = 1.3
-                row.prop_enum(props, "bath_tabs", 'FIXTURES') 
-                row.prop_enum(props, "bath_tabs", 'VANITIES') 
-                row.prop_enum(props, "bath_tabs", 'MIRRORS')  
-                row.prop_enum(props, "bath_tabs", 'DECORATIONS')  
-
-            if props.library_tabs == 'CLOSETS':
-                box = main_box.box()
-                box.label(text="Closets")
-                col = box.column(align=True)
-                row = col.row(align=True)
-                row.scale_y = 1.3
-                row.prop_enum(props, "closet_tabs", 'FLOOR_PANELS') 
-                row.prop_enum(props, "closet_tabs", 'HANGING_PANELS') 
-                row.prop_enum(props, "closet_tabs", 'INSERTS')  
-                row = col.row(align=True)
-                row.scale_y = 1.3     
-                row.prop_enum(props, "closet_tabs", 'ISLANDS')     
-                row.prop_enum(props, "closet_tabs", 'CLOSET_ACCESSORIES')     
-                row.prop_enum(props, "closet_tabs", 'CLOSET_PARTS')   
-
-            if props.library_tabs == 'KITCHENS' and props.kitchen_tabs == 'CUSTOM_CABINETS':
-                obj_bp = pc_utils.get_assembly_bp(context.object)
-
-                if obj_bp:
-                    row = main_box.row()
-                    row.label(text='Selected Assembly: ' + obj_bp.name)
-                    row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
-                    row = main_box.row()
-                    row.operator('home_builder.save_custom_cabinet',text="Save Custom Cabinet",icon='SCREEN_BACK')    
-                else:
-                    row = main_box.row()
-                    row.label(text='Selected Assembly to Save')   
-
-
 class HOME_BUILDER_MT_category_menu(bpy.types.Menu):
     bl_label = "Library"
 
@@ -157,6 +32,7 @@ class HOME_BUILDER_MT_closet_category_menu(bpy.types.Menu):
             path = os.path.join(path,d)
             if os.path.isdir(path):
                 layout.operator('home_builder.change_closet_category',text=d,icon='FILEBROWSER').category = d
+
 
 class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'

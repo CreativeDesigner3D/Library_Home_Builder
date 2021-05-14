@@ -231,7 +231,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                  ('INSERTS',"Inserts","Show the Closet Inserts"),
                                  ('ISLANDS',"Islands","Show the Closet Islands"),
                                  ('CLOSET_ACCESSORIES',"Accessories","Show the Closet Accessories"),
-                                 ('CLOSET_PARTS',"Parts","Show the Closet Parts")],
+                                 ('CLOSET_PARTS',"Parts","Show the Closet Parts"),
+                                 ('DECORATIONS',"Decorations","Show the Closet Decorations")],
                           default='FLOOR_PANELS',
                           update=update_library_path)
 
@@ -1096,7 +1097,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
                 row.scale_y = 1.3     
                 row.prop_enum(self, "closet_tabs", 'ISLANDS')     
                 row.prop_enum(self, "closet_tabs", 'CLOSET_ACCESSORIES')     
-                row.prop_enum(self, "closet_tabs", 'CLOSET_PARTS')   
+                row.prop_enum(self, "closet_tabs", 'CLOSET_PARTS')  
+                row = col.row(align=True) 
+                row.scale_y = 1.3   
+                row.prop_enum(self, "closet_tabs", 'DECORATIONS') 
 
             if self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS':
                 if context.object:
