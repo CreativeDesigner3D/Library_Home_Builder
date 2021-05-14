@@ -92,6 +92,8 @@ class home_builder_OT_drop(Operator):
                 parent = obj     
                 parent['IS_CABINET_BP'] = True     
             context.view_layer.active_layer_collection.collection.objects.link(obj)
+            if obj.type == 'EMPTY':
+                obj.hide_viewport = True
         home_builder_utils.assign_current_material_index(parent)
         return parent
 
