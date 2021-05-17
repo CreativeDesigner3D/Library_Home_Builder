@@ -23,6 +23,7 @@ from .pc_lib import pc_unit, pc_utils, pc_types
 from .cabinets import data_cabinet_carcass
 from .cabinets import data_cabinet_exteriors
 from .cabinets import data_cabinet_parts
+from .cabinets import data_drawer_box
 from .cabinets import cabinet_utils
 from . import home_builder_pointers
 from . import home_builder_utils
@@ -446,6 +447,26 @@ class home_builder_OT_update_selected_cabinet_doors(bpy.types.Operator):
             exterior = data_cabinet_exteriors.Cabinet_Exterior(door_panel_bp.parent)
 
             exterior.replace_front(old_door_panel,pointer)
+
+        return {'FINISHED'}
+
+
+class home_builder_OT_add_drawer(bpy.types.Operator):
+    bl_idname = "home_builder.add_drawer"
+    bl_label = "Add Drawer"
+
+    def execute(self, context):
+        door_panel_bps = []
+        scene_props = home_builder_utils.get_scene_props(context.scene)
+
+        for obj in context.selected_objects:
+            door_bp = home_builder_utils.get_cabinet_door_bp(obj)
+            if door_bp and door_bp not in door_panel_bps:
+                door_panel_bps.append(door_bp)
+
+        for door_panel_bp in door_panel_bps:
+            exterior = data_cabinet_exteriors.Cabinet_Exterior(door_panel_bp.parent)
+            exterior.add_drawer_box(pc_types.Assembly(door_panel_bp))
 
         return {'FINISHED'}
 
@@ -2386,6 +2407,7 @@ classes = (
     home_builder_OT_update_selected_pulls,
     home_builder_OT_update_all_cabinet_doors,
     home_builder_OT_update_selected_cabinet_doors,
+    home_builder_OT_add_drawer,
     home_builder_OT_update_pull_pointer,
     home_builder_OT_update_molding_pointer,
     home_builder_OT_update_cabinet_door_pointer,

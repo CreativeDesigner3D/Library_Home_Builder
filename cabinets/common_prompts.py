@@ -40,6 +40,7 @@ def add_blind_cabinet_prompts(assembly):
 
 def add_drawer_prompts(assembly):
     assembly.add_prompt("Open Drawer",'PERCENTAGE',0)
+    assembly.add_prompt("Drawer Box Gap",'DISTANCE',pc_unit.inch(.25))
 
 def add_front_overlay_prompts(assembly):
     assembly.add_prompt("Inset Front",'CHECKBOX',False)
