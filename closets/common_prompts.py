@@ -12,7 +12,12 @@ def add_door_prompts(assembly):
 
 def add_drawer_prompts(assembly):
     assembly.add_prompt("Open Drawer",'PERCENTAGE',0)
+    assembly.add_prompt("Drawer Box Gap",'DISTANCE',pc_unit.inch(.25))
 
+def add_drawer_pull_prompts(assembly):
+    assembly.add_prompt("Center Pull On Front",'CHECKBOX',False)
+    assembly.add_prompt("Drawer Pull Vertical Location",'DISTANCE',pc_unit.inch(2))
+    
 def add_pull_prompts(assembly):
     assembly.add_prompt("Base Pull Vertical Location",'DISTANCE',pc_unit.inch(1.5))
     assembly.add_prompt("Tall Pull Vertical Location",'DISTANCE',pc_unit.inch(45))

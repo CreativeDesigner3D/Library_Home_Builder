@@ -37,6 +37,11 @@ class Upper_Doors(data_closet_inserts.Upper_Doors):
     def __init__(self):
         pass             
 
+class Drawers(data_closet_inserts.Drawers):
+
+    def __init__(self):
+        pass             
+
 class Single_Shelf(data_closet_inserts.Single_Shelf):
 
     def __init__(self):
