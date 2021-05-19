@@ -773,3 +773,118 @@ class Drawers(Doors):
     def render(self):
         self.pre_draw()
         self.draw()          
+
+
+class Cubbies(pc_types.Assembly):
+    show_in_library = True
+    category_name = "CLOSETS"
+    subcategory_name = "CLOSET_INSERTS"
+    drop_id = ""
+
+    def pre_draw(self):
+        self.create_assembly()
+        self.obj_bp["IS_SHELVES_INSERT"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
+        
+        self.obj_x.location.x = pc_unit.inch(20)
+        self.obj_y.location.y = pc_unit.inch(12)
+        self.obj_z.location.z = pc_unit.inch(.75)
+
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+
+        reference = data_closet_parts.add_closet_reference(self)
+        reference.loc_x(value = 0)
+        reference.loc_y(value = 0)
+        reference.loc_z(value = 0)
+        reference.rot_x(value = 0)
+        reference.rot_y(value = 0)
+        reference.rot_z(value = 0)      
+        reference.dim_x('width',[width])
+        reference.dim_y('depth',[depth])
+        reference.dim_z('height',[height])  
+
+    def draw(self):
+        cubby_placement = self.add_prompt("Cubby Placement",'COMBOBOX',0,["Bottom","Top","Fill"])
+        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(1)) 
+        divider_thickness = self.add_prompt("Divider Thickness",'DISTANCE',pc_unit.inch(1)) 
+        horizontal_qty = self.add_prompt("Horizontal Quantity",'QUANTITY',2) 
+        vertical_qty = self.add_prompt("Vertical Quantity",'QUANTITY',2) 
+        cubby_setback = self.add_prompt("Cubby Setback",'DISTANCE',pc_unit.inch(.25)) 
+        cubby_height = self.add_prompt("Cubby Height",'DISTANCE',pc_unit.millimeter(556.95)) 
+        
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        placement = cubby_placement.get_var('placement')
+        c_height = cubby_height.get_var('c_height')
+        s_thickness = shelf_thickness.get_var('s_thickness')
+        d_thickness = divider_thickness.get_var('d_thickness')
+        h_qty = horizontal_qty.get_var('h_qty')
+        v_qty = vertical_qty.get_var('v_qty')
+        setback = cubby_setback.get_var('setback')
+
+        #TOP SHELF
+        shelf = data_closet_parts.add_closet_part(self)
+        shelf.obj_bp["IS_SHELF_BP"] = True
+        shelf.set_name('Cubby Shelf')
+        shelf.loc_x(value = 0)
+        shelf.loc_y(value = 0)
+        shelf.loc_z('IF(placement==0,c_height+s_thickness,height-c_height)',[placement,c_height,height,s_thickness])
+        shelf.rot_y(value = 0)
+        shelf.rot_z(value = 0)
+        shelf.dim_x('width',[width])
+        shelf.dim_y('depth',[depth])
+        shelf.dim_z('-s_thickness',[s_thickness])
+        hide = shelf.get_prompt('Hide')
+        hide.set_formula('IF(placement==2,True,False)',[placement])
+        home_builder_utils.flip_normals(shelf)
+
+        opening = data_closet_parts.add_closet_opening(self)
+        opening.loc_x(value = 0)
+        opening.loc_y(value = 0)
+        opening.loc_z('IF(placement==0,c_height+s_thickness,0)',[placement,c_height,s_thickness])
+        opening.rot_x(value = 0)
+        opening.rot_y(value = 0)
+        opening.rot_z(value = 0)
+        opening.dim_x('IF(placement==2,0,width)',[placement,width])
+        opening.dim_y('IF(placement==2,0,depth)',[placement,depth])
+        opening.dim_z('IF(placement==2,0,height-c_height-s_thickness)',[placement,height,c_height,s_thickness])
+
+        v_cubby = data_closet_parts.add_closet_array_part(self)
+        v_cubby.loc_x('((width-(d_thickness*v_qty))/(v_qty+1))',[width,d_thickness,v_qty])
+        v_cubby.loc_y('setback',[setback])
+        v_cubby.loc_z('IF(placement==1,height-c_height,0)',[placement,height,c_height,s_thickness])
+        v_cubby.rot_x(value = 0)
+        v_cubby.rot_y(value = math.radians(-90))
+        v_cubby.rot_z(value = 0)
+        v_cubby.dim_x('IF(placement==2,height,c_height)',[placement,height,c_height])
+        v_cubby.dim_y('depth-setback',[depth,setback])
+        v_cubby.dim_z('-d_thickness',[d_thickness])
+        qty = v_cubby.get_prompt('Z Quantity')
+        offset = v_cubby.get_prompt('Z Offset')
+        qty.set_formula('v_qty',[v_qty])
+        offset.set_formula('-(((width-(d_thickness*v_qty))/(v_qty+1))+d_thickness)',[width,d_thickness,v_qty])
+
+        start_placement = 'IF(placement==1,height-c_height,0)'
+        v_spacing = '((IF(placement==2,height,c_height)-(s_thickness*h_qty))/(h_qty+1))'
+
+        h_cubby = data_closet_parts.add_closet_array_part(self)
+        h_cubby.loc_x(value = 0)
+        h_cubby.loc_y('setback',[setback])
+        h_cubby.loc_z(start_placement + '+(' + v_spacing + ')',[placement,height,c_height,h_qty,s_thickness])
+        h_cubby.rot_x(value = 0)
+        h_cubby.rot_y(value = 0)
+        h_cubby.rot_z(value = 0)
+        h_cubby.dim_x('width',[width])
+        h_cubby.dim_y('depth-setback',[depth,setback])
+        h_cubby.dim_z('s_thickness',[s_thickness])
+        qty = h_cubby.get_prompt('Z Quantity')
+        offset = h_cubby.get_prompt('Z Offset')
+        qty.set_formula('h_qty',[h_qty])
+        offset.set_formula(v_spacing + '+s_thickness',[placement,height,c_height,h_qty,s_thickness])
+
+    def render(self):
+        self.pre_draw()
+        self.draw()

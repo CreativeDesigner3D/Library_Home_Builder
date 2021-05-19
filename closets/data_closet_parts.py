@@ -77,6 +77,19 @@ def add_closet_opening(assembly):
     # home_builder_utils.add_bevel(part)
     return part    
 
+def add_closet_reference(assembly):
+    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Opening","Opening.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp["IS_REFERENCE"] = True
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
+    # home_builder_utils.add_bevel(part)
+    return part   
+
 def add_door_part(assembly,pointer):
     part_path = home_builder_paths.get_cabinet_door_panel_path(pointer)
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
