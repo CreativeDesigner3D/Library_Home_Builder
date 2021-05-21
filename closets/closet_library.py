@@ -47,6 +47,11 @@ class Single_Shelf(data_closet_inserts.Single_Shelf):
     def __init__(self):
         pass          
 
+class Slanted_Shoe_Shelf(data_closet_inserts.Slanted_Shoe_Shelf):
+
+    def __init__(self):
+        pass        
+
 class Cubbies(data_closet_inserts.Cubbies):
 
     def __init__(self):

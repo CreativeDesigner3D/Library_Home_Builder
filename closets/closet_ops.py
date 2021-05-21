@@ -325,35 +325,7 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
                                     items=home_builder_enums.PANEL_HEIGHTS,
                                     default = '2131')
     
-    opening_2_height: bpy.props.EnumProperty(name="Opening 2 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
-    
-    opening_3_height: bpy.props.EnumProperty(name="Opening 3 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
-    
-    opening_4_height: bpy.props.EnumProperty(name="Opening 4 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
-    
-    opening_5_height: bpy.props.EnumProperty(name="Opening 5 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
-    
-    opening_6_height: bpy.props.EnumProperty(name="Opening 6 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
-    
-    opening_7_height: bpy.props.EnumProperty(name="Opening 7 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
-    
-    opening_8_height: bpy.props.EnumProperty(name="Opening 8 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
-    
-    closet = None
+    insert = None
     calculators = []
 
     def check(self, context):
@@ -368,12 +340,23 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
         return wm.invoke_props_dialog(self, width=500)
 
     def get_assemblies(self,context):
-        bp = home_builder_utils.get_closet_bp(context.object)
-        self.closet = data_closets.Closet_Starter(bp)
-        self.get_calculators(self.closet.obj_bp)
+        bp = home_builder_utils.get_closet_doors_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
 
     def draw(self, context):
         layout = self.layout
+        hot = self.insert.get_prompt("Half Overlay Top")
+        hob = self.insert.get_prompt("Half Overlay Bottom")
+        hol = self.insert.get_prompt("Half Overlay Left")   
+        hor = self.insert.get_prompt("Half Overlay Right")   
+        
+        box = layout.box()
+        box.label(text="Front Half Overlays")
+        row = box.row()
+        row.prop(hot,'checkbox_value',text="Top") 
+        row.prop(hob,'checkbox_value',text="Bottom") 
+        row.prop(hol,'checkbox_value',text="Left") 
+        row.prop(hor,'checkbox_value',text="Right") 
 
 
 class home_builder_OT_closet_shelves_prompts(bpy.types.Operator):
@@ -404,6 +387,52 @@ class home_builder_OT_closet_shelves_prompts(bpy.types.Operator):
         layout.prop(shelf_qty,'quantity_value',text="Shelf Quantity")
 
 
+class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_drawer_prompts"
+    bl_label = "Closet Drawer Prompts"
+
+    insert = None
+    calculators = []
+
+    def check(self, context):
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_closet_drawers_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        drawer_qty = self.insert.get_prompt("Drawer Quantity")
+        box.prop(drawer_qty,'quantity_value',text="Drawer Quantity")
+        for i in range(1,7):
+            if drawer_qty.get_value() > i - 1:
+                drawer_height = self.insert.get_prompt("Drawer " + str(i) + " Height")
+                box.prop(drawer_height,'distance_value',text="Drawer " + str(i) + " Height")
+
+        hot = self.insert.get_prompt("Half Overlay Top")
+        hob = self.insert.get_prompt("Half Overlay Bottom")
+        hol = self.insert.get_prompt("Half Overlay Left")   
+        hor = self.insert.get_prompt("Half Overlay Right")   
+        
+        box = layout.box()
+        box.label(text="Front Half Overlays")
+        row = box.row()
+        row.prop(hot,'checkbox_value',text="Top") 
+        row.prop(hob,'checkbox_value',text="Bottom") 
+        row.prop(hol,'checkbox_value',text="Left") 
+        row.prop(hor,'checkbox_value',text="Right") 
+
+
 class home_builder_OT_show_closet_properties(bpy.types.Operator):
     bl_idname = "home_builder.show_closet_properties"
     bl_label = "Show Closet Properties"
@@ -429,6 +458,8 @@ classes = (
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
     home_builder_OT_closet_shelves_prompts,
+    home_builder_OT_closet_door_prompts,
+    home_builder_OT_closet_drawer_prompts,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

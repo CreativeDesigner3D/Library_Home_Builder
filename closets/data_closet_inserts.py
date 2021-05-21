@@ -175,6 +175,128 @@ class Single_Shelf(pc_types.Assembly):
         self.draw()
 
 
+class Slanted_Shoe_Shelf(pc_types.Assembly):
+    show_in_library = True
+    category_name = "CLOSETS"
+    subcategory_name = "CLOSET_PARTS"
+    drop_id = ""
+
+    def pre_draw(self):
+        self.create_assembly()
+        self.obj_bp["IS_SHELVES_INSERT"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
+        
+        self.obj_x.location.x = pc_unit.inch(20)
+        self.obj_y.location.y = pc_unit.inch(12)
+        self.obj_z.location.z = pc_unit.inch(.75)
+
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+
+        reference = data_closet_parts.add_closet_reference(self)
+        reference.obj_bp["IS_REFERENCE"] = True
+        reference.loc_x(value = 0)
+        reference.loc_y(value = 0)
+        reference.loc_z(value = 0)
+        reference.rot_x(value = 0)
+        reference.rot_y(value = 0)
+        reference.rot_z(value = 0)      
+        reference.dim_x('width',[width])
+        reference.dim_y('depth',[depth])
+        reference.dim_z('height',[height])  
+
+    def draw(self):
+
+        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(1)) 
+        shelf_clip_gap = self.add_prompt("Shelf Clip Gap",'DISTANCE',pc_unit.inch(1)) 
+        shelf_setback = self.add_prompt("Shelf Setback",'DISTANCE',pc_unit.inch(1))
+        shelf_lip_width = self.add_prompt("Shelf Lip Width",'DISTANCE',pc_unit.inch(2))
+        distance_between_shelves = self.add_prompt("Distance Between Shelves",'DISTANCE',pc_unit.inch(8))
+        space_from_bottom = self.add_prompt("Space From Bottom",'DISTANCE',pc_unit.inch(3.5))
+        shelf_qty = self.add_prompt("Shelf Quantity",'QUANTITY',3) 
+        shelf_angle = self.add_prompt("Shelf Angle",'ANGLE',17.25) 
+        
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        qty = shelf_qty.get_var("qty")
+        shelf_clip_gap_var = shelf_clip_gap.get_var("shelf_clip_gap")
+        lip_width = shelf_lip_width.get_var('lip_width')
+        bot_space = space_from_bottom.get_var('bot_space')
+        s_thickness = shelf_thickness.get_var("s_thickness")
+        angle = shelf_angle.get_var("angle")
+        setback = shelf_setback.get_var("setback")
+        dim_between_shelves = distance_between_shelves.get_var('dim_between_shelves')
+        
+        #TOP SHELF
+        shelf = data_closet_parts.add_closet_part(self)
+        shelf.obj_bp["IS_SHELF_BP"] = True
+        shelf.set_name('Top Shelf')
+        shelf.loc_x(value = 0)
+        shelf.loc_y(value = 0)
+        shelf.loc_z('bot_space+dim_between_shelves*qty',[bot_space,dim_between_shelves,qty])
+        shelf.rot_y(value = 0)
+        shelf.rot_z(value = 0)
+        shelf.dim_x('width',[width])
+        shelf.dim_y('depth',[depth])
+        shelf.dim_z('s_thickness',[s_thickness])
+        home_builder_utils.flip_normals(shelf)
+
+        z_loc = shelf.obj_bp.pyclone.get_var('location.z','z_loc')
+
+        opening = data_closet_parts.add_closet_opening(self)
+        opening.set_name('Opening')
+        opening.loc_x(value = 0)
+        opening.loc_y(value = 0)
+        opening.loc_z('z_loc+s_thickness',[z_loc,s_thickness])
+        opening.rot_x(value = 0)
+        opening.rot_y(value = 0)
+        opening.rot_z(value = 0)
+        opening.dim_x('width',[width])
+        opening.dim_y('depth',[depth])
+        opening.dim_z('height-z_loc-s_thickness',[height,z_loc,s_thickness])
+
+        for i in range(1,11):
+            slanted_shelf = data_closet_parts.add_closet_array_part(self)
+            slanted_shelf.set_name("Slanted Shelf")
+            slanted_shelf.loc_x(value = 0)
+            slanted_shelf.loc_y('depth',[depth])
+            if i == 1:
+                slanted_shelf.loc_z('bot_space',[bot_space])
+            else:
+                slanted_shelf.loc_z('bot_space+dim_between_shelves*' + str(i-1),[bot_space,dim_between_shelves])
+            slanted_shelf.rot_x('angle',[angle])
+            slanted_shelf.rot_y(value = 0)
+            slanted_shelf.rot_z(value = 0)
+            slanted_shelf.dim_x('width',[width])
+            slanted_shelf.dim_y('-depth+setback',[depth,setback])
+            slanted_shelf.dim_z('s_thickness',[s_thickness])
+            hide = slanted_shelf.get_prompt('Hide')
+            hide.set_formula('IF(' + str(i) + '>qty,True,False)',[qty])
+
+            shelf_depth = slanted_shelf.obj_y.pyclone.get_var('location.y','shelf_depth')
+            z_loc = slanted_shelf.obj_bp.pyclone.get_var('location.z','z_loc')
+
+            shelf_lip = data_closet_parts.add_closet_part(self)
+            shelf_lip.set_name("Shelf Lip")
+            shelf_lip.loc_x(value = 0)
+            shelf_lip.loc_y('fabs(depth)-(fabs(shelf_depth)*cos(angle))',[depth,shelf_depth,angle])
+            shelf_lip.loc_z('z_loc-(fabs(shelf_depth)*sin(angle))',[z_loc,shelf_depth,angle])
+            shelf_lip.rot_x('angle-radians(90)',[angle])
+            shelf_lip.rot_y(value = 0)
+            shelf_lip.rot_z(value = 0)
+            shelf_lip.dim_x('width',[width])
+            shelf_lip.dim_y('-lip_width',[lip_width])
+            shelf_lip.dim_z('-s_thickness',[s_thickness])
+            hide = shelf_lip.get_prompt('Hide')
+            hide.set_formula('IF(' + str(i) + '>qty,True,False)',[qty])
+
+    def render(self):
+        self.pre_draw()
+        self.draw()
+
+
 class Hanging_Rod(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
@@ -314,7 +436,8 @@ class Doors(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-        self.obj_bp["IS_CLOSET_DOOR"] = True
+        self.obj_bp["IS_CLOSET_DOORS_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.closet_door_prompts"
 
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
@@ -662,6 +785,31 @@ class Upper_Doors(Doors):
 
 
 class Drawers(Doors):
+
+    def pre_draw(self):
+        self.create_assembly()
+        self.obj_bp['IS_CLOSET_DRAWERS_BP'] = True
+        self.obj_bp['PROMPT_ID'] = 'home_builder.closet_drawer_prompts'
+
+        self.obj_x.location.x = pc_unit.inch(20)
+        self.obj_y.location.y = pc_unit.inch(12)
+        self.obj_z.location.z = pc_unit.inch(60)
+
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+
+        reference = data_closet_parts.add_closet_opening(self)
+        reference.obj_bp["IS_REFERENCE"] = True
+        reference.loc_x(value = 0)
+        reference.loc_y(value = 0)
+        reference.loc_z(value = 0)
+        reference.rot_x(value = 0)
+        reference.rot_y(value = 0)
+        reference.rot_z(value = 0)      
+        reference.dim_x('width',[width])
+        reference.dim_y('depth',[depth])
+        reference.dim_z('height',[height])  
 
     def draw(self):
         self.add_prompts()

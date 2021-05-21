@@ -65,6 +65,22 @@ def get_closet_shelves_bp(obj):
     elif obj.parent:
         return get_closet_shelves_bp(obj.parent)
 
+def get_closet_doors_bp(obj):
+    if not obj:
+        return None    
+    if "IS_CLOSET_DOORS_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_doors_bp(obj.parent)
+
+def get_closet_drawers_bp(obj):
+    if not obj:
+        return None    
+    if "IS_CLOSET_DRAWERS_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_drawers_bp(obj.parent)
+
 def get_carcass_bp(obj):
     if not obj:
         return None    
