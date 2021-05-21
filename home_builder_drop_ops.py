@@ -1892,7 +1892,6 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
                 for child in opening.obj_bp.children:
                     if child.type == 'MESH':
                         if child not in self.exclude_objects:
-                            print(child)
                             child.select_set(True)
                 self.cabinet.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
                 self.cabinet.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
@@ -1949,12 +1948,12 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
         return number_of_holes * pc_unit.millimeter(32)
 
     def confirm_placement(self,context,opening):
-        z_loc = self.cabinet.obj_bp.location.z
+        z_loc = self.cabinet.obj_bp.matrix_world[2][3]
         if opening:
             self.cabinet.obj_bp.parent = opening.obj_bp.parent
             self.cabinet.obj_bp.location.x = opening.obj_bp.location.x
             self.cabinet.obj_bp.location.y = opening.obj_bp.location.y
-            self.cabinet.obj_bp.location.z = z_loc
+            self.cabinet.obj_bp.matrix_world[2][3] = z_loc
             self.cabinet.obj_x.location.x = opening.obj_x.location.x
             self.cabinet.obj_y.location.y = opening.obj_y.location.y
 

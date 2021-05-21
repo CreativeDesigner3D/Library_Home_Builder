@@ -149,7 +149,7 @@ class Closet_Starter(pc_types.Assembly):
 
         self.obj_x.location.x = pc_unit.inch(96)
         self.obj_y.location.y = -pc_unit.inch(12)
-        self.obj_z.location.z = pc_unit.inch(83)
+        self.obj_z.location.z = pc_unit.millimeter(2131)
 
         width = self.obj_x.pyclone.get_var('location.x','width')
         height = self.obj_z.pyclone.get_var('location.z','height')
