@@ -49,6 +49,20 @@ def add_closet_hangers(assembly):
         home_builder_utils.add_bevel(part)
         return part    
 
+def add_closet_wire_basket(assembly):
+    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Closets","Wire Basket.blend")
+    if path.exists(part_path):
+        part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+        part.obj_bp['IS_WIRE_BASKET_BP'] = True
+        assembly.add_assembly(part)
+        part.obj_bp.empty_display_size = .001
+        part.obj_x.empty_display_size = .001
+        part.obj_y.empty_display_size = .001
+        part.obj_z.empty_display_size = .001
+        part.obj_prompts.empty_display_size = .001    
+        # home_builder_utils.add_bevel(part)
+        return part    
+
 def add_closet_oval_hanging_rod(assembly):
     part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Closets","Oval Hanging Rod.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))

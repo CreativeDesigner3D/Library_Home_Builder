@@ -56,3 +56,8 @@ class Cubbies(data_closet_inserts.Cubbies):
 
     def __init__(self):
         pass        
+
+class Wire_Baskets(data_closet_inserts.Wire_Baskets):
+
+    def __init__(self):
+        pass            

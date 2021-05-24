@@ -923,6 +923,128 @@ class Drawers(Doors):
         self.draw()          
 
 
+class Wire_Baskets(pc_types.Assembly):
+
+    def pre_draw(self):
+        self.create_assembly()
+        self.obj_bp['IS_WIRE_BASKET_INSERT_BP'] = True
+        self.obj_bp['PROMPT_ID'] = 'home_builder.closet_drawer_prompts'
+
+        self.obj_x.location.x = pc_unit.inch(20)
+        self.obj_y.location.y = pc_unit.inch(12)
+        self.obj_z.location.z = pc_unit.inch(60)
+
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+
+        reference = data_closet_parts.add_closet_opening(self)
+        reference.obj_bp["IS_REFERENCE"] = True
+        reference.loc_x(value = 0)
+        reference.loc_y(value = 0)
+        reference.loc_z(value = 0)
+        reference.rot_x(value = 0)
+        reference.rot_y(value = 0)
+        reference.rot_z(value = 0)      
+        reference.dim_x('width',[width])
+        reference.dim_y('depth',[depth])
+        reference.dim_z('height',[height])  
+
+    def draw(self):
+
+        wire_basket_quantity = self.add_prompt("Wire Basket Quantity",'QUANTITY',3)
+        wire_basket_1_height = self.add_prompt("Wire Basket 1 Height",'DISTANCE',pc_unit.inch(6))
+        wbh1 = wire_basket_1_height.get_var('wbh1')
+        wire_basket_2_height = self.add_prompt("Wire Basket 2 Height",'DISTANCE',pc_unit.inch(6))
+        wbh2 = wire_basket_2_height.get_var('wbh2')
+        wire_basket_3_height = self.add_prompt("Wire Basket 3 Height",'DISTANCE',pc_unit.inch(6))
+        wbh3 = wire_basket_3_height.get_var('wbh3')     
+        wire_basket_4_height = self.add_prompt("Wire Basket 4 Height",'DISTANCE',pc_unit.inch(6))
+        wbh4 = wire_basket_4_height.get_var('wbh4')  
+        wire_basket_5_height = self.add_prompt("Wire Basket 5 Height",'DISTANCE',pc_unit.inch(6))
+        wbh5 = wire_basket_5_height.get_var('wbh5')  
+        wire_basket_6_height = self.add_prompt("Wire Basket 6 Height",'DISTANCE',pc_unit.inch(6))
+        wbh6 = wire_basket_6_height.get_var('wbh6')  
+        vert_spacing = self.add_prompt("Vertical Spacing",'DISTANCE',pc_unit.inch(3))
+        v = vert_spacing.get_var('v')
+
+        common_prompts.add_closet_thickness_prompts(self)
+
+        x = self.obj_x.pyclone.get_var('location.x','x')
+        y = self.obj_y.pyclone.get_var('location.y','y')
+        z = self.obj_z.pyclone.get_var('location.z','z')      
+        qty = wire_basket_quantity.get_var('qty') 
+        # h_gap = self.get_prompt("Horizontal Gap").get_var('h_gap') 
+        s_thickness = self.get_prompt("Shelf Thickness").get_var('s_thickness')
+
+        #TOP SHELF
+        shelf = data_closet_parts.add_closet_part(self)
+        shelf.obj_bp["IS_SHELF_BP"] = True
+        shelf.set_name('Wire Basket Shelf')
+        shelf.loc_x(value = 0)
+        shelf.loc_y(value = 0)
+        shelf.loc_z('wbh1+v+IF(qty>1,wbh2+v,0)+IF(qty>2,wbh3+v,0)+IF(qty>3,wbh4+v,0)+IF(qty>4,wbh5+v,0)+IF(qty>5,wbh6+v,0)',
+                    [qty,wbh1,wbh2,wbh3,wbh4,wbh5,wbh6,v])        
+        shelf.rot_y(value = 0)
+        shelf.rot_z(value = 0)
+        shelf.dim_x('x',[x])
+        shelf.dim_y('y',[y])
+        shelf.dim_z('s_thickness',[s_thickness])
+        home_builder_utils.flip_normals(shelf)
+
+        shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
+
+        opening = data_closet_parts.add_closet_opening(self)
+        opening.set_name('Opening')
+        opening.loc_x(value = 0)
+        opening.loc_y(value = 0)
+        opening.loc_z('shelf_z_loc+s_thickness',
+                      [shelf_z_loc,s_thickness])
+        opening.rot_x(value = 0)
+        opening.rot_y(value = 0)
+        opening.rot_z(value = 0)
+        opening.dim_x('x',[x])
+        opening.dim_y('y',[y])
+        opening.dim_z('z-shelf_z_loc-s_thickness',
+                      [z,shelf_z_loc,s_thickness])
+
+        prev_wire_basket_empty = None
+
+        for i in range(1,7):
+            wire_basket_height = self.get_prompt('Wire Basket ' + str(i) + " Height")
+            wbh = wire_basket_height.get_var('wbh')
+            wire_basket_empty = self.add_empty('Z Loc ' + str(i))
+            if prev_wire_basket_empty:
+                prev_z_loc = prev_wire_basket_empty.pyclone.get_var('location.z','prev_z_loc')
+                wire_basket_empty.pyclone.loc_z('prev_z_loc-wbh-v',[prev_z_loc,wbh,v])
+            else:
+                wire_basket_empty.pyclone.loc_z('shelf_z_loc-wbh-v',
+                                          [shelf_z_loc,wbh,v])      
+
+            z_loc = wire_basket_empty.pyclone.get_var('location.z','z_loc')
+
+            basket = data_closet_parts.add_closet_wire_basket(self)
+            basket.loc_x(value = 0)
+            basket.loc_y(value = 0)
+            basket.loc_z('z_loc',[z_loc])                                                                             
+            basket.rot_x(value = 0)
+            basket.rot_y(value = 0)
+            basket.rot_z(value = 0)
+            basket.dim_x('x',[x])
+            basket.dim_y('y',[y])            
+            basket.dim_z('wbh',[wbh])
+            hide = basket.get_prompt('Hide')
+            hide.set_formula('IF(qty>' + str(i-1) + ',False,True)',[qty])
+            home_builder_pointers.assign_pointer_to_assembly(basket,"Wire Baskets")
+            home_builder_pointers.assign_materials_to_assembly(basket)
+
+            prev_wire_basket_empty = wire_basket_empty
+        
+    def render(self):
+        self.pre_draw()
+        self.draw()          
+
+
 class Cubbies(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"

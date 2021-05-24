@@ -18,6 +18,9 @@ def get_default_material_pointers():
     pointers.append(("Countertop Surface","_Sample","Midnight Granite"))
     pointers.append(("Molding","_Sample","Dark Wood"))
 
+    #CLOSETS
+    pointers.append(("Wire Baskets","_Sample","Polished Chrome"))
+
     #MISC
     pointers.append(("Glass","_Sample","Glass"))
     pointers.append(("Shelf Holes","_Sample","Machining"))
