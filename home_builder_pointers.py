@@ -60,7 +60,8 @@ def get_default_molding_pointers():
     pointers = []
     pointers.append(("Base Molding","Base","BA01 4in"))
     pointers.append(("Crown Molding","Crown","CR01 2 x 2"))
-    pointers.append(("Light Rail Molding","Light Rail","L01 1_25 x 1_5in"))
+    pointers.append(("Wall Crown Molding","Wall Crown","CR01 2 x 2"))
+    pointers.append(("Light Rail Molding","Light Rail","L01 1in"))
     return pointers
 
 def add_pointers_from_list(pointer_list,pointers):

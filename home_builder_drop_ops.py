@@ -633,6 +633,15 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             constraint.use_x = True
             constraint.use_y = True
             constraint.use_z = False
+            for carcass in self.cabinet.carcasses:
+                if self.cabinet.obj_z.location.z == self.selected_cabinet.obj_z.location.z:
+                    rfe = carcass.get_prompt('Right Finished End')
+                    rfe.set_value(False)
+
+            for carcass in self.selected_cabinet.carcasses:
+                if self.cabinet.obj_z.location.z == self.selected_cabinet.obj_z.location.z:
+                    lfe = carcass.get_prompt('Left Finished End')
+                    lfe.set_value(False)                
 
         if self.placement == 'RIGHT':
             self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
@@ -642,6 +651,15 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             constraint.use_x = True
             constraint.use_y = True
             constraint.use_z = False
+            for carcass in self.cabinet.carcasses:
+                if self.cabinet.obj_z.location.z == self.selected_cabinet.obj_z.location.z:
+                    lfe = carcass.get_prompt('Left Finished End')
+                    lfe.set_value(False)
+
+            for carcass in self.selected_cabinet.carcasses:
+                if self.cabinet.obj_z.location.z == self.selected_cabinet.obj_z.location.z:
+                    rfe = carcass.get_prompt('Right Finished End')
+                    rfe.set_value(False)               
 
         if hasattr(self.cabinet,'pre_draw'):
             self.cabinet.draw()

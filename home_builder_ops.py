@@ -20,6 +20,7 @@ from bpy.props import (StringProperty,
                        CollectionProperty)
 
 from .pc_lib import pc_unit, pc_utils, pc_types
+from .cabinets import data_cabinets
 from .cabinets import data_cabinet_carcass
 from .cabinets import data_cabinet_exteriors
 from .cabinets import data_cabinet_parts
@@ -514,17 +515,6 @@ class home_builder_OT_update_cabinet_door_pointer(bpy.types.Operator):
                 pointer.category = props.cabinet_door_category
                 pointer.item_name = props.cabinet_door_name      
         return {'FINISHED'}
-
-
-class home_builder_OT_auto_add_molding(bpy.types.Operator):
-    bl_idname = "home_builder.auto_add_molding"
-    bl_label = "Auto Add Molding"
-    
-    molding_type: bpy.props.StringProperty(name="Molding Type")
-
-    def execute(self, context):
-        return {'FINISHED'}
-
 
 class home_builder_OT_generate_2d_views(bpy.types.Operator):
     bl_idname = "home_builder.generate_2d_views"
@@ -2394,6 +2384,284 @@ class home_builder_OT_add_part(bpy.types.Operator):
                            
         return {'FINISHED'}    
 
+
+class home_builder_OT_auto_add_molding(bpy.types.Operator):
+    bl_idname = "home_builder.auto_add_molding"
+    bl_label = "Auto Add Molding"
+    bl_description = "This adds automatically adds molding to the products in the current scene"
+    bl_options = {'UNDO'}
+    
+    add_base_molding: bpy.props.BoolProperty(name="Add Base Molding")
+    add_crown_molding: bpy.props.BoolProperty(name="Add Crown Molding")
+    add_light_rail_molding: bpy.props.BoolProperty(name="Add Light Rail Molding")
+    add_wall_crown_molding: bpy.props.BoolProperty(name="Add Wall Crown Molding")
+    add_wall_base_molding: bpy.props.BoolProperty(name="Add Wall Base Molding")
+
+    base_profile = None
+    light_profile = None        
+    base_profile = None
+    crown_profile = None
+    wall_crown_profile = None
+
+    def check(self, context):
+        return True
+    
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+        
+    def draw(self,context):
+        layout = self.layout
+        props = home_builder_utils.get_scene_props(context.scene)
+        layout.prop(self,'add_base_molding')     
+        layout.prop(self,'add_crown_molding')   
+        layout.prop(self,'add_light_rail_molding')   
+        layout.prop(self,'add_wall_crown_molding')   
+        layout.prop(self,'add_wall_base_molding')                
+
+    def create_curve(self):
+        bpy.ops.curve.primitive_bezier_curve_add(enter_editmode=False)
+        obj_curve = bpy.context.active_object
+        obj_curve.modifiers.new("Edge Split",type='EDGE_SPLIT')     
+        obj_curve.data.splines.clear()   
+        obj_curve.data.bevel_mode = 'OBJECT'
+        obj_curve.location = (0,0,0)
+        return obj_curve
+
+    def assign_active_curve_properties(self,obj_curve):
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.curve.select_all(action='SELECT')
+        bpy.ops.curve.handle_type_set(type='VECTOR')
+        bpy.ops.object.editmode_toggle()
+
+        home_builder_pointers.assign_pointer_to_object(obj_curve,"Molding")
+        home_builder_pointers.assign_materials_to_object(obj_curve)
+
+    def add_base_molding_to_wall(self,sel_assembly):
+        obj_curve = self.create_curve()
+        obj_curve["IS_WALL_BASE_MOLDING"] = True
+        obj_curve.name = "Base Wall Molding"
+        obj_curve.parent = sel_assembly.obj_bp
+        obj_curve.data.bevel_object = self.base_profile
+        
+        spline = obj_curve.data.splines.new('BEZIER')
+
+        spline.bezier_points.add(count=1)   
+        spline.bezier_points[0].co = (0,0,0)
+        spline.bezier_points[1].co = (sel_assembly.obj_x.location.x,0,0)
+
+        self.assign_active_curve_properties(obj_curve)
+
+    def add_crown_molding_to_wall(self,sel_assembly):
+        obj_curve = self.create_curve()
+        obj_curve["IS_WALL_CROWN_MOLDING"] = True
+        obj_curve.name = "Crown Wall Molding"
+        obj_curve.parent = sel_assembly.obj_bp
+        obj_curve.data.bevel_object = self.wall_crown_profile
+        
+        spline = obj_curve.data.splines.new('BEZIER')
+
+        width = sel_assembly.obj_x.location.x
+        height = sel_assembly.obj_z.location.z
+        spline.bezier_points.add(count=1)   
+        spline.bezier_points[0].co = (0,0,height)
+        spline.bezier_points[1].co = (width,0,height)
+
+        self.assign_active_curve_properties(obj_curve)
+
+    def add_base_molding_to_cabinet(self,sel_assembly):
+        for carcass in sel_assembly.carcasses:
+            carcass_type = carcass.get_prompt("Carcass Type").get_value()
+            if carcass_type not in ("Base","Tall"):
+                return None            
+            toe_kick_setback = carcass.get_prompt("Toe Kick Setback").get_value()
+            lfe = carcass.get_prompt("Left Finished End").get_value()
+            rfe = carcass.get_prompt("Right Finished End").get_value()
+
+            obj_curve = self.create_curve()
+            obj_curve["IS_CABINET_BASE_MOLDING"] = True
+            obj_curve.name = "Base Cabinet Molding"
+            obj_curve.parent = sel_assembly.obj_bp
+            obj_curve.data.bevel_object = self.base_profile
+
+            spline = obj_curve.data.splines.new('BEZIER')
+
+            width = sel_assembly.obj_x.location.x
+            depth = sel_assembly.obj_y.location.y
+            if lfe:
+                spline.bezier_points.add(count=2)   
+                spline.bezier_points[0].co = (0,0,0)
+                spline.bezier_points[1].co = (0,depth+toe_kick_setback,0)
+                spline.bezier_points[2].co = (width,depth+toe_kick_setback,0)
+            else:
+                spline.bezier_points.add(count=1)   
+                spline.bezier_points[0].co = (0,depth+toe_kick_setback,0)
+                spline.bezier_points[1].co = (width,depth+toe_kick_setback,0)
+
+            if rfe:
+                spline.bezier_points.add(count=1) 
+                if lfe:
+                    spline.bezier_points[3].co = (width,0,0)
+                else:
+                    spline.bezier_points[2].co = (width,0,0)
+
+            self.assign_active_curve_properties(obj_curve)
+
+    def add_crown_molding_to_cabinet(self,sel_assembly):
+        for carcass in sel_assembly.carcasses:
+            carcass_type = carcass.get_prompt("Carcass Type").get_value()
+            lfe = carcass.get_prompt("Left Finished End").get_value()
+            rfe = carcass.get_prompt("Right Finished End").get_value()
+
+            if carcass_type not in ("Upper","Tall"):
+                return None
+
+            obj_curve = self.create_curve()
+            obj_curve["IS_CABINET_CROWN_MOLDING"] = True
+            obj_curve.name = "Crown Cabinet Molding"
+            obj_curve.parent = sel_assembly.obj_bp
+            obj_curve.data.bevel_object = self.crown_profile
+
+            spline = obj_curve.data.splines.new('BEZIER')
+
+            width = sel_assembly.obj_x.location.x
+            height = sel_assembly.obj_z.location.z
+            depth = sel_assembly.obj_y.location.y
+            if lfe:
+                spline.bezier_points.add(count=2)   
+                spline.bezier_points[0].co = (0,0,height)
+                spline.bezier_points[1].co = (0,depth,height)
+                spline.bezier_points[2].co = (width,depth,height)
+            else:
+                spline.bezier_points.add(count=1)   
+                spline.bezier_points[0].co = (0,depth,height)
+                spline.bezier_points[1].co = (width,depth,height)
+
+            if rfe:
+                spline.bezier_points.add(count=1) 
+                if lfe:
+                    spline.bezier_points[3].co = (width,0,height)
+                else:
+                    spline.bezier_points[2].co = (width,0,height)
+
+            self.assign_active_curve_properties(obj_curve)
+
+    def add_light_rail_molding_to_cabinet(self,sel_assembly):
+        for carcass in sel_assembly.carcasses:
+            carcass_type = carcass.get_prompt("Carcass Type").get_value()
+            lfe = carcass.get_prompt("Left Finished End").get_value()
+            rfe = carcass.get_prompt("Right Finished End").get_value()
+
+            if carcass_type not in ("Upper"):
+                return None
+
+            obj_curve = self.create_curve()
+            obj_curve["IS_CABINET_LIGHT_MOLDING"] = True
+            obj_curve.name = "Light Rail Cabinet Molding"
+            obj_curve.parent = sel_assembly.obj_bp
+            obj_curve.data.bevel_object = self.light_profile
+            spline = obj_curve.data.splines.new('BEZIER')
+
+            width = sel_assembly.obj_x.location.x
+            height = sel_assembly.obj_z.location.z
+            depth = sel_assembly.obj_y.location.y
+            if lfe:
+                spline.bezier_points.add(count=2)   
+                spline.bezier_points[0].co = (0,0,0)
+                spline.bezier_points[1].co = (0,depth,0)
+                spline.bezier_points[2].co = (width,depth,0)
+            else:
+                spline.bezier_points.add(count=1)   
+                spline.bezier_points[0].co = (0,depth,0)
+                spline.bezier_points[1].co = (width,depth,0)
+
+            if rfe:
+                spline.bezier_points.add(count=1) 
+                if lfe:
+                    spline.bezier_points[3].co = (width,0,0)
+                else:
+                    spline.bezier_points[2].co = (width,0,0)
+
+            self.assign_active_curve_properties(obj_curve)
+
+    def execute(self,context):
+        props = home_builder_utils.get_scene_props(context.scene)  
+        light_pointer = props.molding_pointers["Light Rail Molding"]
+        base_pointer = props.molding_pointers["Base Molding"]
+        crown_pointer = props.molding_pointers["Crown Molding"]
+        wall_crown_pointer = props.molding_pointers["Wall Crown Molding"]
+        molding_path = home_builder_paths.get_molding_path()
+        base_path = os.path.join(molding_path,base_pointer.category,base_pointer.item_name + ".blend")
+        light_path = os.path.join(molding_path,light_pointer.category,light_pointer.item_name + ".blend")
+        crown_path = os.path.join(molding_path,crown_pointer.category,crown_pointer.item_name + ".blend")
+        wall_crown_path = os.path.join(molding_path,wall_crown_pointer.category,wall_crown_pointer.item_name + ".blend")
+        self.light_profile = home_builder_utils.get_object(light_path)        
+        self.base_profile = home_builder_utils.get_object(base_path)
+        self.crown_profile = home_builder_utils.get_object(crown_path)
+        self.wall_crown_profile = home_builder_utils.get_object(wall_crown_path)
+
+        cabinet_base_molding = []
+        cabinet_crown_molding = []
+        cabinet_light_rail_molding = []
+        wall_crown_molding = []
+        wall_base_molding = []
+        walls = []
+        cabinets = []
+        closets = []
+
+        #COLLECT DATA
+        for obj in bpy.data.objects:
+            if "IS_CABINET_BASE_MOLDING" in obj and obj not in cabinet_base_molding:
+                cabinet_base_molding.append(obj)
+            if "IS_CABINET_CROWN_MOLDING" in obj and obj not in cabinet_crown_molding:
+                cabinet_crown_molding.append(obj)  
+            if "IS_CABINET_LIGHT_MOLDING" in obj and obj not in cabinet_light_rail_molding:
+                cabinet_light_rail_molding.append(obj)                  
+            if "IS_WALL_CROWN_MOLDING" in obj and obj not in wall_crown_molding:
+                wall_crown_molding.append(obj)
+            if "IS_WALL_BASE_MOLDING" in obj and obj not in wall_base_molding:
+                wall_base_molding.append(obj)
+
+            cabinet_bp = home_builder_utils.get_cabinet_bp(obj)
+            closet_bp = home_builder_utils.get_closet_bp(obj)
+            wall_bp = home_builder_utils.get_wall_bp(obj)
+            if cabinet_bp and cabinet_bp not in cabinets:
+                cabinets.append(cabinet_bp)
+            if wall_bp and wall_bp not in walls:
+                walls.append(wall_bp)
+            if closet_bp and closet_bp not in closets:
+                closets.append(closet_bp)
+
+        #DELETE OLD CURVES
+        if self.add_base_molding:
+            pc_utils.delete_obj_list(cabinet_base_molding)
+        if self.add_crown_molding:
+            pc_utils.delete_obj_list(cabinet_crown_molding)
+        if self.add_light_rail_molding:
+            pc_utils.delete_obj_list(cabinet_light_rail_molding)
+        if self.add_wall_crown_molding:
+            pc_utils.delete_obj_list(wall_crown_molding)
+        if self.add_wall_base_molding:
+            pc_utils.delete_obj_list(wall_base_molding)      
+
+        #CREATE NEW CURVES
+        for wall_bp in walls:
+            wall = pc_types.Assembly(wall_bp)
+            if self.add_wall_base_molding:
+                self.add_base_molding_to_wall(wall)
+            if self.add_wall_crown_molding:
+                self.add_crown_molding_to_wall(wall)                
+        for cabinet_bp in cabinets:
+            cabinet = data_cabinets.Cabinet(cabinet_bp)
+            if self.add_base_molding:
+                self.add_base_molding_to_cabinet(cabinet)
+            if self.add_crown_molding:
+                self.add_crown_molding_to_cabinet(cabinet)
+            if self.add_light_rail_molding:
+                self.add_light_rail_molding_to_cabinet(cabinet)
+
+        return {'FINISHED'}    
+
 classes = (
     home_builder_OT_activate,
     home_builder_OT_change_library_category,
@@ -2411,7 +2679,6 @@ classes = (
     home_builder_OT_update_pull_pointer,
     home_builder_OT_update_molding_pointer,
     home_builder_OT_update_cabinet_door_pointer,
-    home_builder_OT_auto_add_molding,
     home_builder_OT_generate_2d_views,
     home_builder_OT_toggle_dimensions,
     home_builder_OT_render_asset_thumbnails,
@@ -2441,6 +2708,7 @@ classes = (
     home_builder_OT_create_cabinet_list_report,
     home_builder_OT_add_part,
     home_builder_OT_reload_library,
+    home_builder_OT_auto_add_molding,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

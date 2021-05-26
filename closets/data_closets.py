@@ -184,6 +184,7 @@ class Closet_Starter(pc_types.Assembly):
         panel_thickness_var = self.get_prompt("Panel Thickness").get_var("panel_thickness_var")
         shelf_thickness_var = self.get_prompt("Shelf Thickness").get_var("shelf_thickness_var")        
         closet_kick_height = self.add_prompt("Closet Kick Height",'DISTANCE',pc_unit.inch(2.5)) 
+
         closet_kick_height_var = closet_kick_height.get_var("closet_kick_height_var")
         closet_kick_setback = self.add_prompt("Closet Kick Setback",'DISTANCE',pc_unit.inch(1.125)) 
         left_end_condition = self.add_prompt("Left End Condition",'COMBOBOX',0,["EP","WP","CP","OFF"]) 
@@ -194,6 +195,14 @@ class Closet_Starter(pc_types.Assembly):
         left_filler = left_side_wall_filler.get_var("left_filler")
         right_side_wall_filler = self.add_prompt("Right Side Wall Filler",'DISTANCE',0) 
         right_filler = right_side_wall_filler.get_var("right_filler")
+        bridge_left = self.add_prompt("Bridge Left",'CHECKBOX',False) 
+        bridge_right = self.add_prompt("Bridge Right",'CHECKBOX',False) 
+        left_bridge_shelf_width = self.add_prompt("Left Bridge Shelf Width",'DISTANCE',pc_unit.inch(12)) 
+        right_bridge_shelf_width = self.add_prompt("Right Bridge Shelf Width",'DISTANCE',pc_unit.inch(12)) 
+        b_left = bridge_left.get_var("b_left")
+        b_right = bridge_right.get_var("b_right")
+        b_left_width = left_bridge_shelf_width.get_var("b_left_width")
+        b_right_width = right_bridge_shelf_width.get_var("b_right_width")
 
         self.add_opening_prompts()
 
@@ -203,6 +212,7 @@ class Closet_Starter(pc_types.Assembly):
         depth_last = self.get_prompt("Opening " + str(self.opening_qty) + " Depth").get_var("depth_last")
         height_last = self.get_prompt("Opening " + str(self.opening_qty) + " Height").get_var("height_last")
         floor_last = self.get_prompt("Opening " + str(self.opening_qty) + " Floor Mounted").get_var("floor_last")
+        s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
 
         left_side = data_closet_parts.add_closet_part(self)
         left_side.obj_bp["IS_PANEL_BP"] = True
@@ -217,6 +227,36 @@ class Closet_Starter(pc_types.Assembly):
         left_side.dim_z('-panel_thickness_var',[panel_thickness_var])
         self.panels.append(left_side)
         bpy.context.view_layer.update()
+
+        left_bridge = data_closet_parts.add_closet_part(self)
+        left_bridge.obj_bp["IS_BRIDGE_BP"] = True
+        left_bridge.set_name('Left Bridge Bottom')
+        left_bridge.loc_x('-b_left_width',[b_left_width])
+        left_bridge.loc_y(value = 0)
+        left_bridge.loc_z('closet_kick_height_var',[closet_kick_height_var])
+        left_bridge.rot_y(value = 0)
+        left_bridge.rot_z(value = 0)
+        left_bridge.dim_x('b_left_width',[b_left_width])
+        left_bridge.dim_y('-depth_1',[depth_1])
+        left_bridge.dim_z('s_thickness',[s_thickness])
+        hide = left_bridge.get_prompt("Hide")
+        hide.set_formula('IF(b_left,False,True)',[b_left])
+        home_builder_utils.flip_normals(left_bridge)
+
+        right_bridge = data_closet_parts.add_closet_part(self)
+        right_bridge.obj_bp["IS_BRIDGE_BP"] = True
+        right_bridge.set_name('Right Bridge Bottom')
+        right_bridge.loc_x('width',[width])
+        right_bridge.loc_y(value = 0)
+        right_bridge.loc_z('closet_kick_height_var',[closet_kick_height_var])
+        right_bridge.rot_y(value = 0)
+        right_bridge.rot_z(value = 0)
+        right_bridge.dim_x('b_right_width',[b_right_width])
+        right_bridge.dim_y('-depth_last',[depth_last])
+        right_bridge.dim_z('s_thickness',[s_thickness])
+        hide = right_bridge.get_prompt("Hide")
+        hide.set_formula('IF(b_right,False,True)',[b_right])        
+        home_builder_utils.flip_normals(right_bridge)
 
         previous_panel = None
         for i in range(1,self.opening_qty):

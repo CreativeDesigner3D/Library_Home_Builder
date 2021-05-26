@@ -755,8 +755,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
         right_row = right_col.row()
         right_row.scale_y = 1.3
-        right_row.label(text="TODO: Create Auto Placement Command")
-        # right_row.operator('home_builder.update_scene_pulls',text="Update Molding",icon='FILE_REFRESH')
+        right_row.operator('home_builder.auto_add_molding',text="Add Molding to Room",icon='FILE_REFRESH')
         right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
 
         box = right_col.box()

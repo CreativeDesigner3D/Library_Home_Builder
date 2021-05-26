@@ -266,6 +266,7 @@ class Standard_Cabinet(Cabinet):
 
     def pre_draw(self):
         self.create_assembly()
+        self.carcasses = []
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
         common_prompts.add_cabinet_prompts(self)
@@ -277,14 +278,15 @@ class Standard_Cabinet(Cabinet):
         left_adjment_width = self.get_prompt("Left Adjustment Width").get_var('left_adjment_width')
         right_adjment_width = self.get_prompt("Right Adjustment Width").get_var('right_adjment_width')
 
-        self.carcass = self.add_assembly(self.carcass)
-        self.carcass.set_name('Carcass')
-        self.carcass.loc_x('left_adjment_width',[left_adjment_width])
-        self.carcass.loc_y(value=0)
-        self.carcass.loc_z(value=0)
-        self.carcass.dim_x('width-left_adjment_width-right_adjment_width',[width,left_adjment_width,right_adjment_width])
-        self.carcass.dim_y('depth',[depth])
-        self.carcass.dim_z('height',[height])
+        carcass = self.add_assembly(self.carcass)
+        carcass.set_name('Carcass')
+        carcass.loc_x('left_adjment_width',[left_adjment_width])
+        carcass.loc_y(value=0)
+        carcass.loc_z(value=0)
+        carcass.dim_x('width-left_adjment_width-right_adjment_width',[width,left_adjment_width,right_adjment_width])
+        carcass.dim_y('depth',[depth])
+        carcass.dim_z('height',[height])
+        self.carcasses.append(carcass)
 
         carcass_type = self.carcass.get_prompt("Carcass Type")
         self.obj_x.location.x = self.width 
