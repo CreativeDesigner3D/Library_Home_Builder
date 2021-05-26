@@ -31,7 +31,7 @@ class Closet_Starter(pc_types.Assembly):
             self.add_prompt("Opening " + str(i) + " Depth",'DISTANCE',math.fabs(self.obj_y.location.y))
             self.add_prompt("Opening " + str(i) + " Floor Mounted",'CHECKBOX',True)
 
-        opening_calculator.set_total_distance('width-p_thickness*' + str(self.opening_qty-1),[width,p_thickness])
+        opening_calculator.set_total_distance('width-p_thickness*' + str(self.opening_qty+1),[width,p_thickness])
 
     def add_panel(self,index,previous_panel):
         previous_panel_x = previous_panel.obj_bp.pyclone.get_var('location.x',"previous_panel_x")
@@ -53,7 +53,7 @@ class Closet_Starter(pc_types.Assembly):
         panel = data_closet_parts.add_closet_part(self)
         panel.obj_bp["IS_PANEL_BP"] = True
         panel.set_name('Panel ' + str(index))
-        panel.loc_x('previous_panel_x+opening_width+p_thickness-(p_thickness/2)',[previous_panel_x,opening_width,p_thickness])
+        panel.loc_x('previous_panel_x+opening_width+p_thickness',[previous_panel_x,opening_width,p_thickness])
         panel.loc_y(value = 0)
         panel.loc_z('min(IF(floor,0,IF(next_floor,0,height-opening_height)),IF(next_floor,0,IF(floor,0,height-next_height)))',
                     [floor,next_floor,height,opening_height,next_height])
