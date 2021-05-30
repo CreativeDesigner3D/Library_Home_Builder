@@ -2509,6 +2509,10 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
             self.assign_active_curve_properties(obj_curve)
 
     def add_crown_molding_to_cabinet(self,sel_assembly):
+        width = sel_assembly.obj_x.location.x
+        height = sel_assembly.obj_z.location.z
+        depth = sel_assembly.obj_y.location.y
+
         for carcass in sel_assembly.carcasses:
             carcass_type = carcass.get_prompt("Carcass Type").get_value()
             lfe = carcass.get_prompt("Left Finished End").get_value()
@@ -2522,32 +2526,33 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
             obj_curve.name = "Crown Cabinet Molding"
             obj_curve.parent = sel_assembly.obj_bp
             obj_curve.data.bevel_object = self.crown_profile
-
+            obj_curve.location.z = height
             spline = obj_curve.data.splines.new('BEZIER')
 
-            width = sel_assembly.obj_x.location.x
-            height = sel_assembly.obj_z.location.z
-            depth = sel_assembly.obj_y.location.y
             if lfe:
                 spline.bezier_points.add(count=2)   
-                spline.bezier_points[0].co = (0,0,height)
-                spline.bezier_points[1].co = (0,depth,height)
-                spline.bezier_points[2].co = (width,depth,height)
+                spline.bezier_points[0].co = (0,0,0)
+                spline.bezier_points[1].co = (0,depth,0)
+                spline.bezier_points[2].co = (width,depth,0)
             else:
                 spline.bezier_points.add(count=1)   
-                spline.bezier_points[0].co = (0,depth,height)
-                spline.bezier_points[1].co = (width,depth,height)
+                spline.bezier_points[0].co = (0,depth,0)
+                spline.bezier_points[1].co = (width,depth,0)
 
             if rfe:
                 spline.bezier_points.add(count=1) 
                 if lfe:
-                    spline.bezier_points[3].co = (width,0,height)
+                    spline.bezier_points[3].co = (width,0,0)
                 else:
-                    spline.bezier_points[2].co = (width,0,height)
+                    spline.bezier_points[2].co = (width,0,0)
 
             self.assign_active_curve_properties(obj_curve)
 
     def add_light_rail_molding_to_cabinet(self,sel_assembly):
+        width = sel_assembly.obj_x.location.x
+        height = sel_assembly.obj_z.location.z
+        depth = sel_assembly.obj_y.location.y
+
         for carcass in sel_assembly.carcasses:
             carcass_type = carcass.get_prompt("Carcass Type").get_value()
             lfe = carcass.get_prompt("Left Finished End").get_value()
@@ -2563,9 +2568,6 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
             obj_curve.data.bevel_object = self.light_profile
             spline = obj_curve.data.splines.new('BEZIER')
 
-            width = sel_assembly.obj_x.location.x
-            height = sel_assembly.obj_z.location.z
-            depth = sel_assembly.obj_y.location.y
             if lfe:
                 spline.bezier_points.add(count=2)   
                 spline.bezier_points[0].co = (0,0,0)
