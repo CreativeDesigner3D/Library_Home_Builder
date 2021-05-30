@@ -2454,19 +2454,20 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
         self.assign_active_curve_properties(obj_curve)
 
     def add_crown_molding_to_wall(self,sel_assembly):
+        width = sel_assembly.obj_x.location.x
+        height = sel_assembly.obj_z.location.z
+
         obj_curve = self.create_curve()
         obj_curve["IS_WALL_CROWN_MOLDING"] = True
         obj_curve.name = "Crown Wall Molding"
         obj_curve.parent = sel_assembly.obj_bp
         obj_curve.data.bevel_object = self.wall_crown_profile
-        
-        spline = obj_curve.data.splines.new('BEZIER')
+        obj_curve.location.z = height
 
-        width = sel_assembly.obj_x.location.x
-        height = sel_assembly.obj_z.location.z
+        spline = obj_curve.data.splines.new('BEZIER')
         spline.bezier_points.add(count=1)   
-        spline.bezier_points[0].co = (0,0,height)
-        spline.bezier_points[1].co = (width,0,height)
+        spline.bezier_points[0].co = (0,0,0)
+        spline.bezier_points[1].co = (width,0,0)
 
         self.assign_active_curve_properties(obj_curve)
 
