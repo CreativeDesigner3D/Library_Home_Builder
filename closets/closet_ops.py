@@ -454,12 +454,78 @@ class home_builder_OT_show_closet_properties(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
+class home_builder_OT_change_closet_openings(bpy.types.Operator):
+    bl_idname = "home_builder.change_closet_openings"
+    bl_label = "Change Closet Openings"
+
+    quantity: bpy.props.IntProperty(name="Quantity")
+
+    closet = None
+    calculators = []
+
+    def invoke(self,context,event):
+        self.calculators = []
+        obj = context.object
+        closet_bp = home_builder_utils.get_closet_bp(obj)
+        self.closet = data_closets.Closet_Starter(closet_bp)     
+        for i in range(1,9):
+            opening_height_prompt = self.closet.get_prompt("Opening " + str(i) + " Width")
+            if not opening_height_prompt:
+                self.quantity = i - 1
+                break
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def get_calculators(self,obj):
+        for cal in obj.pyclone.calculators:
+            self.calculators.append(cal)
+        for child in obj.children:
+            self.get_calculators(child)
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="Opening Quantity:")
+        row.prop(self,'quantity',text="")
+
+    def delete_reference_object(self,obj_bp):
+        for obj in obj_bp.children:
+            if "IS_REFERENCE" in obj:
+                pc_utils.delete_object_and_children(obj)
+
+    def execute(self, context):
+        parent = self.closet.obj_bp.parent
+        x_loc = self.closet.obj_bp.location.x
+        y_loc = self.closet.obj_bp.location.y
+        z_loc = self.closet.obj_bp.location.z
+        z_rot = self.closet.obj_bp.rotation_euler.z
+        length = self.closet.obj_x.location.x
+        pc_utils.delete_object_and_children(self.closet.obj_bp)
+
+        new_closet = data_closets.Closet_Starter()
+        new_closet.opening_qty = self.quantity
+        new_closet.pre_draw()
+        new_closet.draw()
+        new_closet.obj_bp.parent = parent
+        new_closet.obj_bp.location.x = x_loc
+        new_closet.obj_bp.location.y = y_loc
+        new_closet.obj_bp.location.z = z_loc
+        new_closet.obj_bp.rotation_euler.z = z_rot
+        new_closet.obj_x.location.x = length
+        self.delete_reference_object(new_closet.obj_bp)
+        self.get_calculators(new_closet.obj_bp)
+        for calculator in self.calculators:
+            calculator.calculate()
+        return {'FINISHED'}
+
 classes = (
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
     home_builder_OT_closet_shelves_prompts,
     home_builder_OT_closet_door_prompts,
     home_builder_OT_closet_drawer_prompts,
+    home_builder_OT_change_closet_openings,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

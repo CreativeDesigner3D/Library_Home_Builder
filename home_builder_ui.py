@@ -190,6 +190,7 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
             if props.show_closet_options:
                 col = box.column(align=True)
                 col.operator('home_builder.closet_prompts',icon='WINDOW')
+                col.operator('home_builder.change_closet_openings',icon='WINDOW')
                 col.operator('home_builder.add_drawer',text="Add Drawer",icon='UGLYPACKAGE')
                 col.separator()
                 col.operator('home_builder.delete_assembly',text="Delete Closet",icon='X').obj_name = closet_bp.name
