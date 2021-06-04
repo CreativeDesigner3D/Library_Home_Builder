@@ -37,7 +37,7 @@ except ModuleNotFoundError:
     sys.path.append(PATH)
 
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import legal,letter,inch,cm
+from reportlab.lib.pagesizes import legal,letter,inch
 from reportlab.platypus import Image
 from reportlab.platypus import Paragraph,Table,TableStyle
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Frame, Spacer, PageTemplate, PageBreak
