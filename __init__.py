@@ -9,6 +9,7 @@ import inspect
 from .pc_lib import pc_utils
 from . import home_builder_props
 from . import home_builder_ui
+from . import home_builder_menus
 from . import home_builder_ops
 from . import home_builder_drop_ops
 from . import home_builder_pointers
@@ -51,6 +52,7 @@ def register():
     home_builder_ui.register()
     home_builder_ops.register()
     home_builder_drop_ops.register()
+    home_builder_menus.register()
     wall_ops.register()
     cabinet_ops.register()
     closet_ops.register()
@@ -66,6 +68,7 @@ def unregister():
         home_builder_ui.unregister()
         home_builder_ops.unregister()
         home_builder_drop_ops.unregister()
+        home_builder_menus.unregister()
         wall_ops.unregister()
         cabinet_ops.unregister()
         closet_ops.unregister()
