@@ -156,6 +156,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
     default_tabs: EnumProperty(name="Default Tabs",
                           items=[('CABINETS_SIZES',"Cabinet Sizes","Show the Cabinet Size Options"),
                                  ('CABINET_CONSTRUCTION',"Cabinet Construction","Show the Cabinet Construction Options"),
+                                 ('CLOSET_CONSTRUCTION',"Closet Construction","Show the Closet Construction Options"),
                                  ('DOOR_SIZES',"Entry Door Sizes","Show the Door Options"),
                                  ('WINDOW_SIZES',"Window Sizes","Show the Window Options"),
                                  ('WALLS',"Walls","Show the Wall Options")],
@@ -492,6 +493,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                        default=pc_unit.inch(.75),
                                                        unit='LENGTH')   
 
+    closet_corner_spacing: bpy.props.FloatProperty(name="Closet Corner Spacing",
+                                                 description="Offset for closets when meeting in corner",
+                                                 default=pc_unit.inch(12.0),
+                                                 unit='LENGTH')
+
     #ENTRY DOORS
     single_door_width: bpy.props.FloatProperty(name="Single Door Width",
                                                description="Is the width of single entry doors",
@@ -709,6 +715,14 @@ class Home_Builder_Scene_Props(PropertyGroup):
             # row.label(text="Cabinet Lighting Size:")              
             # row.prop(self,"cabinet_lighting_width",text="Width")
 
+        if self.default_tabs == 'CLOSET_CONSTRUCTION':
+            box = prop_col.box()
+            row = box.row(align=True)
+            row.label(text="General Construction Options:")
+            row = box.row(align=True)
+            row.label(text="Closet Corner Spacing")
+            row.prop(self,"closet_corner_spacing",text="")            
+    
         if self.default_tabs == 'DOOR_SIZES':
             box = prop_col.box()
             row = box.row(align=True)
