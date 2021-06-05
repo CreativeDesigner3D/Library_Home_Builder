@@ -109,6 +109,7 @@ def add_door_part(assembly,pointer):
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
     part.obj_bp["IS_CABINET_DOOR_PANEL"] = True
+    part.obj_bp["IS_CUTPART_BP"] = True
     props = home_builder_utils.get_object_props(part.obj_bp)
     props.pointer_name = pointer.name
     part.obj_bp.empty_display_size = .001
