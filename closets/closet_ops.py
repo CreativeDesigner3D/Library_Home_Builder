@@ -517,6 +517,10 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
         self.get_calculators(new_closet.obj_bp)
         for calculator in self.calculators:
             calculator.calculate()
+        new_closet.obj_bp.hide_viewport = True
+        new_closet.obj_x.hide_viewport = True
+        new_closet.obj_y.hide_viewport = True
+        new_closet.obj_z.hide_viewport = True
         return {'FINISHED'}
 
 classes = (

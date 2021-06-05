@@ -62,18 +62,18 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
 
         props = home_builder_utils.get_scene_props(context.scene)
 
-        box = layout.box()
-        row = box.row()
-        row.prop(props,'show_2d_view_options',text="2D View Commands",emboss=False,icon='TRIA_DOWN' if props.show_2d_view_options else 'TRIA_RIGHT')            
-        if props.show_2d_view_options:
-            box.operator('home_builder.create_2d_views',text="Create Wall Elevation Views",icon='CON_SIZELIMIT')
-            box.operator('home_builder.create_2d_cabinet_views',text="Create Cabinet Views",icon='CON_SIZELIMIT')
+        # box = layout.box()
+        # row = box.row()
+        # row.prop(props,'show_2d_view_options',text="2D View Commands",emboss=False,icon='TRIA_DOWN' if props.show_2d_view_options else 'TRIA_RIGHT')            
+        # if props.show_2d_view_options:
+        #     box.operator('home_builder.create_2d_views',text="Create Wall Elevation Views",icon='CON_SIZELIMIT')
+        #     box.operator('home_builder.create_2d_cabinet_views',text="Create Cabinet Views",icon='CON_SIZELIMIT')
 
-        box = layout.box()
-        row = box.row()
-        row.prop(props,'show_report_options',text="Reports",emboss=False,icon='TRIA_DOWN' if props.show_report_options else 'TRIA_RIGHT')            
-        if props.show_report_options:
-            box.operator('home_builder.create_cabinet_list_report',text="Cabinet List Report",icon='TEXT')
+        # box = layout.box()
+        # row = box.row()
+        # row.prop(props,'show_report_options',text="Reports",emboss=False,icon='TRIA_DOWN' if props.show_report_options else 'TRIA_RIGHT')            
+        # if props.show_report_options:
+        #     box.operator('home_builder.create_cabinet_list_report',text="Cabinet List Report",icon='TEXT')
 
         box = layout.box()
         row = box.row()
@@ -191,6 +191,9 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
                 col = box.column(align=True)
                 col.operator('home_builder.closet_prompts',icon='WINDOW')
                 col.operator('home_builder.change_closet_openings',icon='WINDOW')
+                col.operator('home_builder.change_closet_offsets',text="Change Closet Offsets",icon='ARROW_LEFTRIGHT')
+                # col.operator('home_builder.move_cabinet',text="Place Closet",icon='OBJECT_ORIGIN').obj_bp_name = closet_bp.name
+                col.operator('home_builder.free_move_cabinet',text="Grab Closet",icon='VIEW_PAN').obj_bp_name = closet_bp.name                
                 col.operator('home_builder.add_drawer',text="Add Drawer",icon='UGLYPACKAGE')
                 col.separator()
                 col.operator('home_builder.delete_assembly',text="Delete Closet",icon='X').obj_name = closet_bp.name

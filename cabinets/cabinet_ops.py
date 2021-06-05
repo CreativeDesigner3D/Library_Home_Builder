@@ -1869,25 +1869,16 @@ class home_builder_OT_free_move_cabinet(bpy.types.Operator):
 
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
 
-    @classmethod
-    def poll(cls, context):
-        obj_bp = home_builder_utils.get_cabinet_bp(context.object)
-        if obj_bp:
-            return True
-        else:
-            return False
-
     def execute(self, context):
-        obj = context.object
-        obj_bp = home_builder_utils.get_cabinet_bp(obj)
-        cabinet = pc_types.Assembly(obj_bp)
         bpy.ops.object.select_all(action='DESELECT')
 
-        cabinet.obj_bp.hide_viewport = False
-        cabinet.obj_bp.select_set(True)
+        obj = bpy.data.objects[self.obj_bp_name]
+
+        obj.hide_viewport = False
+        obj.select_set(True)
 
         region = context.region
-        co = location_3d_to_region_2d(region,context.region_data,cabinet.obj_bp.matrix_world.translation)
+        co = location_3d_to_region_2d(region,context.region_data,obj.matrix_world.translation)
         region_offset = Vector((region.x,region.y))
         context.window.cursor_warp(*(co + region_offset))
         bpy.ops.transform.translate('INVOKE_DEFAULT')

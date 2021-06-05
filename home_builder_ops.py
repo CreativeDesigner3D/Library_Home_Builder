@@ -2814,6 +2814,59 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
 
         return {'FINISHED'}    
 
+
+class home_builder_OT_change_closet_offsets(bpy.types.Operator):
+    bl_idname = "home_builder.change_closet_offsets"
+    bl_label = "Change Closet Offsets"
+    bl_description = "This allows you to easily adjust the closets left and right offset"
+    bl_options = {'UNDO'}
+    
+    left_offset: FloatProperty(name="Left Offset",subtype='DISTANCE')
+    right_offset: FloatProperty(name="Right Offset",subtype='DISTANCE')
+    start_x: FloatProperty(name="Start X",subtype='DISTANCE')
+    start_width: FloatProperty(name="Start Width",subtype='DISTANCE')
+
+    closet = None
+    calculators = []
+
+    def check(self, context):
+        self.closet.obj_bp.location.x = self.start_x + self.left_offset
+        self.closet.obj_x.location.x = self.start_width - self.left_offset - self.right_offset
+        for calculator in self.calculators:
+            calculator.calculate()
+        return True
+    
+    def invoke(self, context, event):
+        self.closet = None
+        self.calculators = []
+        self.left_offset = 0
+        self.right_offset = 0
+        closet_bp = home_builder_utils.get_closet_bp(context.object)
+        if closet_bp:
+            self.closet = pc_types.Assembly(closet_bp)
+            self.start_x = self.closet.obj_bp.location.x
+            self.start_width = self.closet.obj_x.location.x
+            self.get_calculators(self.closet.obj_bp)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+        
+    def get_calculators(self,obj):
+        for cal in obj.pyclone.calculators:
+            self.calculators.append(cal)
+        for child in obj.children:
+            self.get_calculators(child)        
+
+    def draw(self,context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="Offset")
+        row.prop(self,'left_offset',text="Left")
+        row.prop(self,'right_offset',text="Right")
+
+    def execute(self,context):
+        return {'FINISHED'}    
+
+
 classes = (
     home_builder_OT_activate,
     home_builder_OT_change_library_category,
@@ -2861,6 +2914,7 @@ classes = (
     home_builder_OT_add_part,
     home_builder_OT_reload_library,
     home_builder_OT_auto_add_molding,
+    home_builder_OT_change_closet_offsets,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
