@@ -347,16 +347,10 @@ class Hanging_Rod(pc_types.Assembly):
             hangers.dim_z(value = 0)  
         return hanging_rod      
 
-        # hide = adj_shelf.get_prompt("Hide")
-        # z_quantity = adj_shelf.get_prompt("Z Quantity")
-        # z_offset = adj_shelf.get_prompt("Z Offset")
-
-        # hide.set_formula('IF(shelf_qty==0,True,False)',[shelf_qty]) 
-        # z_quantity.set_formula('shelf_qty',[shelf_qty]) 
-        # z_offset.set_formula('((height-(shelf_thickness*shelf_qty))/(shelf_qty+1))+shelf_thickness',[height,shelf_thickness,shelf_qty]) 
-
     def pre_draw(self):
         self.create_assembly()
+        self.obj_bp["IS_HANGING_RODS_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.hanging_rod_prompts"
 
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
@@ -396,7 +390,7 @@ class Hanging_Rod(pc_types.Assembly):
             bot_loc = self.add_prompt("Bottom Rod Location From Top",'DISTANCE',pc_unit.inch(38)) 
             hanging_rod_location_from_bot = bot_loc.get_var("hanging_rod_location_from_bot")
             rod = self.add_hanging_rod()
-            rod.loc_z('height-hanging_rod_location_from_bot',[height,hanging_rod_location_from_bot])
+            rod.loc_z('height-hanging_rod_location_from_bot-hanging_rod_location_from_top',[height,hanging_rod_location_from_bot,hanging_rod_location_from_top])
 
             #MID SHELF
             shelf = data_closet_parts.add_closet_part(self)
@@ -404,7 +398,7 @@ class Hanging_Rod(pc_types.Assembly):
             shelf.set_name('Shelf')
             shelf.loc_x(value = 0)
             shelf.loc_y(value = 0)
-            shelf.loc_z('height-hanging_rod_location_from_bot+hanging_rod_location_from_top',[height,hanging_rod_location_from_bot,hanging_rod_location_from_top])
+            shelf.loc_z('height-hanging_rod_location_from_bot',[height,hanging_rod_location_from_bot,hanging_rod_location_from_top])
             shelf.rot_y(value = 0)
             shelf.rot_z(value = 0)
             shelf.dim_x('x',[x])
@@ -416,15 +410,15 @@ class Hanging_Rod(pc_types.Assembly):
             top_opening.set_name('Top Opening')
             top_opening.loc_x(value = 0)
             top_opening.loc_y(value = 0)
-            top_opening.loc_z('height-hanging_rod_location_from_bot+hanging_rod_location_from_top+s_thickness',
-                              [height,hanging_rod_location_from_bot,hanging_rod_location_from_top,s_thickness])
+            top_opening.loc_z('height-hanging_rod_location_from_bot+s_thickness',
+                              [height,hanging_rod_location_from_bot,s_thickness])
             top_opening.rot_x(value = 0)
             top_opening.rot_y(value = 0)
             top_opening.rot_z(value = 0)
             top_opening.dim_x('x',[x])
             top_opening.dim_y('y',[y])
-            top_opening.dim_z('hanging_rod_location_from_bot-hanging_rod_location_from_top-s_thickness',
-                              [hanging_rod_location_from_bot,hanging_rod_location_from_top,s_thickness])            
+            top_opening.dim_z('hanging_rod_location_from_bot-s_thickness',
+                              [hanging_rod_location_from_bot,s_thickness])            
         
             bot_opening = data_closet_parts.add_closet_opening(self)
             bot_opening.set_name('Bottom Opening')
@@ -436,8 +430,8 @@ class Hanging_Rod(pc_types.Assembly):
             bot_opening.rot_z(value = 0)
             bot_opening.dim_x('x',[x])
             bot_opening.dim_y('y',[y])
-            bot_opening.dim_z('height-hanging_rod_location_from_bot+hanging_rod_location_from_top',
-                              [height,hanging_rod_location_from_bot,hanging_rod_location_from_top])           
+            bot_opening.dim_z('height-hanging_rod_location_from_bot',
+                              [height,hanging_rod_location_from_bot])           
         
         else:
             opening = data_closet_parts.add_closet_opening(self)

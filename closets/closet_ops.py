@@ -438,6 +438,40 @@ class home_builder_OT_closet_shelves_prompts(bpy.types.Operator):
         layout.prop(shelf_qty,'quantity_value',text="Shelf Quantity")
 
 
+class home_builder_OT_hanging_rod_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.hanging_rod_prompts"
+    bl_label = "Hanging Rod Prompts"
+
+    insert = None
+
+    def check(self, context):
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=200)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_hanging_rod_insert_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
+
+    def draw(self, context):
+        layout = self.layout
+        loc_from_top = self.insert.get_prompt("Hanging Rod Location From Top")
+        bottom_rod_location = self.insert.get_prompt("Bottom Rod Location From Top")
+        setback = self.insert.get_prompt("Hanging Rod Setback")
+        if loc_from_top:
+            layout.prop(loc_from_top,'distance_value',text="Rod Location From Top")
+        if bottom_rod_location:
+            layout.prop(bottom_rod_location,'distance_value',text="Bottom Rod Location")
+        if setback:
+            layout.prop(setback,'distance_value',text="Rod Setback")
+
+
 class home_builder_OT_closet_wire_baskets_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_wire_baskets_prompts"
     bl_label = "Closet Wire Baskets Prompts"
@@ -700,6 +734,7 @@ classes = (
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
     home_builder_OT_closet_shelves_prompts,
+    home_builder_OT_hanging_rod_prompts,
     home_builder_OT_closet_door_prompts,
     home_builder_OT_closet_drawer_prompts,
     home_builder_OT_closet_cubby_prompts,

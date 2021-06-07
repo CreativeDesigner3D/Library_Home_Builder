@@ -97,6 +97,14 @@ def get_closet_wire_baskets_bp(obj):
     elif obj.parent:
         return get_closet_wire_baskets_bp(obj.parent)
 
+def get_hanging_rod_insert_bp(obj):
+    if not obj:
+        return None    
+    if "IS_HANGING_RODS_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_hanging_rod_insert_bp(obj.parent)
+
 def get_carcass_bp(obj):
     if not obj:
         return None    
