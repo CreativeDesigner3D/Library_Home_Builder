@@ -605,6 +605,9 @@ class Base_Doors(Doors):
         door_swing_prompt = self.get_prompt("Door Swing")
         door_swing_prompt.set_value(2)
 
+        door_type_prompt = self.get_prompt("Door Type")
+        door_type_prompt.set_value("Base")
+
         x = self.obj_x.pyclone.get_var('location.x','x')
         y = self.obj_y.pyclone.get_var('location.y','y')
         z = self.obj_z.pyclone.get_var('location.z','z')        
@@ -628,13 +631,13 @@ class Base_Doors(Doors):
         opening.set_name('Opening')
         opening.loc_x(value = 0)
         opening.loc_y(value = 0)
-        opening.loc_z('door_height_var',[door_height_var])
+        opening.loc_z('door_height_var+s_thickness',[door_height_var,s_thickness])
         opening.rot_x(value = 0)
         opening.rot_y(value = 0)
         opening.rot_z(value = 0)
         opening.dim_x('x',[x])
         opening.dim_y('y',[y])
-        opening.dim_z('z-door_height_var',[z,door_height_var])
+        opening.dim_z('z-door_height_var-s_thickness',[z,door_height_var,s_thickness])
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
@@ -695,6 +698,9 @@ class Tall_Doors(Doors):
 
         door_swing_prompt = self.get_prompt("Door Swing")
         door_swing_prompt.set_value(2)
+
+        door_type_prompt = self.get_prompt("Door Type")
+        door_type_prompt.set_value("Tall")
 
         x = self.obj_x.pyclone.get_var('location.x','x')
         z = self.obj_z.pyclone.get_var('location.z','z')        
@@ -762,6 +768,9 @@ class Upper_Doors(Doors):
         door_swing_prompt = self.get_prompt("Door Swing")
         door_swing_prompt.set_value(2)
 
+        door_type_prompt = self.get_prompt("Door Type")
+        door_type_prompt.set_value("Upper")
+
         x = self.obj_x.pyclone.get_var('location.x','x')
         y = self.obj_y.pyclone.get_var('location.y','y')
         z = self.obj_z.pyclone.get_var('location.z','z')        
@@ -791,7 +800,7 @@ class Upper_Doors(Doors):
         opening.rot_z(value = 0)
         opening.dim_x('x',[x])
         opening.dim_y('y',[y])
-        opening.dim_z('z-door_height_var',[z,door_height_var])
+        opening.dim_z('z-door_height_var-s_thickness',[z,door_height_var,s_thickness])
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
@@ -975,6 +984,111 @@ class Drawers(Doors):
             self.add_drawer_pull(drawer,pull_pointer)
 
             prev_drawer_empty = front_empty
+        
+    def render(self):
+        self.pre_draw()
+        self.draw()          
+
+
+class Single_Drawer(Doors):
+
+    def pre_draw(self):
+        self.create_assembly()
+        self.obj_bp['IS_CLOSET_DRAWERS_BP'] = True
+        self.obj_bp['PROMPT_ID'] = 'home_builder.closet_drawer_prompts'
+
+        self.obj_x.location.x = pc_unit.inch(20)
+        self.obj_y.location.y = pc_unit.inch(12)
+        self.obj_z.location.z = pc_unit.inch(60)
+
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+
+        reference = data_closet_parts.add_closet_opening(self)
+        reference.obj_bp["IS_REFERENCE"] = True
+        reference.loc_x(value = 0)
+        reference.loc_y(value = 0)
+        reference.loc_z(value = 0)
+        reference.rot_x(value = 0)
+        reference.rot_y(value = 0)
+        reference.rot_z(value = 0)      
+        reference.dim_x('width',[width])
+        reference.dim_y('depth',[depth])
+        reference.dim_z('height',[height])  
+
+    def draw(self):
+        self.add_prompts()
+
+        drawer_height = self.add_prompt("Drawer Height",'DISTANCE',pc_unit.millimeter(157))
+        dh = drawer_height.get_var('dh')
+
+        common_prompts.add_front_prompts(self)
+        common_prompts.add_drawer_prompts(self)
+        common_prompts.add_drawer_pull_prompts(self)
+        common_prompts.add_closet_thickness_prompts(self)
+
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        front_pointer = props.cabinet_door_pointers["Drawer Fronts"]
+        pull_pointer = props.pull_pointers["Drawer Pulls"]
+
+        x = self.obj_x.pyclone.get_var('location.x','x')
+        y = self.obj_y.pyclone.get_var('location.y','y')
+        z = self.obj_z.pyclone.get_var('location.z','z')      
+        door_to_cabinet_gap = self.get_prompt("Door to Cabinet Gap").get_var('door_to_cabinet_gap')
+        front_thickness = self.get_prompt("Front Thickness").get_var('front_thickness')
+        s_thickness = self.get_prompt("Shelf Thickness").get_var('s_thickness')
+
+        to, bo, lo, ro = self.add_overlay_prompts()
+
+        to_var = to.get_var("to_var")
+        bo_var = bo.get_var("bo_var")
+        lo_var = lo.get_var("lo_var")
+        ro_var = ro.get_var("ro_var")
+
+        #TOP SHELF
+        shelf = data_closet_parts.add_closet_part(self)
+        shelf.obj_bp["IS_SHELF_BP"] = True
+        shelf.set_name('Door Shelf')
+        shelf.loc_x(value = 0)
+        shelf.loc_y(value = 0)
+        shelf.loc_z('-bo_var-to_var+dh',
+                    [bo_var,to_var,dh])        
+        shelf.rot_y(value = 0)
+        shelf.rot_z(value = 0)
+        shelf.dim_x('x',[x])
+        shelf.dim_y('y',[y])
+        shelf.dim_z('s_thickness',[s_thickness])
+        home_builder_utils.flip_normals(shelf)
+
+        shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
+
+        opening = data_closet_parts.add_closet_opening(self)
+        opening.set_name('Opening')
+        opening.loc_x(value = 0)
+        opening.loc_y(value = 0)
+        opening.loc_z('shelf_z_loc+s_thickness',
+                      [shelf_z_loc,s_thickness])
+        opening.rot_x(value = 0)
+        opening.rot_y(value = 0)
+        opening.rot_z(value = 0)
+        opening.dim_x('x',[x])
+        opening.dim_y('y',[y])
+        opening.dim_z('z-shelf_z_loc-s_thickness',
+                      [z,shelf_z_loc,s_thickness])
+
+        drawer = data_closet_parts.add_door_part(self,front_pointer)
+        drawer.obj_bp['IS_DRAWER_FRONT'] = True
+        drawer.loc_x('-lo_var',[lo_var])
+        drawer.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
+        drawer.loc_z('-bo_var',[bo_var])                                                                             
+        drawer.rot_x(value = math.radians(90))
+        drawer.rot_y(value = math.radians(-90))
+        drawer.rot_z(value = 0)
+        drawer.dim_x('dh',[dh])
+        drawer.dim_y('(x+lo_var+ro_var)*-1',[x,lo_var,ro_var])            
+        drawer.dim_z('front_thickness',[front_thickness])
+        self.add_drawer_pull(drawer,pull_pointer)
         
     def render(self):
         self.pre_draw()
