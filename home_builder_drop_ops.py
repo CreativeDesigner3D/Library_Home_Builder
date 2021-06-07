@@ -1825,6 +1825,8 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
                     if child.type == 'MESH':
                         if child not in self.exclude_objects:
                             child.select_set(True)
+                z_rot = opening_bp.matrix_world.to_euler()[2]
+                self.cabinet.obj_bp.rotation_euler.z = z_rot
                 self.cabinet.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
                 self.cabinet.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
                 self.cabinet.obj_bp.location.z = self.get_32mm_position(mouse_location) 
