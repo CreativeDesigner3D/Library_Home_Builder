@@ -381,9 +381,13 @@ class Hanging_Rod(pc_types.Assembly):
     def draw(self):
         top_loc = self.add_prompt("Hanging Rod Location From Top",'DISTANCE',pc_unit.inch(2.145)) 
         shelf_clip_gap = self.add_prompt("Hanging Rod Setback",'DISTANCE',pc_unit.inch(2)) 
+        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75)) 
 
         height = self.obj_z.pyclone.get_var('location.z','height')
+        x = self.obj_x.pyclone.get_var('location.x','x')
+        y = self.obj_y.pyclone.get_var('location.y','y')
         hanging_rod_location_from_top = top_loc.get_var("hanging_rod_location_from_top")
+        s_thickness = shelf_thickness.get_var("s_thickness")
 
         rod = self.add_hanging_rod()
         rod.loc_z('height-hanging_rod_location_from_top',[height,hanging_rod_location_from_top])
@@ -393,6 +397,60 @@ class Hanging_Rod(pc_types.Assembly):
             hanging_rod_location_from_bot = bot_loc.get_var("hanging_rod_location_from_bot")
             rod = self.add_hanging_rod()
             rod.loc_z('height-hanging_rod_location_from_bot',[height,hanging_rod_location_from_bot])
+
+            #MID SHELF
+            shelf = data_closet_parts.add_closet_part(self)
+            shelf.obj_bp["IS_SHELF_BP"] = True
+            shelf.set_name('Shelf')
+            shelf.loc_x(value = 0)
+            shelf.loc_y(value = 0)
+            shelf.loc_z('height-hanging_rod_location_from_bot+hanging_rod_location_from_top',[height,hanging_rod_location_from_bot,hanging_rod_location_from_top])
+            shelf.rot_y(value = 0)
+            shelf.rot_z(value = 0)
+            shelf.dim_x('x',[x])
+            shelf.dim_y('y',[y])
+            shelf.dim_z('s_thickness',[s_thickness])
+            home_builder_utils.flip_normals(shelf)
+
+            top_opening = data_closet_parts.add_closet_opening(self)
+            top_opening.set_name('Top Opening')
+            top_opening.loc_x(value = 0)
+            top_opening.loc_y(value = 0)
+            top_opening.loc_z('height-hanging_rod_location_from_bot+hanging_rod_location_from_top+s_thickness',
+                              [height,hanging_rod_location_from_bot,hanging_rod_location_from_top,s_thickness])
+            top_opening.rot_x(value = 0)
+            top_opening.rot_y(value = 0)
+            top_opening.rot_z(value = 0)
+            top_opening.dim_x('x',[x])
+            top_opening.dim_y('y',[y])
+            top_opening.dim_z('hanging_rod_location_from_bot-hanging_rod_location_from_top-s_thickness',
+                              [hanging_rod_location_from_bot,hanging_rod_location_from_top,s_thickness])            
+        
+            bot_opening = data_closet_parts.add_closet_opening(self)
+            bot_opening.set_name('Bottom Opening')
+            bot_opening.loc_x(value = 0)
+            bot_opening.loc_y(value = 0)
+            bot_opening.loc_z(value = 0)
+            bot_opening.rot_x(value = 0)
+            bot_opening.rot_y(value = 0)
+            bot_opening.rot_z(value = 0)
+            bot_opening.dim_x('x',[x])
+            bot_opening.dim_y('y',[y])
+            bot_opening.dim_z('height-hanging_rod_location_from_bot+hanging_rod_location_from_top',
+                              [height,hanging_rod_location_from_bot,hanging_rod_location_from_top])           
+        
+        else:
+            opening = data_closet_parts.add_closet_opening(self)
+            opening.set_name('Opening')
+            opening.loc_x(value = 0)
+            opening.loc_y(value = 0)
+            opening.loc_z(value = 0)
+            opening.rot_x(value = 0)
+            opening.rot_y(value = 0)
+            opening.rot_z(value = 0)
+            opening.dim_x('x',[x])
+            opening.dim_y('y',[y])
+            opening.dim_z('height',[height])
 
     def render(self):
         self.pre_draw()
