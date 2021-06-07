@@ -81,6 +81,22 @@ def get_closet_drawers_bp(obj):
     elif obj.parent:
         return get_closet_drawers_bp(obj.parent)
 
+def get_closet_cubby_bp(obj):
+    if not obj:
+        return None    
+    if "IS_CUBBY_INSERT" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_cubby_bp(obj.parent)
+
+def get_closet_wire_baskets_bp(obj):
+    if not obj:
+        return None    
+    if "IS_WIRE_BASKET_INSERT_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_wire_baskets_bp(obj.parent)
+
 def get_carcass_bp(obj):
     if not obj:
         return None    

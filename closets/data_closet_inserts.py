@@ -1096,7 +1096,7 @@ class Wire_Baskets(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp['IS_WIRE_BASKET_INSERT_BP'] = True
-        self.obj_bp['PROMPT_ID'] = 'home_builder.closet_drawer_prompts'
+        self.obj_bp['PROMPT_ID'] = 'home_builder.closet_wire_baskets_prompts'
 
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
@@ -1220,8 +1220,8 @@ class Cubbies(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-        self.obj_bp["IS_SHELVES_INSERT"] = True
-        self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
+        self.obj_bp["IS_CUBBY_INSERT"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.closet_cubby_prompts"
         
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)

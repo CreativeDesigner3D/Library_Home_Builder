@@ -438,6 +438,49 @@ class home_builder_OT_closet_shelves_prompts(bpy.types.Operator):
         layout.prop(shelf_qty,'quantity_value',text="Shelf Quantity")
 
 
+class home_builder_OT_closet_wire_baskets_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_wire_baskets_prompts"
+    bl_label = "Closet Wire Baskets Prompts"
+
+    insert = None
+
+    def check(self, context):
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_closet_wire_baskets_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
+
+    def draw(self, context):
+        layout = self.layout
+        qty = self.insert.get_prompt("Wire Basket Quantity")
+        spacing = self.insert.get_prompt("Vertical Spacing")
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Wire Basket Quantity")
+        row.prop(qty,'quantity_value',text="")
+
+        for i in range(1,7):
+            if qty.get_value() > i - 1:
+                height = self.insert.get_prompt("Wire Basket " + str(i) + " Height")
+                row = box.row()
+                row.label(text="Height " + str(i))                
+                row.prop(height,'distance_value',text="")
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Vertical Spacing")
+        row.prop(spacing,'distance_value',text="")
+
 class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_drawer_prompts"
     bl_label = "Closet Drawer Prompts"
@@ -466,13 +509,19 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
         drawer_qty = self.insert.get_prompt("Drawer Quantity")
         drawer_height = self.insert.get_prompt("Drawer Height")
         if drawer_height:
-            box.prop(drawer_height,'distance_value',text="Drawer Height")
+            row = box.row()
+            row.label(text="Drawer Height")
+            row.prop(drawer_height,'distance_value',text="")
         if drawer_qty:
-            box.prop(drawer_qty,'quantity_value',text="Drawer Quantity")
+            row = box.row()
+            row.label(text="Drawer Quantity")            
+            row.prop(drawer_qty,'quantity_value',text="")
             for i in range(1,7):
                 if drawer_qty.get_value() > i - 1:
                     drawer_height = self.insert.get_prompt("Drawer " + str(i) + " Height")
-                    box.prop(drawer_height,'distance_value',text="Drawer " + str(i) + " Height")
+                    row = box.row()
+                    row.label(text="Drawer " + str(i) + " Height")                      
+                    row.prop(drawer_height,'distance_value',text="")
 
         hot = self.insert.get_prompt("Half Overlay Top")
         hob = self.insert.get_prompt("Half Overlay Bottom")
@@ -508,6 +557,75 @@ class home_builder_OT_show_closet_properties(bpy.types.Operator):
                 # eval("wm_props.closet_" + str(i) + "_width = width.get_value()")
 
         return {'FINISHED'}
+
+
+class home_builder_OT_closet_cubby_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_cubby_prompts"
+    bl_label = "Closet Cubby Prompts"
+
+    cubby_location: bpy.props.EnumProperty(name="Cubby Location",
+                                           items=[('BOTTOM',"Bottom","Place on Bottom"),
+                                                  ('TOP',"Top","Place on Top"),
+                                                  ('FILL',"Fill","Fill Opening")])
+
+    opening_1_height: bpy.props.EnumProperty(name="Opening 1 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    insert = None
+    calculators = []
+
+    def check(self, context):
+        cubby_placement = self.insert.get_prompt("Cubby Placement")
+        if self.cubby_location == 'BOTTOM':
+            cubby_placement.set_value(0)
+        if self.cubby_location == 'TOP':
+            cubby_placement.set_value(1)
+        if self.cubby_location == 'FILL':
+            cubby_placement.set_value(2)         
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        cubby_placement = self.insert.get_prompt("Cubby Placement")
+        if cubby_placement.get_value() == 0:
+            self.cubby_location = 'BOTTOM'
+        if cubby_placement.get_value() == 1:
+            self.cubby_location = 'TOP'
+        if cubby_placement.get_value() == 2:
+            self.cubby_location = 'FILL'            
+        wm = context.window_manager        
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_closet_cubby_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
+
+    def draw(self, context):
+        layout = self.layout
+        h_qty = self.insert.get_prompt("Horizontal Quantity")
+        v_qty = self.insert.get_prompt("Vertical Quantity")
+        c_height = self.insert.get_prompt("Cubby Height")
+        c_setback = self.insert.get_prompt("Cubby Setback")
+        row = layout.row()
+        row.label(text="Location")
+        row.prop(self,'cubby_location',expand=True)
+        row = layout.row()
+        row.label(text="Shelf Quantity")           
+        row.prop(h_qty,'quantity_value',text="")
+        row = layout.row()
+        row.label(text="Division Quantity")           
+        row.prop(v_qty,'quantity_value',text="")        
+        row = layout.row()
+        row.label(text="Cubby Height")        
+        row.prop(c_height,'distance_value',text="")
+        row = layout.row()
+        row.label(text="Cubby Setback")           
+        row.prop(c_setback,'distance_value',text="")
 
 
 class home_builder_OT_change_closet_openings(bpy.types.Operator):
@@ -584,6 +702,8 @@ classes = (
     home_builder_OT_closet_shelves_prompts,
     home_builder_OT_closet_door_prompts,
     home_builder_OT_closet_drawer_prompts,
+    home_builder_OT_closet_cubby_prompts,
+    home_builder_OT_closet_wire_baskets_prompts,
     home_builder_OT_change_closet_openings,
 )
 
