@@ -241,7 +241,6 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
         shelf.dim_x('width',[width])
         shelf.dim_y('depth',[depth])
         shelf.dim_z('s_thickness',[s_thickness])
-        home_builder_utils.flip_normals(shelf)
 
         z_loc = shelf.obj_bp.pyclone.get_var('location.z','z_loc')
 
@@ -274,6 +273,7 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
             slanted_shelf.dim_z('s_thickness',[s_thickness])
             hide = slanted_shelf.get_prompt('Hide')
             hide.set_formula('IF(' + str(i) + '>qty,True,False)',[qty])
+            home_builder_utils.flip_normals(slanted_shelf)
 
             shelf_depth = slanted_shelf.obj_y.pyclone.get_var('location.y','shelf_depth')
             z_loc = slanted_shelf.obj_bp.pyclone.get_var('location.z','z_loc')
@@ -651,7 +651,6 @@ class Base_Doors(Doors):
         shelf.dim_x('x',[x])
         shelf.dim_y('y',[y])
         shelf.dim_z('s_thickness',[s_thickness])
-        home_builder_utils.flip_normals(shelf)
 
         #LEFT DOOR
         l_door = data_closet_parts.add_door_part(self,front_pointer)
@@ -814,7 +813,6 @@ class Upper_Doors(Doors):
         shelf.dim_x('x',[x])
         shelf.dim_y('y',[y])
         shelf.dim_z('s_thickness',[s_thickness])
-        home_builder_utils.flip_normals(shelf)
 
         #LEFT DOOR
         l_door = data_closet_parts.add_door_part(self,front_pointer)
@@ -935,7 +933,6 @@ class Drawers(Doors):
         shelf.dim_x('x',[x])
         shelf.dim_y('y',[y])
         shelf.dim_z('s_thickness',[s_thickness])
-        home_builder_utils.flip_normals(shelf)
 
         shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
 
@@ -1059,7 +1056,6 @@ class Single_Drawer(Doors):
         shelf.dim_x('x',[x])
         shelf.dim_y('y',[y])
         shelf.dim_z('s_thickness',[s_thickness])
-        home_builder_utils.flip_normals(shelf)
 
         shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
 
@@ -1162,7 +1158,6 @@ class Wire_Baskets(pc_types.Assembly):
         shelf.dim_x('x',[x])
         shelf.dim_y('y',[y])
         shelf.dim_z('s_thickness',[s_thickness])
-        home_builder_utils.flip_normals(shelf)
 
         shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
 
@@ -1308,6 +1303,7 @@ class Cubbies(pc_types.Assembly):
         offset = v_cubby.get_prompt('Z Offset')
         qty.set_formula('v_qty',[v_qty])
         offset.set_formula('-(((width-(d_thickness*v_qty))/(v_qty+1))+d_thickness)',[width,d_thickness,v_qty])
+        home_builder_utils.flip_normals(v_cubby)
 
         start_placement = 'IF(placement==1,height-c_height,0)'
         v_spacing = '((IF(placement==2,height,c_height)-(s_thickness*h_qty))/(h_qty+1))'
