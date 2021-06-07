@@ -9,6 +9,7 @@ def add_door_prompts(assembly):
     door_swing.combobox_columns = 3
     assembly.add_prompt("Door Rotation",'ANGLE',120)
     assembly.add_prompt("Open Door",'PERCENTAGE',0)
+    assembly.add_prompt("Door Type",'TEXT',"")
 
 def add_drawer_prompts(assembly):
     assembly.add_prompt("Open Drawer",'PERCENTAGE',0)

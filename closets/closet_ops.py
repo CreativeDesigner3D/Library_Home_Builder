@@ -288,10 +288,10 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
 
         prompt_box = layout.box()
 
-        row = prompt_box.row(align=True)
-        row.prop_enum(self, "product_tabs", 'MAIN') 
-        row.prop_enum(self, "product_tabs", 'CONSTRUCTION') 
-        row.prop_enum(self, "product_tabs", 'MACHINING')
+        # row = prompt_box.row(align=True)
+        # row.prop_enum(self, "product_tabs", 'MAIN') 
+        # row.prop_enum(self, "product_tabs", 'CONSTRUCTION') 
+        # row.prop_enum(self, "product_tabs", 'MACHINING')
 
         if self.product_tabs == 'MAIN':
             self.draw_closet_prompts(prompt_box,context)   
@@ -316,10 +316,10 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
     height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
     depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
-    product_tabs: bpy.props.EnumProperty(name="Product Tabs",
-                                         items=[('MAIN',"Main","Main Options"),
-                                                ('CONSTRUCTION',"Construction","Construction Options"),
-                                                ('MACHINING',"Machining","Machining Options")])
+    door_swing: bpy.props.EnumProperty(name="Door Swing",
+                                       items=[('LEFT',"Left","Left Swing Door"),
+                                              ('RIGHT',"Right","Right Swing Door"),
+                                              ('DOUBLE',"Double","Double Door")])
 
     opening_1_height: bpy.props.EnumProperty(name="Opening 1 Height",
                                     items=home_builder_enums.PANEL_HEIGHTS,
@@ -329,6 +329,13 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
     calculators = []
 
     def check(self, context):
+        door_swing = self.insert.get_prompt("Door Swing")
+        if self.door_swing == 'LEFT':
+            door_swing.set_value(0)
+        if self.door_swing == 'RIGHT':
+            door_swing.set_value(1)
+        if self.door_swing == 'DOUBLE':
+            door_swing.set_value(2)         
         return True
 
     def execute(self, context):                   
@@ -336,8 +343,15 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
 
     def invoke(self,context,event):
         self.get_assemblies(context)
+        door_swing = self.insert.get_prompt("Door Swing")
+        if door_swing.get_value() == 0:
+            self.door_swing = 'LEFT'
+        if door_swing.get_value() == 1:
+            self.door_swing = 'RIGHT'
+        if door_swing.get_value() == 2:
+            self.door_swing = 'DOUBLE'            
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=500)
+        return wm.invoke_props_dialog(self, width=300)
 
     def get_assemblies(self,context):
         bp = home_builder_utils.get_closet_doors_bp(context.object)
@@ -349,7 +363,23 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
         hob = self.insert.get_prompt("Half Overlay Bottom")
         hol = self.insert.get_prompt("Half Overlay Left")   
         hor = self.insert.get_prompt("Half Overlay Right")   
-        
+        open_door = self.insert.get_prompt("Open Door")  
+        door_height = self.insert.get_prompt("Door Height") 
+        turn_off_pulls = self.insert.get_prompt("Turn Off Pulls") 
+        door_type = self.insert.get_prompt("Door Type")
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Door Swing")      
+        row.prop(self,'door_swing',expand=True) 
+        if door_height:         
+            row = box.row()
+            row.label(text="Door Height")      
+            row.prop(door_height,'distance_value',text="")          
+        row = box.row()
+        row.label(text="Open Door")      
+        row.prop(open_door,'percentage_value',text="")  
+
         box = layout.box()
         box.label(text="Front Half Overlays")
         row = box.row()
@@ -357,6 +387,27 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
         row.prop(hob,'checkbox_value',text="Bottom") 
         row.prop(hol,'checkbox_value',text="Left") 
         row.prop(hor,'checkbox_value',text="Right") 
+
+        box = layout.box()
+        box.label(text="Pulls")
+        row = box.row()
+        row.label(text="Turn Off Pulls")      
+        row.prop(turn_off_pulls,'checkbox_value',text="")    
+        if door_type.get_value() == "Base":
+            vert_loc = self.insert.get_prompt("Base Pull Vertical Location")  
+            row = box.row()
+            row.label(text="Pull Location")               
+            row.prop(vert_loc,'distance_value',text="")       
+        if door_type.get_value() == "Tall":
+            vert_loc = self.insert.get_prompt("Tall Pull Vertical Location")   
+            row = box.row()
+            row.label(text="Pull Location")               
+            row.prop(vert_loc,'distance_value',text="")                  
+        if door_type.get_value() == "Upper":
+            vert_loc = self.insert.get_prompt("Upper Pull Vertical Location")         
+            row = box.row()
+            row.label(text="Pull Location")               
+            row.prop(vert_loc,'distance_value',text="")   
 
 
 class home_builder_OT_closet_shelves_prompts(bpy.types.Operator):
@@ -413,11 +464,15 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
         layout = self.layout
         box = layout.box()
         drawer_qty = self.insert.get_prompt("Drawer Quantity")
-        box.prop(drawer_qty,'quantity_value',text="Drawer Quantity")
-        for i in range(1,7):
-            if drawer_qty.get_value() > i - 1:
-                drawer_height = self.insert.get_prompt("Drawer " + str(i) + " Height")
-                box.prop(drawer_height,'distance_value',text="Drawer " + str(i) + " Height")
+        drawer_height = self.insert.get_prompt("Drawer Height")
+        if drawer_height:
+            box.prop(drawer_height,'distance_value',text="Drawer Height")
+        if drawer_qty:
+            box.prop(drawer_qty,'quantity_value',text="Drawer Quantity")
+            for i in range(1,7):
+                if drawer_qty.get_value() > i - 1:
+                    drawer_height = self.insert.get_prompt("Drawer " + str(i) + " Height")
+                    box.prop(drawer_height,'distance_value',text="Drawer " + str(i) + " Height")
 
         hot = self.insert.get_prompt("Half Overlay Top")
         hob = self.insert.get_prompt("Half Overlay Bottom")
