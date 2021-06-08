@@ -92,20 +92,26 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
 
     def update_fillers(self,context):
         pass
-        # left_adjustment_width = self.cabinet.get_prompt("Left Adjustment Width")
-        # right_adjustment_width = self.cabinet.get_prompt("Right Adjustment Width")
-        # if left_adjustment_width.get_value() > 0 and self.cabinet.left_filler is None:
-        #     self.cabinet.add_left_filler()
-        #     home_builder_utils.update_assembly_id_props(self.cabinet.left_filler,self.cabinet)
-        # if right_adjustment_width.get_value() > 0 and self.cabinet.right_filler is None:
-        #     self.cabinet.add_right_filler()   
-        #     home_builder_utils.update_assembly_id_props(self.cabinet.right_filler,self.cabinet)          
-        # if left_adjustment_width.get_value() == 0 and self.cabinet.left_filler is not None:
-        #     pc_utils.delete_object_and_children(self.cabinet.left_filler.obj_bp)
-        #     self.cabinet.left_filler = None
-        # if right_adjustment_width.get_value() == 0 and self.cabinet.right_filler is not None:
-        #     pc_utils.delete_object_and_children(self.cabinet.right_filler.obj_bp)
-        #     self.cabinet.right_filler = None   
+
+    def update_bridge_parts(self,context):
+        left_bridge = self.closet.get_prompt("Bridge Left")
+        right_bridge = self.closet.get_prompt("Bridge Right")
+        if left_bridge.get_value() == True and len(self.closet.left_bridge_parts) == 0:
+            self.closet.add_left_blind_parts()
+            for part in self.closet.left_bridge_parts:
+                home_builder_utils.update_assembly_id_props(part,self.closet)
+        if left_bridge.get_value() == False and len(self.closet.left_bridge_parts) > 0:
+            for part in self.closet.left_bridge_parts:
+                pc_utils.delete_object_and_children(part.obj_bp)
+            self.closet.left_bridge_parts = []
+        if right_bridge.get_value() == True and len(self.closet.right_bridge_parts) == 0:
+            self.closet.add_right_blind_parts()
+            for part in self.closet.right_bridge_parts:
+                home_builder_utils.update_assembly_id_props(part,self.closet)
+        if right_bridge.get_value() == False and len(self.closet.right_bridge_parts) > 0:
+            for part in self.closet.right_bridge_parts:
+                pc_utils.delete_object_and_children(part.obj_bp)
+            self.closet.right_bridge_parts = []
 
     def set_default_heights(self):
         for i in range(1,9):
@@ -119,7 +125,8 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
 
     def check(self, context):
         self.update_product_size()
-        self.update_fillers(context)     
+        self.update_fillers(context)    
+        self.update_bridge_parts(context) 
         self.update_materials(context)
         for calculator in self.calculators:
             calculator.calculate()
@@ -219,7 +226,22 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             row.label(text="TODO: Implement Closet Placement Options")
 
     def draw_construction_prompts(self,layout,context):
-        pass
+        l_bridge = self.closet.get_prompt("Bridge Left")
+        r_bridge = self.closet.get_prompt("Bridge Right") 
+        l_bridge_width = self.closet.get_prompt("Left Bridge Shelf Width")
+        r_bridge_width = self.closet.get_prompt("Right Bridge Shelf Width")         
+         
+        row = layout.row()    
+        row.prop(l_bridge,'checkbox_value',text="Bridge Left")
+        if l_bridge.get_value():
+            row.prop(l_bridge_width,'distance_value',text="Width")
+        else:
+            row.label(text="")
+        row.prop(r_bridge,'checkbox_value',text="Bridge Right")
+        if r_bridge.get_value():
+            row.prop(r_bridge_width,'distance_value',text="Width")
+        else:
+            row.label(text="")            
 
     def get_number_of_equal_widths(self):
         number_of_equal_widths = 0
@@ -288,10 +310,10 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
 
         prompt_box = layout.box()
 
-        # row = prompt_box.row(align=True)
-        # row.prop_enum(self, "product_tabs", 'MAIN') 
-        # row.prop_enum(self, "product_tabs", 'CONSTRUCTION') 
-        # row.prop_enum(self, "product_tabs", 'MACHINING')
+        row = prompt_box.row(align=True)
+        row.prop_enum(self, "product_tabs", 'MAIN') 
+        row.prop_enum(self, "product_tabs", 'CONSTRUCTION') 
+        row.prop_enum(self, "product_tabs", 'MACHINING')
 
         if self.product_tabs == 'MAIN':
             self.draw_closet_prompts(prompt_box,context)   

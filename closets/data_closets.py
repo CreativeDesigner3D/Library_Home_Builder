@@ -16,6 +16,24 @@ class Closet_Starter(pc_types.Assembly):
 
     opening_qty = 4
     panels = []
+    left_bridge_parts = []
+    right_bridge_parts = []
+
+    def __init__(self,obj_bp=None):
+        super().__init__(obj_bp=obj_bp)  
+        self.left_bridge_parts = []
+        if obj_bp:
+            for child in obj_bp.children:
+                if "IS_LEFT_BRIDGE_BP" in child:
+                    self.left_bridge_parts.append(pc_types.Assembly(child))
+                if "IS_RIGHT_BRIDGE_BP" in child:
+                    self.right_bridge_parts.append(pc_types.Assembly(child))
+
+            for i in range(1,9):
+                opening_height_prompt = self.get_prompt("Opening " + str(i) + " Height")
+                if not opening_height_prompt:
+                    self.opening_qty = i - 1
+                    break
 
     def add_opening_prompts(self):
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -167,6 +185,123 @@ class Closet_Starter(pc_types.Assembly):
         reference.dim_y('depth',[depth])
         reference.dim_z('height',[height])          
 
+    def add_left_blind_parts(self):
+        height_1 = self.get_prompt("Opening 1 Height").get_var("height_1")
+        kick_setback = self.get_prompt('Closet Kick Setback').get_var('kick_setback')
+        b_left_width = self.get_prompt('Left Bridge Shelf Width').get_var("b_left_width")
+        kick_height = self.get_prompt('Closet Kick Height').get_var("kick_height")
+        b_left = self.get_prompt('Bridge Left').get_var("b_left")
+        s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
+        depth_1 = self.get_prompt("Opening 1 Depth").get_var("depth_1")
+
+        left_bot_bridge = data_closet_parts.add_closet_part(self)
+        left_bot_bridge.obj_bp["IS_LEFT_BRIDGE_BP"] = True
+        left_bot_bridge.set_name('Left Bridge Bottom')
+        left_bot_bridge.loc_x('-b_left_width',[b_left_width])
+        left_bot_bridge.loc_y(value = 0)
+        left_bot_bridge.loc_z('kick_height',[kick_height])
+        left_bot_bridge.rot_y(value = 0)
+        left_bot_bridge.rot_z(value = 0)
+        left_bot_bridge.dim_x('b_left_width',[b_left_width])
+        left_bot_bridge.dim_y('-depth_1',[depth_1])
+        left_bot_bridge.dim_z('s_thickness',[s_thickness])
+        hide = left_bot_bridge.get_prompt("Hide")
+        hide.set_formula('IF(b_left,False,True)',[b_left])
+        home_builder_utils.flip_normals(left_bot_bridge)
+        self.left_bridge_parts.append(left_bot_bridge)
+
+        left_top_bridge = data_closet_parts.add_closet_part(self)
+        left_top_bridge.obj_bp["IS_LEFT_BRIDGE_BP"] = True
+        left_top_bridge.set_name('Left Bridge Bottom')
+        left_top_bridge.loc_x('-b_left_width',[b_left_width])
+        left_top_bridge.loc_y(value = 0)
+        left_top_bridge.loc_z('height_1',[height_1])
+        left_top_bridge.rot_y(value = 0)
+        left_top_bridge.rot_z(value = 0)
+        left_top_bridge.dim_x('b_left_width',[b_left_width])
+        left_top_bridge.dim_y('-depth_1',[depth_1])
+        left_top_bridge.dim_z('-s_thickness',[s_thickness])
+        hide = left_top_bridge.get_prompt("Hide")
+        hide.set_formula('IF(b_left,False,True)',[b_left])
+        home_builder_utils.flip_normals(left_top_bridge)
+        self.left_bridge_parts.append(left_top_bridge)
+
+        left_bridge_kick = data_closet_parts.add_closet_part(self)
+        left_bridge_kick.obj_bp["IS_LEFT_BRIDGE_BP"] = True
+        left_bridge_kick.set_name('Left Bridge Bottom')
+        left_bridge_kick.loc_x('-b_left_width-kick_setback',[b_left_width,kick_setback])
+        left_bridge_kick.loc_y('-depth_1+kick_setback',[depth_1,kick_setback])
+        left_bridge_kick.loc_z(value = 0)
+        left_bridge_kick.rot_x(value = math.radians(-90))
+        left_bridge_kick.rot_y(value = 0)
+        left_bridge_kick.rot_z(value = 0)
+        left_bridge_kick.dim_x('b_left_width+kick_setback',[b_left_width,kick_setback])
+        left_bridge_kick.dim_y('-kick_height',[kick_height])
+        left_bridge_kick.dim_z('s_thickness',[s_thickness])
+        hide = left_bridge_kick.get_prompt("Hide")
+        hide.set_formula('IF(b_left,False,True)',[b_left])
+        home_builder_utils.flip_normals(left_bridge_kick)
+        self.left_bridge_parts.append(left_bridge_kick)
+
+    def add_right_blind_parts(self):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height_last = self.get_prompt("Opening " + str(self.opening_qty) + " Height").get_var("height_last")
+        kick_setback = self.get_prompt('Closet Kick Setback').get_var('kick_setback')
+        b_right_width = self.get_prompt('Right Bridge Shelf Width').get_var("b_right_width")
+        kick_height = self.get_prompt('Closet Kick Height').get_var("kick_height")
+        b_right = self.get_prompt('Bridge Right').get_var("b_right")
+        s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
+        depth_last = self.get_prompt("Opening " + str(self.opening_qty) + " Depth").get_var("depth_last")
+
+        right_bot_bridge = data_closet_parts.add_closet_part(self)
+        right_bot_bridge.obj_bp["IS_RIGHT_BRIDGE_BP"] = True
+        right_bot_bridge.set_name('Right Bridge Bottom')
+        right_bot_bridge.loc_x('width',[width])
+        right_bot_bridge.loc_y(value = 0)
+        right_bot_bridge.loc_z('kick_height',[kick_height])
+        right_bot_bridge.rot_y(value = 0)
+        right_bot_bridge.rot_z(value = 0)
+        right_bot_bridge.dim_x('b_right_width',[b_right_width])
+        right_bot_bridge.dim_y('-depth_last',[depth_last])
+        right_bot_bridge.dim_z('s_thickness',[s_thickness])
+        hide = right_bot_bridge.get_prompt("Hide")
+        hide.set_formula('IF(b_right,False,True)',[b_right])        
+        home_builder_utils.flip_normals(right_bot_bridge)
+        self.right_bridge_parts.append(right_bot_bridge)
+
+        right_top_bridge = data_closet_parts.add_closet_part(self)
+        right_top_bridge.obj_bp["IS_RIGHT_BRIDGE_BP"] = True
+        right_top_bridge.set_name('Right Bridge Bottom')
+        right_top_bridge.loc_x('width',[width])
+        right_top_bridge.loc_y(value = 0)
+        right_top_bridge.loc_z('height_last',[height_last])
+        right_top_bridge.rot_y(value = 0)
+        right_top_bridge.rot_z(value = 0)
+        right_top_bridge.dim_x('b_right_width',[b_right_width])
+        right_top_bridge.dim_y('-depth_last',[depth_last])
+        right_top_bridge.dim_z('-s_thickness',[s_thickness])
+        hide = right_top_bridge.get_prompt("Hide")
+        hide.set_formula('IF(b_right,False,True)',[b_right])        
+        home_builder_utils.flip_normals(right_top_bridge)
+        self.right_bridge_parts.append(right_top_bridge)
+
+        right_bridge_kick = data_closet_parts.add_closet_part(self)
+        right_bridge_kick.obj_bp["IS_RIGHT_BRIDGE_BP"] = True
+        right_bridge_kick.set_name('Right Bridge Kick')
+        right_bridge_kick.loc_x('width',[width])
+        right_bridge_kick.loc_y('-depth_last+kick_setback',[depth_last,kick_setback])
+        right_bridge_kick.loc_z(value = 0)
+        right_bridge_kick.rot_x(value = math.radians(-90))
+        right_bridge_kick.rot_y(value = 0)
+        right_bridge_kick.rot_z(value = 0)
+        right_bridge_kick.dim_x('b_right_width+kick_setback',[b_right_width,kick_setback])
+        right_bridge_kick.dim_y('-kick_height',[kick_height])
+        right_bridge_kick.dim_z('s_thickness',[s_thickness])
+        hide = right_bridge_kick.get_prompt("Hide")
+        hide.set_formula('IF(b_right,False,True)',[b_right])  
+        home_builder_utils.flip_normals(right_bridge_kick)
+        self.right_bridge_parts.append(right_bridge_kick)
+
     def draw(self):
         self.panels = []
         start_time = time.time()
@@ -203,7 +338,7 @@ class Closet_Starter(pc_types.Assembly):
         b_right = bridge_right.get_var("b_right")
         b_left_width = left_bridge_shelf_width.get_var("b_left_width")
         b_right_width = right_bridge_shelf_width.get_var("b_right_width")
-
+        
         self.add_opening_prompts()
 
         depth_1 = self.get_prompt("Opening 1 Depth").get_var("depth_1")
@@ -228,35 +363,7 @@ class Closet_Starter(pc_types.Assembly):
         self.panels.append(left_side)
         bpy.context.view_layer.update()
 
-        left_bridge = data_closet_parts.add_closet_part(self)
-        left_bridge.obj_bp["IS_BRIDGE_BP"] = True
-        left_bridge.set_name('Left Bridge Bottom')
-        left_bridge.loc_x('-b_left_width',[b_left_width])
-        left_bridge.loc_y(value = 0)
-        left_bridge.loc_z('closet_kick_height_var',[closet_kick_height_var])
-        left_bridge.rot_y(value = 0)
-        left_bridge.rot_z(value = 0)
-        left_bridge.dim_x('b_left_width',[b_left_width])
-        left_bridge.dim_y('-depth_1',[depth_1])
-        left_bridge.dim_z('s_thickness',[s_thickness])
-        hide = left_bridge.get_prompt("Hide")
-        hide.set_formula('IF(b_left,False,True)',[b_left])
-        home_builder_utils.flip_normals(left_bridge)
-
-        right_bridge = data_closet_parts.add_closet_part(self)
-        right_bridge.obj_bp["IS_BRIDGE_BP"] = True
-        right_bridge.set_name('Right Bridge Bottom')
-        right_bridge.loc_x('width',[width])
-        right_bridge.loc_y(value = 0)
-        right_bridge.loc_z('closet_kick_height_var',[closet_kick_height_var])
-        right_bridge.rot_y(value = 0)
-        right_bridge.rot_z(value = 0)
-        right_bridge.dim_x('b_right_width',[b_right_width])
-        right_bridge.dim_y('-depth_last',[depth_last])
-        right_bridge.dim_z('s_thickness',[s_thickness])
-        hide = right_bridge.get_prompt("Hide")
-        hide.set_formula('IF(b_right,False,True)',[b_right])        
-        home_builder_utils.flip_normals(right_bridge)
+        # self.add_left_blind_parts()
 
         previous_panel = None
         for i in range(1,self.opening_qty):
