@@ -2897,7 +2897,7 @@ classes = (
     home_builder_OT_floor_prompts,
     home_builder_OT_delete_assembly,
     home_builder_OT_reload_pointers,
-    # home_builder_OT_create_library_pdf,
+    home_builder_OT_create_library_pdf,
     home_builder_OT_create_2d_views,
     home_builder_OT_create_2d_cabinet_views,
     home_builder_OT_save_custom_cabinet,

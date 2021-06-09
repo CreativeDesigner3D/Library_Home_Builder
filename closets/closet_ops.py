@@ -241,7 +241,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         if r_bridge.get_value():
             row.prop(r_bridge_width,'distance_value',text="Width")
         else:
-            row.label(text="")            
+            row.label(text="")
 
     def get_number_of_equal_widths(self):
         number_of_equal_widths = 0
