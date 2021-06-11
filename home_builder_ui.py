@@ -161,6 +161,8 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
                 col.operator('home_builder.move_cabinet',text="Place Cabinet",icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
                 col.operator('home_builder.free_move_cabinet',text="Grab",icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
                 col.operator('home_builder.duplicate_cabinet',text="Duplicate",icon='DUPLICATE').obj_bp_name = cabinet_bp.name  
+                col.operator('home_builder.edit_part',text="Edit Part",icon='DUPLICATE')
+                
                 if exterior_bp:
                     col.operator('home_builder.add_drawer',text="Add Drawer",icon='UGLYPACKAGE')
                     col.operator('home_builder.change_cabinet_exterior',text="Change Cabinet Exterior",icon='FILE_REFRESH')
