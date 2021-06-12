@@ -112,6 +112,7 @@ class Closet_Starter(pc_types.Assembly):
         left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
         right_panel_x = right_panel.obj_bp.pyclone.get_var('location.x','right_panel_x')
 
+        floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
         opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
@@ -133,6 +134,8 @@ class Closet_Starter(pc_types.Assembly):
             kick.dim_x('right_panel_x-left_panel_x-p_thickness',[left_panel_x,right_panel_x,p_thickness])
         kick.dim_y('-kick_height',[kick_height])
         kick.dim_z('s_thickness',[s_thickness])
+        hide = kick.get_prompt("Hide")
+        hide.set_formula('IF(floor,False,True)',[floor])
         home_builder_utils.flip_normals(kick)
         return kick
 
@@ -140,6 +143,8 @@ class Closet_Starter(pc_types.Assembly):
         left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
         right_panel_x = right_panel.obj_bp.pyclone.get_var('location.x','right_panel_x')
 
+        p_height = self.obj_z.pyclone.get_var('location.z','p_height')
+        floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
         opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
         opening_height = self.get_prompt("Opening " + str(index) + " Height").get_var('opening_height')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
@@ -150,7 +155,7 @@ class Closet_Starter(pc_types.Assembly):
         opening.set_name('Opening ' + str(index))
         opening.loc_x('left_panel_x+p_thickness',[left_panel_x,p_thickness])
         opening.loc_y('-opening_depth',[opening_depth])
-        opening.loc_z('kick_height+s_thickness',[kick_height,s_thickness])
+        opening.loc_z('IF(floor,kick_height+s_thickness,p_height-opening_height+s_thickness)',[floor,kick_height,s_thickness,p_height,opening_height,s_thickness])
         opening.rot_x(value = 0)
         opening.rot_y(value = 0)
         opening.rot_z(value = 0)
@@ -159,7 +164,7 @@ class Closet_Starter(pc_types.Assembly):
         else:
             opening.dim_x('right_panel_x-left_panel_x-p_thickness',[left_panel_x,right_panel_x,p_thickness])
         opening.dim_y('opening_depth',[opening_depth])
-        opening.dim_z('opening_height-kick_height-(s_thickness*2)',[opening_height,kick_height,s_thickness])
+        opening.dim_z('opening_height-IF(floor,kick_height,0)-(s_thickness*2)',[opening_height,kick_height,s_thickness,floor])
         return opening
 
     def pre_draw(self):
@@ -186,6 +191,8 @@ class Closet_Starter(pc_types.Assembly):
         reference.dim_z('height',[height])          
 
     def add_left_blind_parts(self):
+        p_height = self.obj_z.pyclone.get_var('location.z','p_height')
+        floor_1 = self.get_prompt("Opening 1 Floor Mounted").get_var("floor_1")
         height_1 = self.get_prompt("Opening 1 Height").get_var("height_1")
         kick_setback = self.get_prompt('Closet Kick Setback').get_var('kick_setback')
         b_left_width = self.get_prompt('Left Bridge Shelf Width').get_var("b_left_width")
@@ -199,7 +206,7 @@ class Closet_Starter(pc_types.Assembly):
         left_bot_bridge.set_name('Left Bridge Bottom')
         left_bot_bridge.loc_x('-b_left_width',[b_left_width])
         left_bot_bridge.loc_y(value = 0)
-        left_bot_bridge.loc_z('kick_height',[kick_height])
+        left_bot_bridge.loc_z('IF(floor_1,kick_height,p_height-height_1)',[floor_1,kick_height,p_height,height_1])
         left_bot_bridge.rot_y(value = 0)
         left_bot_bridge.rot_z(value = 0)
         left_bot_bridge.dim_x('b_left_width',[b_left_width])
@@ -215,7 +222,7 @@ class Closet_Starter(pc_types.Assembly):
         left_top_bridge.set_name('Left Bridge Bottom')
         left_top_bridge.loc_x('-b_left_width',[b_left_width])
         left_top_bridge.loc_y(value = 0)
-        left_top_bridge.loc_z('height_1',[height_1])
+        left_top_bridge.loc_z('IF(floor_1,height_1,p_height)',[floor_1,height_1,p_height])
         left_top_bridge.rot_y(value = 0)
         left_top_bridge.rot_z(value = 0)
         left_top_bridge.dim_x('b_left_width',[b_left_width])
@@ -239,11 +246,13 @@ class Closet_Starter(pc_types.Assembly):
         left_bridge_kick.dim_y('-kick_height',[kick_height])
         left_bridge_kick.dim_z('s_thickness',[s_thickness])
         hide = left_bridge_kick.get_prompt("Hide")
-        hide.set_formula('IF(b_left,False,True)',[b_left])
+        hide.set_formula('IF(b_left,IF(floor_1,False,True),True)',[b_left,floor_1])
         home_builder_utils.flip_normals(left_bridge_kick)
         self.left_bridge_parts.append(left_bridge_kick)
 
     def add_right_blind_parts(self):
+        p_height = self.obj_z.pyclone.get_var('location.z','p_height')
+        floor_last = self.get_prompt("Opening " + str(self.opening_qty) + " Floor Mounted").get_var("floor_last")        
         width = self.obj_x.pyclone.get_var('location.x','width')
         height_last = self.get_prompt("Opening " + str(self.opening_qty) + " Height").get_var("height_last")
         kick_setback = self.get_prompt('Closet Kick Setback').get_var('kick_setback')
@@ -258,7 +267,7 @@ class Closet_Starter(pc_types.Assembly):
         right_bot_bridge.set_name('Right Bridge Bottom')
         right_bot_bridge.loc_x('width',[width])
         right_bot_bridge.loc_y(value = 0)
-        right_bot_bridge.loc_z('kick_height',[kick_height])
+        right_bot_bridge.loc_z('IF(floor_last,kick_height,p_height-height_last)',[floor_last,kick_height,p_height,height_last])
         right_bot_bridge.rot_y(value = 0)
         right_bot_bridge.rot_z(value = 0)
         right_bot_bridge.dim_x('b_right_width',[b_right_width])
@@ -274,7 +283,7 @@ class Closet_Starter(pc_types.Assembly):
         right_top_bridge.set_name('Right Bridge Bottom')
         right_top_bridge.loc_x('width',[width])
         right_top_bridge.loc_y(value = 0)
-        right_top_bridge.loc_z('height_last',[height_last])
+        right_top_bridge.loc_z('IF(floor_last,height_last,p_height)',[floor_last,height_last,p_height])
         right_top_bridge.rot_y(value = 0)
         right_top_bridge.rot_z(value = 0)
         right_top_bridge.dim_x('b_right_width',[b_right_width])
@@ -298,7 +307,7 @@ class Closet_Starter(pc_types.Assembly):
         right_bridge_kick.dim_y('-kick_height',[kick_height])
         right_bridge_kick.dim_z('s_thickness',[s_thickness])
         hide = right_bridge_kick.get_prompt("Hide")
-        hide.set_formula('IF(b_right,False,True)',[b_right])  
+        hide.set_formula('IF(b_right,IF(floor_last,False,True),True)',[b_right,floor_last])  
         home_builder_utils.flip_normals(right_bridge_kick)
         self.right_bridge_parts.append(right_bridge_kick)
 
@@ -334,10 +343,10 @@ class Closet_Starter(pc_types.Assembly):
         bridge_right = self.add_prompt("Bridge Right",'CHECKBOX',False) 
         left_bridge_shelf_width = self.add_prompt("Left Bridge Shelf Width",'DISTANCE',pc_unit.inch(12)) 
         right_bridge_shelf_width = self.add_prompt("Right Bridge Shelf Width",'DISTANCE',pc_unit.inch(12)) 
-        b_left = bridge_left.get_var("b_left")
-        b_right = bridge_right.get_var("b_right")
-        b_left_width = left_bridge_shelf_width.get_var("b_left_width")
-        b_right_width = right_bridge_shelf_width.get_var("b_right_width")
+        # b_left = bridge_left.get_var("b_left")
+        # b_right = bridge_right.get_var("b_right")
+        # b_left_width = left_bridge_shelf_width.get_var("b_left_width")
+        # b_right_width = right_bridge_shelf_width.get_var("b_right_width")
         
         self.add_opening_prompts()
 
@@ -396,7 +405,7 @@ class Closet_Starter(pc_types.Assembly):
                 floor = self.get_prompt("Opening " + str(index+1) + " Floor Mounted").get_var('floor')
 
                 bottom = self.add_shelf(index + 1,panel,self.panels[index+1])
-                bottom.loc_z('closet_kick_height_var',[closet_kick_height_var])
+                bottom.loc_z('IF(floor,closet_kick_height_var,height-opening_height)',[floor,closet_kick_height_var,height,opening_height])
 
                 top = self.add_shelf(index + 1,panel,self.panels[index+1])
                 top.loc_z('IF(floor,opening_height,height)-shelf_thickness_var',[floor,opening_height,height,shelf_thickness_var])
