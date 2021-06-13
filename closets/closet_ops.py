@@ -243,6 +243,13 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         else:
             row.label(text="")
 
+        row = layout.row()  
+        row.label(text="Remove Bottom")
+        for i in range(1,9):
+            remove_bottom = self.closet.get_prompt("Remove Bottom " + str(i))
+            if remove_bottom:
+                row.prop(remove_bottom,'checkbox_value',text=str(i))
+
     def get_number_of_equal_widths(self):
         number_of_equal_widths = 0
         

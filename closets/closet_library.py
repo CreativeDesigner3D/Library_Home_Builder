@@ -5,7 +5,12 @@ from . import data_closets, data_closet_inserts
 class Closet_Starter(data_closets.Closet_Starter):
 
     def __init__(self):
-        pass
+        self.is_hanging = False
+
+class Closet_Starter_Hanging(data_closets.Closet_Starter):
+
+    def __init__(self):
+        self.is_hanging = True
 
 class Shelves(data_closet_inserts.Shelves):
 

@@ -14,6 +14,8 @@ class Closet_Starter(pc_types.Assembly):
     category_name = "CLOSETS"
     subcategory_name = "FLOOR_PANELS"
 
+    panel_height = 0
+    is_hanging = False
     opening_qty = 4
     panels = []
     left_bridge_parts = []
@@ -45,9 +47,10 @@ class Closet_Starter(pc_types.Assembly):
 
         for i in range(1,self.opening_qty+1):
             opening_calculator.add_calculator_prompt('Opening ' + str(i) + ' Width')
-            self.add_prompt("Opening " + str(i) + " Height",'DISTANCE',self.obj_z.location.z)
+            self.add_prompt("Opening " + str(i) + " Height",'DISTANCE',pc_unit.millimeter(1523) if self.is_hanging else self.obj_z.location.z)
             self.add_prompt("Opening " + str(i) + " Depth",'DISTANCE',math.fabs(self.obj_y.location.y))
-            self.add_prompt("Opening " + str(i) + " Floor Mounted",'CHECKBOX',True)
+            self.add_prompt("Opening " + str(i) + " Floor Mounted",'CHECKBOX',False if self.is_hanging else True)
+            self.add_prompt("Remove Bottom " + str(i),'CHECKBOX',True if self.is_hanging else False)
 
         opening_calculator.set_total_distance('width-p_thickness*' + str(self.opening_qty+1),[width,p_thickness])
 
@@ -114,6 +117,7 @@ class Closet_Starter(pc_types.Assembly):
 
         floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
         opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
+        remove_bottom = self.get_prompt("Remove Bottom " + str(index)).get_var('remove_bottom')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         kick_height = self.get_prompt("Closet Kick Height").get_var("kick_height")
@@ -135,7 +139,7 @@ class Closet_Starter(pc_types.Assembly):
         kick.dim_y('-kick_height',[kick_height])
         kick.dim_z('s_thickness',[s_thickness])
         hide = kick.get_prompt("Hide")
-        hide.set_formula('IF(floor,False,True)',[floor])
+        hide.set_formula('IF(floor,IF(remove_bottom,True,False),True)',[floor,remove_bottom])
         home_builder_utils.flip_normals(kick)
         return kick
 
@@ -147,6 +151,7 @@ class Closet_Starter(pc_types.Assembly):
         floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
         opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
         opening_height = self.get_prompt("Opening " + str(index) + " Height").get_var('opening_height')
+        remove_bottom = self.get_prompt("Remove Bottom " + str(index)).get_var('remove_bottom')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         kick_height = self.get_prompt("Closet Kick Height").get_var("kick_height")
@@ -155,7 +160,8 @@ class Closet_Starter(pc_types.Assembly):
         opening.set_name('Opening ' + str(index))
         opening.loc_x('left_panel_x+p_thickness',[left_panel_x,p_thickness])
         opening.loc_y('-opening_depth',[opening_depth])
-        opening.loc_z('IF(floor,kick_height+s_thickness,p_height-opening_height+s_thickness)',[floor,kick_height,s_thickness,p_height,opening_height,s_thickness])
+        opening.loc_z('IF(floor,kick_height,p_height-opening_height)+IF(remove_bottom,0,s_thickness)',
+                         [floor,kick_height,p_height,opening_height,remove_bottom,s_thickness])
         opening.rot_x(value = 0)
         opening.rot_y(value = 0)
         opening.rot_z(value = 0)
@@ -164,7 +170,7 @@ class Closet_Starter(pc_types.Assembly):
         else:
             opening.dim_x('right_panel_x-left_panel_x-p_thickness',[left_panel_x,right_panel_x,p_thickness])
         opening.dim_y('opening_depth',[opening_depth])
-        opening.dim_z('opening_height-IF(floor,kick_height,0)-(s_thickness*2)',[opening_height,kick_height,s_thickness,floor])
+        opening.dim_z('opening_height-IF(floor,kick_height,0)-IF(remove_bottom,s_thickness,s_thickness*2)',[opening_height,kick_height,s_thickness,floor,remove_bottom])
         return opening
 
     def pre_draw(self):
@@ -403,9 +409,12 @@ class Closet_Starter(pc_types.Assembly):
             if index + 1 < len(self.panels):
                 opening_height = self.get_prompt("Opening " + str(index+1) + " Height").get_var('opening_height')
                 floor = self.get_prompt("Opening " + str(index+1) + " Floor Mounted").get_var('floor')
+                remove_bottom = self.get_prompt("Remove Bottom " + str(index+1)).get_var('remove_bottom')
 
                 bottom = self.add_shelf(index + 1,panel,self.panels[index+1])
                 bottom.loc_z('IF(floor,closet_kick_height_var,height-opening_height)',[floor,closet_kick_height_var,height,opening_height])
+                hide = bottom.get_prompt('Hide')
+                hide.set_formula('remove_bottom',[remove_bottom])
 
                 top = self.add_shelf(index + 1,panel,self.panels[index+1])
                 top.loc_z('IF(floor,opening_height,height)-shelf_thickness_var',[floor,opening_height,height,shelf_thickness_var])

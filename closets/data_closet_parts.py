@@ -87,7 +87,10 @@ def add_closet_opening(assembly):
     part.obj_x.empty_display_size = .001
     part.obj_y.empty_display_size = .001
     part.obj_z.empty_display_size = .001
-    part.obj_prompts.empty_display_size = .001    
+    part.obj_prompts.empty_display_size = .001  
+    for child in part.obj_bp.children:
+        if child.type == 'MESH':
+            child['IS_OPENING_MESH'] = True
     # home_builder_utils.add_bevel(part)
     return part    
 

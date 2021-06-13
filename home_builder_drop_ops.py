@@ -1380,7 +1380,7 @@ class home_builder_OT_place_closet(bpy.types.Operator):
             self.set_child_properties(child)
 
     def set_placed_properties(self,obj):
-        if obj.type == 'MESH' and obj.hide_render == False:
+        if obj.type == 'MESH' and 'IS_OPENING_MESH' not in obj:
             obj.display_type = 'TEXTURED'          
         for child in obj.children:
             self.set_placed_properties(child) 
