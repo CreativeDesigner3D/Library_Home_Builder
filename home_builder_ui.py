@@ -200,6 +200,13 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
                 col.separator()
                 col.operator('home_builder.delete_assembly',text="Delete Closet",icon='X').obj_name = closet_bp.name
 
+            row = box.row()
+            row.prop(props,'show_cabinet_front_tools',text="Cabinet Fronts",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_front_tools else 'TRIA_RIGHT')
+            if props.show_cabinet_front_tools:
+                box.prop(props,'cabinet_door_category',text="",icon='FILE_FOLDER')  
+                box.template_icon_view(props,"cabinet_door_name",show_labels=True)              
+                row = box.row()
+                row.operator('home_builder.update_selected_cabinet_doors',text="Update Selected Front",icon='RESTRICT_SELECT_OFF')
         #TODO
         #Appliances
         #Doors and Windows
