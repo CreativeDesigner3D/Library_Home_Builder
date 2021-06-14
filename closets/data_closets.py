@@ -45,14 +45,22 @@ class Closet_Starter(pc_types.Assembly):
         calc_distance_obj.empty_display_size = .001
         opening_calculator = self.obj_prompts.pyclone.add_calculator("Opening Calculator",calc_distance_obj)
 
+        calc_formula = 'width-p_thickness*' + str(self.opening_qty+1)
+        calc_vars = [width,p_thickness]
+
         for i in range(1,self.opening_qty+1):
             opening_calculator.add_calculator_prompt('Opening ' + str(i) + ' Width')
             self.add_prompt("Opening " + str(i) + " Height",'DISTANCE',pc_unit.millimeter(1523) if self.is_hanging else self.obj_z.location.z)
             self.add_prompt("Opening " + str(i) + " Depth",'DISTANCE',math.fabs(self.obj_y.location.y))
             self.add_prompt("Opening " + str(i) + " Floor Mounted",'CHECKBOX',False if self.is_hanging else True)
             self.add_prompt("Remove Bottom " + str(i),'CHECKBOX',True if self.is_hanging else False)
+            if i != self.opening_qty:
+                double_panel = self.add_prompt("Double Panel " + str(i),'CHECKBOX',False)
+                d_panel = double_panel.get_var('d_panel_' + str(i))
+                calc_vars.append(d_panel)
+                calc_formula += "-IF(d_panel_" + str(i) + ",p_thickness,0)"
 
-        opening_calculator.set_total_distance('width-p_thickness*' + str(self.opening_qty+1),[width,p_thickness])
+        opening_calculator.set_total_distance(calc_formula,calc_vars)
 
     def add_panel(self,index,previous_panel):
         previous_panel_x = previous_panel.obj_bp.pyclone.get_var('location.x',"previous_panel_x")
@@ -66,30 +74,47 @@ class Closet_Starter(pc_types.Assembly):
         next_floor = self.get_prompt("Opening " + str(index+1) + " Floor Mounted").get_var('next_floor')
         next_depth = self.get_prompt("Opening " + str(index+1) + " Depth").get_var('next_depth')
         next_height = self.get_prompt("Opening " + str(index+1) + " Height").get_var('next_height')
+        dp = self.get_prompt("Double Panel " + str(index)).get_var('dp')
         left_filler = self.get_prompt("Left Side Wall Filler").get_var("left_filler")
-
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
 
         panel = data_closet_parts.add_closet_part(self)
         panel.obj_bp["IS_PANEL_BP"] = True
         panel.set_name('Panel ' + str(index))
-        panel.loc_x('previous_panel_x+opening_width+p_thickness',[previous_panel_x,opening_width,p_thickness])
+        panel.loc_x('previous_panel_x+opening_width+p_thickness+IF(dp,p_thickness,0)',[previous_panel_x,opening_width,p_thickness,dp])
         panel.loc_y(value = 0)
-        panel.loc_z('min(IF(floor,0,IF(next_floor,0,height-opening_height)),IF(next_floor,0,IF(floor,0,height-next_height)))',
-                    [floor,next_floor,height,opening_height,next_height])
+        panel.loc_z("IF(dp,IF(next_floor,0,height-next_height),IF(OR(floor,next_floor),0,min(height-opening_height,height-next_height)))",
+                    [dp,floor,next_floor,height,opening_height,next_height])        
         panel.rot_y(value=math.radians(-90))
         panel.rot_z(value=0)
-        panel.dim_x('max(IF(floor,opening_height,IF(next_floor,height,opening_height)),IF(next_floor,next_height,IF(floor,height,next_height)))',
-                    [floor,height,next_floor,opening_height,next_height])
-        panel.dim_y('-max(opening_depth,next_depth)',[opening_depth,next_depth])
+        panel.dim_x('IF(dp,next_height,max(IF(floor,opening_height,IF(next_floor,height,opening_height)),IF(next_floor,next_height,IF(floor,height,next_height))))',
+                    [floor,height,next_floor,opening_height,next_height,dp])        
+        panel.dim_y('IF(dp,-next_depth,-max(opening_depth,next_depth))',[dp,opening_depth,next_depth])
         panel.dim_z('-p_thickness',[p_thickness])
+
+        d_panel = data_closet_parts.add_closet_part(self)
+        d_panel.obj_bp["IS_PANEL_BP"] = True
+        d_panel.set_name('Double Panel ' + str(index))
+        d_panel.loc_x('previous_panel_x+opening_width+p_thickness+p_thickness',[previous_panel_x,opening_width,p_thickness])
+        d_panel.loc_y(value = 0)
+        d_panel.loc_z("IF(floor,0,height-opening_height)",[floor,height,opening_height])
+        d_panel.rot_y(value=math.radians(-90))
+        d_panel.rot_z(value=0)
+        d_panel.dim_x('opening_height',[opening_height])
+        d_panel.dim_y('-opening_depth',[opening_depth])
+        d_panel.dim_z('p_thickness',[p_thickness])    
+        home_builder_utils.flip_normals(d_panel)
+        hide = d_panel.get_prompt('Hide')
+        hide.set_formula('IF(dp,False,True)',[dp])
+
         return panel
 
     def add_shelf(self,index,left_panel,right_panel):
         left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
         right_panel_x = right_panel.obj_bp.pyclone.get_var('location.x','right_panel_x')
 
+        opening_width = self.get_prompt("Opening " + str(index) + " Width").get_var('Opening Calculator','opening_width')
         opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
@@ -102,10 +127,7 @@ class Closet_Starter(pc_types.Assembly):
         shelf.loc_z(value = 0)
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
-        if right_panel.obj_z.location.z > 0:
-            shelf.dim_x('right_panel_x-left_panel_x-(p_thickness*2)',[left_panel_x,right_panel_x,p_thickness])
-        else:
-            shelf.dim_x('right_panel_x-left_panel_x-p_thickness',[left_panel_x,right_panel_x,p_thickness])
+        shelf.dim_x('opening_width',[opening_width])
         shelf.dim_y('-opening_depth',[opening_depth])
         shelf.dim_z('s_thickness',[s_thickness])
         home_builder_utils.flip_normals(shelf)
@@ -114,9 +136,10 @@ class Closet_Starter(pc_types.Assembly):
     def add_toe_kick(self,index,left_panel,right_panel):
         left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
         right_panel_x = right_panel.obj_bp.pyclone.get_var('location.x','right_panel_x')
-
         floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
         opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
+        opening_width = self.get_prompt("Opening " + str(index) + " Width").get_var('Opening Calculator','opening_width')
+        double_panel = self.get_prompt("Double Panel " + str(index))
         remove_bottom = self.get_prompt("Remove Bottom " + str(index)).get_var('remove_bottom')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
@@ -132,10 +155,7 @@ class Closet_Starter(pc_types.Assembly):
         kick.rot_x(value = math.radians(-90))
         kick.rot_y(value = 0)
         kick.rot_z(value = 0)
-        if right_panel.obj_z.location.z > 0:
-            kick.dim_x('right_panel_x-left_panel_x-(p_thickness*2)',[left_panel_x,right_panel_x,p_thickness])
-        else:
-            kick.dim_x('right_panel_x-left_panel_x-p_thickness',[left_panel_x,right_panel_x,p_thickness])
+        kick.dim_x('opening_width',[opening_width])
         kick.dim_y('-kick_height',[kick_height])
         kick.dim_z('s_thickness',[s_thickness])
         hide = kick.get_prompt("Hide")
@@ -149,6 +169,7 @@ class Closet_Starter(pc_types.Assembly):
 
         p_height = self.obj_z.pyclone.get_var('location.z','p_height')
         floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
+        opening_width = self.get_prompt("Opening " + str(index) + " Width").get_var('Opening Calculator','opening_width')
         opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
         opening_height = self.get_prompt("Opening " + str(index) + " Height").get_var('opening_height')
         remove_bottom = self.get_prompt("Remove Bottom " + str(index)).get_var('remove_bottom')
@@ -165,10 +186,7 @@ class Closet_Starter(pc_types.Assembly):
         opening.rot_x(value = 0)
         opening.rot_y(value = 0)
         opening.rot_z(value = 0)
-        if right_panel.obj_z.location.z > 0:
-            opening.dim_x('right_panel_x-left_panel_x-(p_thickness*2)',[left_panel_x,right_panel_x,p_thickness])
-        else:
-            opening.dim_x('right_panel_x-left_panel_x-p_thickness',[left_panel_x,right_panel_x,p_thickness])
+        opening.dim_x('opening_width',[opening_width])
         opening.dim_y('opening_depth',[opening_depth])
         opening.dim_z('opening_height-IF(floor,kick_height,0)-IF(remove_bottom,s_thickness,s_thickness*2)',[opening_height,kick_height,s_thickness,floor,remove_bottom])
         return opening

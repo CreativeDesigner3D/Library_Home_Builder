@@ -250,6 +250,13 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             if remove_bottom:
                 row.prop(remove_bottom,'checkbox_value',text=str(i))
 
+        row = layout.row()  
+        row.label(text="Double Panel")
+        for i in range(1,9):
+            double_panel = self.closet.get_prompt("Double Panel " + str(i))
+            if double_panel:
+                row.prop(double_panel,'checkbox_value',text=str(i))
+
     def get_number_of_equal_widths(self):
         number_of_equal_widths = 0
         
@@ -698,6 +705,7 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
     quantity: bpy.props.IntProperty(name="Quantity")
 
     closet = None
+    new_closet = None
     calculators = []
 
     def invoke(self,context,event):
@@ -730,6 +738,11 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
             if "IS_REFERENCE" in obj:
                 pc_utils.delete_object_and_children(obj)
 
+    def set_child_properties(self,obj):
+        home_builder_utils.update_id_props(obj,self.new_closet.obj_bp)
+        for child in obj.children:
+            self.set_child_properties(child)
+
     def execute(self, context):
         parent = self.closet.obj_bp.parent
         x_loc = self.closet.obj_bp.location.x
@@ -739,24 +752,26 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
         length = self.closet.obj_x.location.x
         pc_utils.delete_object_and_children(self.closet.obj_bp)
 
-        new_closet = data_closets.Closet_Starter()
-        new_closet.opening_qty = self.quantity
-        new_closet.pre_draw()
-        new_closet.draw()
-        new_closet.obj_bp.parent = parent
-        new_closet.obj_bp.location.x = x_loc
-        new_closet.obj_bp.location.y = y_loc
-        new_closet.obj_bp.location.z = z_loc
-        new_closet.obj_bp.rotation_euler.z = z_rot
-        new_closet.obj_x.location.x = length
-        self.delete_reference_object(new_closet.obj_bp)
-        self.get_calculators(new_closet.obj_bp)
+        self.new_closet = data_closets.Closet_Starter()
+        self.new_closet.opening_qty = self.quantity
+        self.new_closet.pre_draw()
+        self.new_closet.draw()
+        self.new_closet.obj_bp.parent = parent
+        self.new_closet.obj_bp.location.x = x_loc
+        self.new_closet.obj_bp.location.y = y_loc
+        self.new_closet.obj_bp.location.z = z_loc
+        self.new_closet.obj_bp.rotation_euler.z = z_rot
+        self.new_closet.obj_x.location.x = length
+        self.delete_reference_object(self.new_closet.obj_bp)
+        self.get_calculators(self.new_closet.obj_bp)
         for calculator in self.calculators:
             calculator.calculate()
-        new_closet.obj_bp.hide_viewport = True
-        new_closet.obj_x.hide_viewport = True
-        new_closet.obj_y.hide_viewport = True
-        new_closet.obj_z.hide_viewport = True
+        self.new_closet.obj_bp.hide_viewport = True
+        self.new_closet.obj_x.hide_viewport = True
+        self.new_closet.obj_y.hide_viewport = True
+        self.new_closet.obj_z.hide_viewport = True
+        self.set_child_properties(self.new_closet.obj_bp)
+            
         return {'FINISHED'}
 
 classes = (
