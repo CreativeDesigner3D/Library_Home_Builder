@@ -230,7 +230,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
                           items=[('STARTERS',"Starters","Show the Closet Starters"),
                                  ('HANGING_PANELS',"Hanging Panels","Show the Hanging Closet Panels"),
                                  ('INSERTS',"Inserts","Show the Closet Inserts"),
-                                 ('ISLANDS',"Islands","Show the Closet Islands"),
+                                 ('SPLITTERS',"Splitters","Show the Closet Splitters"),
                                  ('CLOSET_ACCESSORIES',"Accessories","Show the Closet Accessories"),
                                  ('CLOSET_PARTS',"Parts","Show the Closet Parts"),
                                  ('DECORATIONS',"Decorations","Show the Closet Decorations")],
@@ -1108,12 +1108,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
                 row.prop_enum(self, "closet_tabs", 'CLOSET_PARTS') 
                 row = col.row(align=True)
                 row.scale_y = 1.3     
-                row.prop_enum(self, "closet_tabs", 'ISLANDS')     
+                row.prop_enum(self, "closet_tabs", 'SPLITTERS')     
                 row.prop_enum(self, "closet_tabs", 'CLOSET_ACCESSORIES')     
                 row.prop_enum(self, "closet_tabs", 'DECORATIONS') 
-                # row = col.row(align=True) 
-                # row.scale_y = 1.3   
-                
 
             if self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS':
                 if context.object:

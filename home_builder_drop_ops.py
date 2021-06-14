@@ -162,8 +162,8 @@ class home_builder_OT_drop(Operator):
                 bpy.ops.home_builder.place_closet(filepath=self.filepath)
             if props.closet_tabs == 'INSERTS':
                 bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
-            if props.closet_tabs == 'ISLANDS':
-                pass
+            if props.closet_tabs == 'SPLITTERS':
+                bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
             if props.closet_tabs == 'CLOSET_ACCESSORIES':
                 pass
             if props.closet_tabs == 'CLOSET_PARTS':

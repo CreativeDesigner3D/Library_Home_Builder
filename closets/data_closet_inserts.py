@@ -175,6 +175,234 @@ class Single_Shelf(pc_types.Assembly):
         self.draw()
 
 
+class Vertical_Splitter(pc_types.Assembly):
+    show_in_library = True
+    category_name = "CLOSETS"
+    subcategory_name = "CLOSET_PARTS"
+    drop_id = ""
+
+    splitter_qty = 1
+
+    def add_splitters(self):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
+        
+        previous_splitter = None
+
+        for i in range(1,self.splitter_qty+1):
+            opening_height = self.get_prompt('Opening ' + str(i) + ' Height').get_var('Opening Calculator','opening_height')
+            splitter = data_closet_parts.add_closet_part(self)
+            splitter.loc_x(value = 0)
+            splitter.loc_y(value = 0)
+            if previous_splitter:
+                loc_z = previous_splitter.obj_bp.pyclone.get_var('location.z','loc_z')
+                splitter.loc_z('loc_z-opening_height-s_thickness',[loc_z,opening_height,s_thickness])
+            else:
+                splitter.loc_z('height-opening_height-s_thickness',[height,opening_height,s_thickness])
+            splitter.rot_x(value = 0)
+            splitter.rot_y(value = 0)
+            splitter.rot_z(value = 0)
+            splitter.dim_x('width',[width])
+            splitter.dim_y('depth',[depth])
+            splitter.dim_z('s_thickness',[s_thickness])
+
+            s_loc_z = splitter.obj_bp.pyclone.get_var('location.z','s_loc_z')
+
+            opening = data_closet_parts.add_closet_opening(self)
+            opening.set_name('Opening')
+            opening.loc_x(value = 0)
+            opening.loc_y(value = 0)
+            opening.loc_z('s_loc_z+s_thickness',[s_loc_z,s_thickness])
+            opening.rot_x(value = 0)
+            opening.rot_y(value = 0)
+            opening.rot_z(value = 0)
+            opening.dim_x('width',[width])
+            opening.dim_y('depth',[depth])
+            opening.dim_z('opening_height',[opening_height])
+
+            previous_splitter = splitter
+
+        last_opening_height = self.get_prompt('Opening ' + str(self.splitter_qty+1) + ' Height').get_var('Opening Calculator','last_opening_height')
+
+        opening = data_closet_parts.add_closet_opening(self)
+        opening.set_name('Opening')
+        opening.loc_x(value = 0)
+        opening.loc_y(value = 0)
+        opening.loc_z(value = 0)
+        opening.rot_x(value = 0)
+        opening.rot_y(value = 0)
+        opening.rot_z(value = 0)
+        opening.dim_x('width',[width])
+        opening.dim_y('depth',[depth])
+        opening.dim_z('last_opening_height',[last_opening_height])
+
+    def pre_draw(self):
+        self.create_assembly()
+        self.obj_bp["IS_SPLITTER_INSERT"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.splitter_prompts"
+        
+        self.obj_x.location.x = pc_unit.inch(20)
+        self.obj_y.location.y = pc_unit.inch(12)
+        self.obj_z.location.z = pc_unit.inch(.75)
+
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+
+        reference = data_closet_parts.add_closet_opening(self)
+        reference.obj_bp["IS_REFERENCE"] = True
+        reference.loc_x(value = 0)
+        reference.loc_y(value = 0)
+        reference.loc_z(value = 0)
+        reference.rot_x(value = 0)
+        reference.rot_y(value = 0)
+        reference.rot_z(value = 0)      
+        reference.dim_x('width',[width])
+        reference.dim_y('depth',[depth])
+        reference.dim_z('height',[height])  
+
+    def draw(self):
+        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(1)) 
+        
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        s_thickness = shelf_thickness.get_var('s_thickness')
+        calc_distance_obj = self.add_empty('Calc Distance Obj')
+        calc_distance_obj.empty_display_size = .001
+        opening_calculator = self.obj_prompts.pyclone.add_calculator("Opening Calculator",calc_distance_obj)
+
+        for i in range(1,self.splitter_qty+2):
+            opening_calculator.add_calculator_prompt('Opening ' + str(i) + ' Height')
+
+        opening_calculator.set_total_distance('height-s_thickness*' + str(self.splitter_qty),[height,s_thickness])
+
+        self.add_splitters()
+
+        bpy.context.view_layer.update()
+        opening_calculator.calculate()
+
+    def render(self):
+        self.pre_draw()
+        self.draw()
+
+
+class Horizontal_Splitter(pc_types.Assembly):
+    show_in_library = True
+    category_name = "CLOSETS"
+    subcategory_name = "CLOSET_PARTS"
+    drop_id = ""
+
+    splitter_qty = 1
+
+    def add_splitters(self):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        d_thickness = self.get_prompt("Division Thickness").get_var("d_thickness")
+        
+        previous_splitter = None
+
+        for i in range(1,self.splitter_qty+1):
+            opening_width = self.get_prompt('Opening ' + str(i) + ' Width').get_var('Opening Calculator','opening_width')
+            splitter = data_closet_parts.add_closet_part(self)
+            if previous_splitter:
+                loc_x = previous_splitter.obj_bp.pyclone.get_var('location.x','loc_x')
+                splitter.loc_x('loc_x+opening_width+d_thickness',[loc_x,opening_width,d_thickness])
+            else:
+                splitter.loc_x('opening_width+d_thickness',[opening_width,d_thickness])            
+            splitter.loc_y(value = 0)
+            splitter.loc_z(value = 0)
+            splitter.rot_x(value = 0)
+            splitter.rot_y(value = math.radians(-90))
+            splitter.rot_z(value = 0)
+            splitter.dim_x('height',[height])
+            splitter.dim_y('depth',[depth])
+            splitter.dim_z('d_thickness',[d_thickness])
+
+            s_loc_x = splitter.obj_bp.pyclone.get_var('location.x','s_loc_x')
+
+            opening = data_closet_parts.add_closet_opening(self)
+            opening.set_name('Opening')
+            if previous_splitter:
+                opening.loc_x('s_loc_x',[s_loc_x])
+            else:
+                opening.loc_x(value = 0)
+            opening.loc_y(value = 0)
+            opening.loc_z(value = 0)
+            opening.rot_x(value = 0)
+            opening.rot_y(value = 0)
+            opening.rot_z(value = 0)
+            opening.dim_x('opening_width',[opening_width])
+            opening.dim_y('depth',[depth])
+            opening.dim_z('height',[height])
+
+            previous_splitter = splitter
+
+        previous_splitter_x = previous_splitter.obj_bp.pyclone.get_var('location.x','previous_splitter_x')
+        last_opening_width = self.get_prompt('Opening ' + str(self.splitter_qty+1) + ' Width').get_var('Opening Calculator','last_opening_width')
+
+        opening = data_closet_parts.add_closet_opening(self)
+        opening.set_name('Opening')
+        opening.loc_x('previous_splitter_x',[previous_splitter_x])
+        opening.loc_y(value = 0)
+        opening.loc_z(value = 0)
+        opening.rot_x(value = 0)
+        opening.rot_y(value = 0)
+        opening.rot_z(value = 0)
+        opening.dim_x('last_opening_width',[last_opening_width])
+        opening.dim_y('depth',[depth])
+        opening.dim_z('height',[height])
+
+    def pre_draw(self):
+        self.create_assembly()
+        self.obj_bp["IS_SPLITTER_INSERT"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.splitter_prompts"
+        
+        self.obj_x.location.x = pc_unit.inch(20)
+        self.obj_y.location.y = pc_unit.inch(12)
+        self.obj_z.location.z = pc_unit.inch(.75)
+
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+
+        reference = data_closet_parts.add_closet_opening(self)
+        reference.obj_bp["IS_REFERENCE"] = True
+        reference.loc_x(value = 0)
+        reference.loc_y(value = 0)
+        reference.loc_z(value = 0)
+        reference.rot_x(value = 0)
+        reference.rot_y(value = 0)
+        reference.rot_z(value = 0)      
+        reference.dim_x('width',[width])
+        reference.dim_y('depth',[depth])
+        reference.dim_z('height',[height])  
+
+    def draw(self):
+        division_thickness = self.add_prompt("Division Thickness",'DISTANCE',pc_unit.inch(1)) 
+        
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        d_thickness = division_thickness.get_var('d_thickness')
+        calc_distance_obj = self.add_empty('Calc Distance Obj')
+        calc_distance_obj.empty_display_size = .001
+        opening_calculator = self.obj_prompts.pyclone.add_calculator("Opening Calculator",calc_distance_obj)
+
+        for i in range(1,self.splitter_qty+2):
+            opening_calculator.add_calculator_prompt('Opening ' + str(i) + ' Width')
+
+        opening_calculator.set_total_distance('width-d_thickness*' + str(self.splitter_qty),[width,d_thickness])
+
+        self.add_splitters()
+
+        bpy.context.view_layer.update()
+        opening_calculator.calculate()
+
+    def render(self):
+        self.pre_draw()
+        self.draw()
+
+
 class Slanted_Shoe_Shelf(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"

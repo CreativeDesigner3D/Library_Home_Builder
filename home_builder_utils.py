@@ -105,6 +105,14 @@ def get_hanging_rod_insert_bp(obj):
     elif obj.parent:
         return get_hanging_rod_insert_bp(obj.parent)
 
+def get_splitter_insert_bp(obj):
+    if not obj:
+        return None    
+    if "IS_SPLITTER_INSERT" in obj:
+        return obj
+    elif obj.parent:
+        return get_splitter_insert_bp(obj.parent)
+
 def get_carcass_bp(obj):
     if not obj:
         return None    

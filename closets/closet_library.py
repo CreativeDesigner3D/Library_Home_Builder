@@ -71,3 +71,43 @@ class Wire_Baskets(data_closet_inserts.Wire_Baskets):
 
     def __init__(self):
         pass            
+
+class Vertical_Splitter_1(data_closet_inserts.Vertical_Splitter):
+
+    def __init__(self):
+        self.splitter_qty = 1          
+
+class Vertical_Splitter_2(data_closet_inserts.Vertical_Splitter):
+
+    def __init__(self):
+        self.splitter_qty = 2    
+
+class Vertical_Splitter_3(data_closet_inserts.Vertical_Splitter):
+
+    def __init__(self):
+        self.splitter_qty = 3    
+
+class Vertical_Splitter_4(data_closet_inserts.Vertical_Splitter):
+
+    def __init__(self):
+        self.splitter_qty = 4              
+
+class Horizontal_Splitter_1(data_closet_inserts.Horizontal_Splitter):
+
+    def __init__(self):
+        self.splitter_qty = 1          
+
+class Horizontal_Splitter_2(data_closet_inserts.Horizontal_Splitter):
+
+    def __init__(self):
+        self.splitter_qty = 2    
+
+class Horizontal_Splitter_3(data_closet_inserts.Horizontal_Splitter):
+
+    def __init__(self):
+        self.splitter_qty = 3    
+
+class Horizontal_Splitter_4(data_closet_inserts.Horizontal_Splitter):
+
+    def __init__(self):
+        self.splitter_qty = 4                          

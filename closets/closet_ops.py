@@ -774,6 +774,78 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
             
         return {'FINISHED'}
 
+
+class home_builder_OT_splitter_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.splitter_prompts"
+    bl_label = "Splitter Prompts"
+
+    opening_1_height: bpy.props.EnumProperty(name="Opening 1 Height",
+                                    items=home_builder_enums.PANEL_HEIGHTS,
+                                    default = '2131')
+    
+    insert = None
+    calculators = []
+
+    def check(self, context): 
+        for calculator in self.calculators:
+            calculator.calculate()
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context) 
+        self.get_calculators(self.insert.obj_bp)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def get_calculators(self,obj):
+        for cal in obj.pyclone.calculators:
+            self.calculators.append(cal)
+        for child in obj.children:
+            self.get_calculators(child)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_splitter_insert_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
+
+    def get_number_of_equal_openings(self,name="Height"):
+        number_of_equal_openings = 0
+        
+        for i in range(1,9):
+            size = self.insert.get_prompt("Opening " + str(i) + " " + name)
+            if size:
+                number_of_equal_openings += 1 if size.equal else 0
+            else:
+                break
+            
+        return number_of_equal_openings
+
+    def draw_prompts(self,layout,name="Height"):
+        for i in range(1,10):
+            opening = self.insert.get_prompt("Opening " + str(i) + " " + name)
+            if opening:
+                row = layout.row()
+                if opening.equal == False:
+                    row.prop(opening,'equal',text="")
+                else:
+                    if self.get_number_of_equal_openings(name=name) != 1:
+                        row.prop(opening,'equal',text="")
+                    else:
+                        row.label(text="",icon='BLANK1')                
+                row.label(text="Opening " + str(i) + " " + name + ":")
+                if opening.equal:
+                    row.label(text=str(pc_unit.meter_to_active_unit(opening.distance_value)) + '"')
+                else:
+                    row.prop(opening,'distance_value',text="")
+
+    def draw(self, context):
+        layout = self.layout
+        self.draw_prompts(layout,name="Height")
+        self.draw_prompts(layout,name="Width")
+
+
 classes = (
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
@@ -784,6 +856,7 @@ classes = (
     home_builder_OT_closet_cubby_prompts,
     home_builder_OT_closet_wire_baskets_prompts,
     home_builder_OT_change_closet_openings,
+    home_builder_OT_splitter_prompts,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)
