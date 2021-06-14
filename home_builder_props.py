@@ -227,14 +227,14 @@ class Home_Builder_Scene_Props(PropertyGroup):
                           update=update_library_path)
 
     closet_tabs: EnumProperty(name="Closet Tabs",
-                          items=[('FLOOR_PANELS',"Floor Panels","Show the Floor Mounted Closet Panels"),
+                          items=[('STARTERS',"Starters","Show the Closet Starters"),
                                  ('HANGING_PANELS',"Hanging Panels","Show the Hanging Closet Panels"),
                                  ('INSERTS',"Inserts","Show the Closet Inserts"),
                                  ('ISLANDS',"Islands","Show the Closet Islands"),
                                  ('CLOSET_ACCESSORIES',"Accessories","Show the Closet Accessories"),
                                  ('CLOSET_PARTS',"Parts","Show the Closet Parts"),
                                  ('DECORATIONS',"Decorations","Show the Closet Decorations")],
-                          default='FLOOR_PANELS',
+                          default='STARTERS',
                           update=update_library_path)
 
     sidebar_tabs: EnumProperty(name="Sidebar Tabs",
@@ -1103,17 +1103,17 @@ class Home_Builder_Scene_Props(PropertyGroup):
                 col = box.column(align=True)
                 row = col.row(align=True)
                 row.scale_y = 1.3
-                row.prop_enum(self, "closet_tabs", 'FLOOR_PANELS') 
-                row.prop_enum(self, "closet_tabs", 'HANGING_PANELS') 
+                row.prop_enum(self, "closet_tabs", 'STARTERS') 
                 row.prop_enum(self, "closet_tabs", 'INSERTS')  
+                row.prop_enum(self, "closet_tabs", 'CLOSET_PARTS') 
                 row = col.row(align=True)
                 row.scale_y = 1.3     
                 row.prop_enum(self, "closet_tabs", 'ISLANDS')     
                 row.prop_enum(self, "closet_tabs", 'CLOSET_ACCESSORIES')     
-                row.prop_enum(self, "closet_tabs", 'CLOSET_PARTS')  
-                row = col.row(align=True) 
-                row.scale_y = 1.3   
                 row.prop_enum(self, "closet_tabs", 'DECORATIONS') 
+                # row = col.row(align=True) 
+                # row.scale_y = 1.3   
+                
 
             if self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS':
                 if context.object:

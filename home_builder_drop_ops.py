@@ -158,9 +158,7 @@ class home_builder_OT_drop(Operator):
                 bpy.ops.home_builder.place_decoration(filepath=self.filepath)                    
 
         if props.library_tabs == 'CLOSETS':
-            if props.closet_tabs == 'FLOOR_PANELS':
-                bpy.ops.home_builder.place_closet(filepath=self.filepath)
-            if props.closet_tabs == 'HANGING_PANELS':
+            if props.closet_tabs == 'STARTERS':
                 bpy.ops.home_builder.place_closet(filepath=self.filepath)
             if props.closet_tabs == 'INSERTS':
                 bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
