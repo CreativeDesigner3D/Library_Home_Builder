@@ -296,7 +296,6 @@ class Horizontal_Splitter(pc_types.Assembly):
     splitter_qty = 1
 
     def add_splitters(self):
-        width = self.obj_x.pyclone.get_var('location.x','width')
         height = self.obj_z.pyclone.get_var('location.z','height')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         d_thickness = self.get_prompt("Division Thickness").get_var("d_thickness")
