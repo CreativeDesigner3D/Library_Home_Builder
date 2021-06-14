@@ -305,7 +305,25 @@ class Horizontal_Splitter(pc_types.Assembly):
 
         for i in range(1,self.splitter_qty+1):
             opening_width = self.get_prompt('Opening ' + str(i) + ' Width').get_var('Opening Calculator','opening_width')
+
+            opening = data_closet_parts.add_closet_opening(self)
+            opening.set_name('Opening ' + str(i))
+            if previous_splitter:
+                loc_x = previous_splitter.obj_bp.pyclone.get_var('location.x','loc_x')
+                opening.loc_x('loc_x',[loc_x])
+            else:
+                opening.loc_x(value = 0)
+            opening.loc_y(value = 0)
+            opening.loc_z(value = 0)
+            opening.rot_x(value = 0)
+            opening.rot_y(value = 0)
+            opening.rot_z(value = 0)
+            opening.dim_x('opening_width',[opening_width])
+            opening.dim_y('depth',[depth])
+            opening.dim_z('height',[height])
+
             splitter = data_closet_parts.add_closet_part(self)
+            splitter.set_name("Division " + str(i))
             if previous_splitter:
                 loc_x = previous_splitter.obj_bp.pyclone.get_var('location.x','loc_x')
                 splitter.loc_x('loc_x+opening_width+d_thickness',[loc_x,opening_width,d_thickness])
@@ -320,39 +338,22 @@ class Horizontal_Splitter(pc_types.Assembly):
             splitter.dim_y('depth',[depth])
             splitter.dim_z('d_thickness',[d_thickness])
 
-            s_loc_x = splitter.obj_bp.pyclone.get_var('location.x','s_loc_x')
-
-            opening = data_closet_parts.add_closet_opening(self)
-            opening.set_name('Opening')
-            if previous_splitter:
-                opening.loc_x('s_loc_x',[s_loc_x])
-            else:
-                opening.loc_x(value = 0)
-            opening.loc_y(value = 0)
-            opening.loc_z(value = 0)
-            opening.rot_x(value = 0)
-            opening.rot_y(value = 0)
-            opening.rot_z(value = 0)
-            opening.dim_x('opening_width',[opening_width])
-            opening.dim_y('depth',[depth])
-            opening.dim_z('height',[height])
-
             previous_splitter = splitter
 
         previous_splitter_x = previous_splitter.obj_bp.pyclone.get_var('location.x','previous_splitter_x')
         last_opening_width = self.get_prompt('Opening ' + str(self.splitter_qty+1) + ' Width').get_var('Opening Calculator','last_opening_width')
 
-        opening = data_closet_parts.add_closet_opening(self)
-        opening.set_name('Opening')
-        opening.loc_x('previous_splitter_x',[previous_splitter_x])
-        opening.loc_y(value = 0)
-        opening.loc_z(value = 0)
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('last_opening_width',[last_opening_width])
-        opening.dim_y('depth',[depth])
-        opening.dim_z('height',[height])
+        last_opening = data_closet_parts.add_closet_opening(self)
+        last_opening.set_name('Opening ' + str(self.splitter_qty+1))
+        last_opening.loc_x('previous_splitter_x',[previous_splitter_x])
+        last_opening.loc_y(value = 0)
+        last_opening.loc_z(value = 0)
+        last_opening.rot_x(value = 0)
+        last_opening.rot_y(value = 0)
+        last_opening.rot_z(value = 0)
+        last_opening.dim_x('last_opening_width',[last_opening_width])
+        last_opening.dim_y('depth',[depth])
+        last_opening.dim_z('height',[height])
 
     def pre_draw(self):
         self.create_assembly()
