@@ -178,23 +178,23 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         if pc_utils.object_has_driver(self.closet.obj_z):
             z = math.fabs(self.closet.obj_z.location.z)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',z))            
-            row1.label(text='Height: ' + value)
+            row1.label(text='Hanging Height: ' + value)
         else:
-            row1.label(text='Height:')
+            row1.label(text='Hanging Height:')
             row1.prop(self,'height',text="")
             row1.prop(self.closet.obj_z,'hide_viewport',text="")
             row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_z.name
         
         row1 = col.row(align=True)
-        if pc_utils.object_has_driver(self.closet.obj_y):
-            y = math.fabs(self.closet.obj_y.location.y)
-            value = str(bpy.utils.units.to_string(unit_system,'LENGTH',y))                 
-            row1.label(text='Depth: ' + value)
-        else:
-            row1.label(text='Depth:')
-            row1.prop(self,'depth',text="")
-            row1.prop(self.closet.obj_y,'hide_viewport',text="")
-            row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_y.name
+        # if pc_utils.object_has_driver(self.closet.obj_y):
+        #     y = math.fabs(self.closet.obj_y.location.y)
+        #     value = str(bpy.utils.units.to_string(unit_system,'LENGTH',y))                 
+        #     row1.label(text='Depth: ' + value)
+        # else:
+        #     row1.label(text='Depth:')
+        #     row1.prop(self,'depth',text="")
+        #     row1.prop(self.closet.obj_y,'hide_viewport',text="")
+        #     row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_y.name
             
         if len(self.closet.obj_bp.constraints) > 0:
             col = row.column(align=True)
@@ -213,9 +213,9 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         row.label(text='Rotation Z:')
         row.prop(self.closet.obj_bp,'rotation_euler',index=2,text="")  
 
-        row = box.row()
-        row.label(text='Height from Floor:')
-        row.prop(self.closet.obj_bp,'location',index=2,text="")          
+        # row = box.row()
+        # row.label(text='Height from Floor:')
+        # row.prop(self.closet.obj_bp,'location',index=2,text="")          
 
         props = home_builder_utils.get_scene_props(context.scene)
         row = box.row()
