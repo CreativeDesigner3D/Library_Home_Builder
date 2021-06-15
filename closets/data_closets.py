@@ -24,6 +24,7 @@ class Closet_Starter(pc_types.Assembly):
     def __init__(self,obj_bp=None):
         super().__init__(obj_bp=obj_bp)  
         self.left_bridge_parts = []
+        self.right_bridge_parts = []
         if obj_bp:
             for child in obj_bp.children:
                 if "IS_LEFT_BRIDGE_BP" in child:
