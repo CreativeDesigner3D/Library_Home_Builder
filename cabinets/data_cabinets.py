@@ -177,7 +177,8 @@ class Cabinet(pc_types.Assembly):
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
         left_adjustment_width = self.get_prompt("Left Adjustment Width").get_var("left_adjustment_width")
-
+        carcass_type = self.carcasses[0].get_prompt("Carcass Type")
+        
         self.left_filler = data_cabinet_parts.add_carcass_part(self)
         self.left_filler.obj_bp["IS_LEFT_FILLER_BP"] = True
         self.left_filler.set_name('Left Filler')
@@ -190,11 +191,17 @@ class Cabinet(pc_types.Assembly):
         home_builder_utils.flip_normals(self.left_filler)
         home_builder_pointers.assign_pointer_to_assembly(self.left_filler,"Cabinet Exposed Surfaces")
 
+        if carcass_type.get_value() in ('Base','Tall'):
+            kick_height = self.carcasses[0].get_prompt("Toe Kick Height").get_var("kick_height")
+            self.left_filler.loc_z('kick_height',[kick_height])
+            self.left_filler.dim_z('height-kick_height',[kick_height])
+
     def add_right_filler(self):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
         right_adjustment_width = self.get_prompt("Right Adjustment Width").get_var("right_adjustment_width")
+        carcass_type = self.carcasses[0].get_prompt("Carcass Type")
 
         self.right_filler = data_cabinet_parts.add_carcass_part(self)
         self.right_filler.obj_bp["IS_RIGHT_FILLER_BP"] = True
@@ -206,6 +213,11 @@ class Cabinet(pc_types.Assembly):
         self.right_filler.dim_y('depth',[depth])
         self.right_filler.dim_z('height',[height])
         home_builder_pointers.assign_pointer_to_assembly(self.right_filler,"Cabinet Exposed Surfaces")
+
+        if carcass_type.get_value() in ('Base','Tall'):
+            kick_height = self.carcasses[0].get_prompt("Toe Kick Height").get_var("kick_height")
+            self.right_filler.loc_z('kick_height',[kick_height])
+            self.right_filler.dim_z('height-kick_height',[kick_height])
 
     def add_countertop(self):
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -300,6 +312,12 @@ class Standard_Cabinet(Cabinet):
             self.obj_y.location.y = -props.upper_cabinet_depth
             self.obj_z.location.z = props.upper_cabinet_height
             self.obj_bp.location.z = props.height_above_floor - props.upper_cabinet_height
+
+    def position(self):
+        pass
+
+    def confirm_placement(self):
+        pass
 
     def get_calculators(self,obj):
         for cal in obj.pyclone.calculators:
@@ -418,6 +436,7 @@ class Blind_Corner_Cabinet(Cabinet):
     def draw(self):
         start_time = time.time()
         
+
         self.obj_bp["IS_CABINET_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.cabinet_prompts" 
         self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_cabinet_menu"
@@ -445,6 +464,7 @@ class Blind_Corner_Cabinet(Cabinet):
     def pre_draw(self):
         self.create_assembly()
         self.corner_type = "Blind"
+        self.carcasses = []
 
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
@@ -457,19 +477,20 @@ class Blind_Corner_Cabinet(Cabinet):
         left_adjment_width = self.get_prompt("Left Adjustment Width").get_var('left_adjment_width')
         right_adjment_width = self.get_prompt("Right Adjustment Width").get_var('right_adjment_width')
 
-        self.carcass = self.add_assembly(self.carcass)
-        self.carcass.set_name('Carcass')
-        self.carcass.loc_x('left_adjment_width',[left_adjment_width])
-        self.carcass.loc_y(value=0)
-        self.carcass.loc_z(value=0)
-        self.carcass.dim_x('width-left_adjment_width-right_adjment_width',[width,left_adjment_width,right_adjment_width])
-        self.carcass.dim_y('depth',[depth])
-        self.carcass.dim_z('height',[height])
+        carcass = self.add_assembly(self.carcass)
+        carcass.set_name('Carcass')
+        carcass.loc_x('left_adjment_width',[left_adjment_width])
+        carcass.loc_y(value=0)
+        carcass.loc_z(value=0)
+        carcass.dim_x('width-left_adjment_width-right_adjment_width',[width,left_adjment_width,right_adjment_width])
+        carcass.dim_y('depth',[depth])
+        carcass.dim_z('height',[height])
+        self.carcasses.append(carcass)
 
         corner_type = self.get_prompt("Corner Type")
         corner_type.set_value("Blind")
 
-        carcass_type = self.carcass.get_prompt("Carcass Type")
+        carcass_type = carcass.get_prompt("Carcass Type")
         self.obj_x.location.x = self.width 
         if carcass_type.get_value() == 'Base':
             self.obj_y.location.y = -props.base_cabinet_depth
