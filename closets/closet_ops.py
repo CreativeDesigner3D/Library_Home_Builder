@@ -578,10 +578,12 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
         box = layout.box()
         drawer_qty = self.insert.get_prompt("Drawer Quantity")
         drawer_height = self.insert.get_prompt("Drawer Height")
+        total_drawer_height = 0
         if drawer_height:
             row = box.row()
             row.label(text="Drawer Height")
             row.prop(drawer_height,'distance_value',text="")
+            total_drawer_height += drawer_height.get_value()
         if drawer_qty:
             row = box.row()
             row.label(text="Drawer Quantity")            
@@ -592,6 +594,7 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
                     row = box.row()
                     row.label(text="Drawer " + str(i) + " Height")                      
                     row.prop(drawer_height,'distance_value',text="")
+                    total_drawer_height += drawer_height.get_value()
 
         hot = self.insert.get_prompt("Half Overlay Top")
         hob = self.insert.get_prompt("Half Overlay Bottom")
@@ -606,6 +609,11 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
         row.prop(hol,'checkbox_value',text="Left") 
         row.prop(hor,'checkbox_value',text="Right") 
 
+        box = layout.box()
+        height = round(pc_unit.meter_to_inch(total_drawer_height),2)
+        row = box.row()
+        row.label(text="Total Drawer Height: ")
+        row.label(text=str(height) + '"')
 
 class home_builder_OT_show_closet_properties(bpy.types.Operator):
     bl_idname = "home_builder.show_closet_properties"
