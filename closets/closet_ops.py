@@ -226,11 +226,19 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             row.label(text="TODO: Implement Closet Placement Options")
 
     def draw_construction_prompts(self,layout,context):
+        kick_height = self.closet.get_prompt("Closet Kick Height")
+        kick_setback = self.closet.get_prompt("Closet Kick Setback")
+        r_bridge = self.closet.get_prompt("Bridge Right")         
         l_bridge = self.closet.get_prompt("Bridge Left")
         r_bridge = self.closet.get_prompt("Bridge Right") 
         l_bridge_width = self.closet.get_prompt("Left Bridge Shelf Width")
         r_bridge_width = self.closet.get_prompt("Right Bridge Shelf Width")         
          
+        row = layout.row()    
+        row.label(text="Toe Kick:")
+        row.prop(kick_height,'distance_value',text="Height")    
+        row.prop(kick_setback,'distance_value',text="Setback")    
+
         row = layout.row()    
         row.prop(l_bridge,'checkbox_value',text="Bridge Left")
         if l_bridge.get_value():
