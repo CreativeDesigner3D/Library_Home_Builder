@@ -1435,7 +1435,7 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 
     def confirm_placement(self,context):
         if self.current_wall:
-            self.cabinet.opening_qty = int(round(self.cabinet.obj_x.location.x / pc_unit.inch(38),0))
+            self.cabinet.opening_qty = max(int(round(self.cabinet.obj_x.location.x / pc_unit.inch(38),0)),1)
 
         if self.placement == 'LEFT':
             self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
@@ -1885,6 +1885,8 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
             self.exclude_objects.append(obj)
 
         self.cabinet.set_name("Single Shelf")
+        self.cabinet.obj_bp['IS_SINGLE_SHELF'] = True
+        self.cabinet.obj_bp['PROMPT_ID'] = 'home_builder.closet_single_shelf_prompts'
         self.set_child_properties(self.cabinet.obj_bp)
 
     def set_child_properties(self,obj):

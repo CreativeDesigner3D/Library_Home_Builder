@@ -482,6 +482,34 @@ class home_builder_OT_closet_shelves_prompts(bpy.types.Operator):
         layout.prop(shelf_qty,'quantity_value',text="Shelf Quantity")
 
 
+class home_builder_OT_closet_single_shelf_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_single_shelf_prompts"
+    bl_label = "Closet Single Shelf Prompts"
+
+    insert = None
+    calculators = []
+
+    def check(self, context):
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=200)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_single_shelf_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
+
+    def draw(self, context):
+        layout = self.layout
+        shelf_qty = self.insert.get_prompt("Shelf Quantity")
+        layout.prop(self.insert.obj_bp,'location',index=2,text="Shelf Location")
+
+
 class home_builder_OT_hanging_rod_prompts(bpy.types.Operator):
     bl_idname = "home_builder.hanging_rod_prompts"
     bl_label = "Hanging Rod Prompts"
@@ -866,6 +894,7 @@ classes = (
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
     home_builder_OT_closet_shelves_prompts,
+    home_builder_OT_closet_single_shelf_prompts,
     home_builder_OT_hanging_rod_prompts,
     home_builder_OT_closet_door_prompts,
     home_builder_OT_closet_drawer_prompts,
