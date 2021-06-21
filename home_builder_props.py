@@ -281,6 +281,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
     wall_height: FloatProperty(name="Wall Height",default=pc_unit.inch(96),subtype='DISTANCE')
     wall_thickness: FloatProperty(name="Wall Thickness",default=pc_unit.inch(6),subtype='DISTANCE')
 
+    default_closet_depth: bpy.props.FloatProperty(name="Default Closet Depth",
+                                                 description="Default depth for closets",
+                                                 default=pc_unit.inch(14.0),
+                                                 unit='LENGTH')
+
     base_cabinet_depth: bpy.props.FloatProperty(name="Base Cabinet Depth",
                                                  description="Default depth for base cabinets",
                                                  default=pc_unit.inch(23.0),
@@ -721,7 +726,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.label(text="General Construction Options:")
             row = box.row(align=True)
             row.label(text="Closet Corner Spacing")
-            row.prop(self,"closet_corner_spacing",text="")            
+            row.prop(self,"closet_corner_spacing",text="")    
+            row = box.row(align=True)
+            row.label(text="Default Closet Depth")
+            row.prop(self,"default_closet_depth",text="")    
     
         if self.default_tabs == 'DOOR_SIZES':
             box = prop_col.box()

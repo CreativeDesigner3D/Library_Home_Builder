@@ -194,9 +194,9 @@ class Closet_Starter(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.obj_x.location.x = pc_unit.inch(96)
-        self.obj_y.location.y = -pc_unit.inch(12)
+        self.obj_y.location.y = -props.default_closet_depth
         self.obj_z.location.z = pc_unit.millimeter(2131)
 
         width = self.obj_x.pyclone.get_var('location.x','width')
