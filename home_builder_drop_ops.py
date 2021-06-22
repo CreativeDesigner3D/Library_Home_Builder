@@ -191,13 +191,13 @@ class home_builder_OT_drop(Operator):
                 bpy.ops.home_builder.place_decoration(filepath=self.filepath)  
 
         if props.library_tabs == 'BATHS':
-            if props.bath_tabs == 'FIXTURES':
+            if props.bath_tabs == 'TOILETS':
                 bpy.ops.home_builder.place_bathroom_fixture(filepath=self.filepath)  
+            if props.bath_tabs == 'BATHS':
+                bpy.ops.home_builder.place_bathroom_fixture(filepath=self.filepath)                  
             if props.bath_tabs == 'VANITIES':
                 obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
                 bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name)
-            if props.bath_tabs == 'MIRRORS':
-                pass
             if props.bath_tabs == 'DECORATIONS':
                 bpy.ops.home_builder.place_decoration(filepath=self.filepath)                    
 

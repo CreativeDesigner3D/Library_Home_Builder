@@ -219,11 +219,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
                           update=update_library_path)
 
     bath_tabs: EnumProperty(name="Bath Tabs",
-                          items=[('FIXTURES',"Fixtures","Show the Bathroom Fixtures"),
+                          items=[('TOILETS',"Toilets","Show the Toilet Fixtures"),
+                                 ('BATHS',"Baths","Show the Bath Fixtures"),
                                  ('VANITIES',"Vanities","Show the Bathroom Vanities"),
-                                 ('MIRRORS',"Mirrors","Show the Bathroom Mirrors"),
                                  ('DECORATIONS',"Decorations","Show the Bathroom Decorations")],
-                          default='FIXTURES',
+                          default='TOILETS',
                           update=update_library_path)
 
     closet_tabs: EnumProperty(name="Closet Tabs",
@@ -1100,9 +1100,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
                 col = box.column(align=True)
                 row = col.row(align=True)
                 row.scale_y = 1.3
-                row.prop_enum(self, "bath_tabs", 'FIXTURES') 
+                row.prop_enum(self, "bath_tabs", 'TOILETS') 
+                row.prop_enum(self, "bath_tabs", 'BATHS')  
                 row.prop_enum(self, "bath_tabs", 'VANITIES') 
-                row.prop_enum(self, "bath_tabs", 'MIRRORS')  
                 row.prop_enum(self, "bath_tabs", 'DECORATIONS')  
 
             if self.library_tabs == 'CLOSETS':
