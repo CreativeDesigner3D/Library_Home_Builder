@@ -1160,6 +1160,10 @@ class Home_Builder_Object_Props(PropertyGroup):
                                                 type=bpy.types.Object,
                                                 description="This is the used to store objects that are connected together.")
 
+    insert_opening: bpy.props.PointerProperty(name="Insert Opening",
+                                                type=bpy.types.Object,
+                                                description="This is the opening the insert is assigned to.")
+
     pointer_name: bpy.props.StringProperty(name="Pointer Name")
 
     material_group_index: bpy.props.IntProperty(name="Material Group Index",update=update_material_group_index)                

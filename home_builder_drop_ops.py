@@ -1669,7 +1669,9 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
             self.cabinet.obj_x.location.x = opening.obj_x.location.x
             self.cabinet.obj_y.location.y = opening.obj_y.location.y
             self.cabinet.obj_z.location.z = opening.obj_z.location.z
-
+            props = home_builder_utils.get_object_props(self.cabinet.obj_bp)
+            props.insert_opening = opening.obj_bp
+            
             opening.obj_bp["IS_FILLED"] = True
             home_builder_utils.copy_drivers(opening.obj_bp,self.cabinet.obj_bp)
             home_builder_utils.copy_drivers(opening.obj_x,self.cabinet.obj_x)

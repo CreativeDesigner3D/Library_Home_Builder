@@ -41,10 +41,10 @@ class HOME_BUILDER_MT_closets(bpy.types.Menu):
         layout.operator('home_builder.closet_prompts',icon='WINDOW')
         layout.operator('home_builder.change_closet_openings',icon='WINDOW')
         layout.operator('home_builder.change_closet_offsets',text="Change Closet Offsets",icon='ARROW_LEFTRIGHT')
-        # col.operator('home_builder.move_cabinet',text="Place Closet",icon='OBJECT_ORIGIN').obj_bp_name = bp.name
         layout.operator('home_builder.free_move_cabinet',text="Grab Closet",icon='VIEW_PAN').obj_bp_name = bp.name                
         layout.operator('home_builder.add_drawer',text="Add Drawer",icon='UGLYPACKAGE')
         layout.separator()
+        layout.operator('home_builder.delete_closet_opening',text="Delete Insert",icon='X')
         layout.operator('home_builder.delete_assembly',text="Delete Closet",icon='X').obj_name = bp.name
 
 def draw_home_builder(self,context):

@@ -819,6 +819,28 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_delete_closet_opening(bpy.types.Operator):
+    bl_idname = "home_builder.delete_closet_opening"
+    bl_label = "Delete Closet Opening"
+
+    insert = None
+
+    def execute(self, context):    
+        self.get_assemblies(context)
+        props = home_builder_utils.get_object_props(self.insert.obj_bp)
+        opening_bp = props.insert_opening
+        pc_utils.delete_object_and_children(self.insert.obj_bp) 
+        del(opening_bp["IS_FILLED"])
+        for child in opening_bp.children:
+            if child.type == 'MESH':
+                child.hide_viewport = False
+        return {'FINISHED'}
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_closet_insert_bp(context.object)
+        self.insert = pc_types.Assembly(bp)
+
+
 class home_builder_OT_splitter_prompts(bpy.types.Operator):
     bl_idname = "home_builder.splitter_prompts"
     bl_label = "Splitter Prompts"
@@ -901,6 +923,7 @@ classes = (
     home_builder_OT_closet_cubby_prompts,
     home_builder_OT_closet_wire_baskets_prompts,
     home_builder_OT_change_closet_openings,
+    home_builder_OT_delete_closet_opening,
     home_builder_OT_splitter_prompts,
 )
 

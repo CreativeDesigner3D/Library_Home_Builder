@@ -57,6 +57,7 @@ class Shelves(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp["IS_SHELVES_INSERT"] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
         
         self.obj_x.location.x = pc_unit.inch(20)
@@ -140,6 +141,7 @@ class Single_Shelf(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp["IS_SHELVES_INSERT"] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
         
         self.obj_x.location.x = pc_unit.inch(20)
@@ -241,6 +243,7 @@ class Vertical_Splitter(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp["IS_SPLITTER_INSERT"] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.splitter_prompts"
         
         self.obj_x.location.x = pc_unit.inch(20)
@@ -357,6 +360,7 @@ class Horizontal_Splitter(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp["IS_SPLITTER_INSERT"] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.splitter_prompts"
         
         self.obj_x.location.x = pc_unit.inch(20)
@@ -412,6 +416,7 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp["IS_SHELVES_INSERT"] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
         
         self.obj_x.location.x = pc_unit.inch(20)
@@ -578,6 +583,7 @@ class Hanging_Rod(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp["IS_HANGING_RODS_BP"] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.hanging_rod_prompts"
 
         self.obj_x.location.x = pc_unit.inch(20)
@@ -717,6 +723,7 @@ class Doors(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp["IS_CLOSET_DOORS_BP"] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_door_prompts"
 
         self.obj_x.location.x = pc_unit.inch(20)
@@ -1076,6 +1083,7 @@ class Drawers(Doors):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp['IS_CLOSET_DRAWERS_BP'] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp['PROMPT_ID'] = 'home_builder.closet_drawer_prompts'
 
         self.obj_x.location.x = pc_unit.inch(20)
@@ -1214,6 +1222,7 @@ class Single_Drawer(Doors):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp['IS_CLOSET_DRAWERS_BP'] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp['PROMPT_ID'] = 'home_builder.closet_drawer_prompts'
 
         self.obj_x.location.x = pc_unit.inch(20)
@@ -1318,6 +1327,7 @@ class Wire_Baskets(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp['IS_WIRE_BASKET_INSERT_BP'] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp['PROMPT_ID'] = 'home_builder.closet_wire_baskets_prompts'
 
         self.obj_x.location.x = pc_unit.inch(20)
@@ -1443,6 +1453,7 @@ class Cubbies(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp["IS_CUBBY_INSERT"] = True
+        self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_cubby_prompts"
         
         self.obj_x.location.x = pc_unit.inch(20)

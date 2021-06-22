@@ -121,6 +121,14 @@ def get_single_shelf_bp(obj):
     elif obj.parent:
         return get_single_shelf_bp(obj.parent)
 
+def get_closet_insert_bp(obj):
+    if not obj:
+        return None    
+    if "IS_CLOSET_INSERT" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_insert_bp(obj.parent)
+
 def get_carcass_bp(obj):
     if not obj:
         return None    
