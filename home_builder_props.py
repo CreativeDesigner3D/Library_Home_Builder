@@ -1120,7 +1120,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
                 row.prop_enum(self, "closet_tabs", 'CLOSET_ACCESSORIES')     
                 row.prop_enum(self, "closet_tabs", 'DECORATIONS') 
 
-            if self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS':
+            if (self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS') or \
+               (self.library_tabs == 'BATHS' and self.bath_tabs == 'VANITIES'):
                 if context.object:
                     obj_bp = pc_utils.get_assembly_bp(context.object)
 

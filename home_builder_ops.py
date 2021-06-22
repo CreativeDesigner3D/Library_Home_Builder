@@ -645,10 +645,10 @@ class home_builder_OT_save_custom_cabinet(Operator):
     def draw(self, context):
         layout = self.layout
 
-        path = home_builder_paths.get_custom_cabinet_library_path()
+        path = self.get_path(context)
         files = os.listdir(path) if os.path.exists(path) else []
 
-        layout.label(text="Cabinet Name: " + self.assembly_name)
+        layout.label(text="Assembly Name: " + self.assembly_name)
 
         if self.assembly_name + ".blend" in files or self.assembly_name + ".png" in files:
             layout.label(text="File already exists",icon="ERROR")
@@ -658,6 +658,13 @@ class home_builder_OT_save_custom_cabinet(Operator):
             obj.select_set(True)
         for child in coll.children:
             self.select_collection_objects(child)
+
+    def get_path(self,context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        if props.library_tabs == 'KITCHENS':
+            return home_builder_paths.get_custom_cabinet_library_path()
+        else:
+            return home_builder_paths.get_vanity_library_path()
 
     def create_assembly_thumbnail_script(self,source_dir,source_file,assembly_name,obj_list):
         file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
@@ -708,13 +715,14 @@ class home_builder_OT_save_custom_cabinet(Operator):
         return obj_list
 
     def get_thumbnail_path(self):
-        return os.path.join(home_builder_paths.get_asset_folder_path(),"KITCHENS","thumbnail.blend")
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        return os.path.join(home_builder_paths.get_asset_folder_path(),props.library_tabs,"thumbnail.blend")
 
     def execute(self, context):
         if bpy.data.filepath == "":
             bpy.ops.wm.save_as_mainfile(filepath=os.path.join(bpy.app.tempdir,"temp_blend.blend"))
                     
-        directory_to_save_to = home_builder_paths.get_custom_cabinet_library_path()
+        directory_to_save_to = self.get_path(context)
 
         obj_list = []
         obj_list = self.get_children_list(self.assembly.obj_bp,obj_list)
