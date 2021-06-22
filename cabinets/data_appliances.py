@@ -2,9 +2,11 @@ import bpy
 import math
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_cabinet_parts
+from . import data_cabinet_exteriors
 from . import data_countertops
 from .. import home_builder_utils
 from .. import home_builder_paths
+from .. import home_builder_pointers
 from . import common_prompts
 from . import cabinet_utils
 from os import path
@@ -138,6 +140,9 @@ class Refrigerator(pc_types.Assembly):
                     self.refrigerator = pc_types.Assembly(child)
 
     def add_refrigerator(self,category="",assembly_name=""):
+        material_thickness = self.get_prompt("Material Thickness").get_var('material_thickness')
+        carcass_height = self.get_prompt("Carcass Height").get_var('carcass_height')
+
         self.refrigerator = pc_types.Assembly(self.add_assembly_from_file(get_refrigerator(category,assembly_name)))
         self.refrigerator.obj_bp["IS_REFRIGERATOR_BP"] = True
         
@@ -145,7 +150,7 @@ class Refrigerator(pc_types.Assembly):
             self.obj_x.location.x = self.refrigerator.obj_x.location.x
         else:
             width = self.obj_x.pyclone.get_var('location.x','width')
-            self.refrigerator.dim_x('width',[width])
+            self.refrigerator.dim_x('width-material_thickness*2',[width,material_thickness])
         
         if self.refrigerator.obj_y.lock_location[1]:
             self.obj_y.location.y = self.refrigerator.obj_y.location.y
@@ -153,18 +158,79 @@ class Refrigerator(pc_types.Assembly):
             depth = self.obj_y.pyclone.get_var('location.y','depth')
             self.refrigerator.dim_y('depth',[depth])
 
-        if self.refrigerator.obj_x.lock_location[2]:
+        if self.refrigerator.obj_z.lock_location[2]:
             self.obj_z.location.z = self.refrigerator.obj_z.location.z
         else:
             height = self.obj_z.pyclone.get_var('location.z','height')
-            self.refrigerator.dim_z('height',[height])   
+            self.refrigerator.dim_z('height-carcass_height',[height,carcass_height])   
 
         y_loc = self.get_prompt("Refrigerator Y Location").get_var('y_loc')
 
         self.refrigerator.loc_y('-y_loc',[y_loc])   
+        self.refrigerator.loc_x('material_thickness',[material_thickness])   
         home_builder_utils.update_assembly_id_props(self.refrigerator,self)
 
-    def draw(self):
+    def add_carcass(self):
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        left_finished_end = self.get_prompt("Left Finished End")
+        right_finished_end = self.get_prompt("Right Finished End")
+        finished_top = self.get_prompt("Finished Top")
+        finished_back = self.get_prompt("Finished Back")
+        finished_bottom = self.get_prompt("Finished Bottom")
+        material_thickness = self.get_prompt("Material Thickness").get_var('material_thickness')
+        carcass_height = self.get_prompt("Carcass Height").get_var('carcass_height')
+
+        left_side = data_cabinet_parts.add_carcass_part(self)
+        left_side.obj_bp["IS_LEFT_SIDE_BP"] = True
+        left_side.set_name('Left Side')
+        left_side.loc_x(value=0)
+        left_side.loc_y(value=0)
+        left_side.loc_z(value=0)
+        left_side.rot_y(value=math.radians(-90))
+        left_side.dim_x('height',[height])
+        left_side.dim_y('depth',[depth])
+        left_side.dim_z('-material_thickness',[material_thickness])
+
+        right_side = data_cabinet_parts.add_carcass_part(self)
+        right_side.obj_bp["IS_RIGHT_SIDE_BP"] = True
+        right_side.set_name('Right Side')
+        right_side.loc_x('width',[width])
+        right_side.loc_y(value=0)
+        right_side.loc_z(value=0)
+        right_side.rot_y(value=math.radians(-90))
+        right_side.dim_x('height',[height])
+        right_side.dim_y('depth',[depth])
+        right_side.dim_z('material_thickness',[material_thickness])
+        home_builder_utils.flip_normals(right_side)
+        home_builder_pointers.update_side_material(left_side,left_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
+        home_builder_pointers.update_side_material(right_side,right_finished_end.get_value(),finished_back.get_value(),finished_top.get_value(),finished_bottom.get_value())
+
+        top = data_cabinet_parts.add_carcass_part(self)
+        top.obj_bp["IS_TOP_BP"] = True
+        top.set_name('Top')
+        top.loc_x('material_thickness',[material_thickness])
+        top.loc_y(value = 0)
+        top.loc_z('height',[height])
+        top.rot_y(value = 0)
+        top.dim_x('width-(material_thickness*2)',[width,material_thickness])
+        top.dim_y('depth',[depth])
+        top.dim_z('-material_thickness',[material_thickness])
+        home_builder_utils.flip_normals(top)
+
+        bottom = data_cabinet_parts.add_carcass_part(self)
+        bottom.obj_bp["IS_BOTTOM_BP"] = True
+        bottom.set_name('Bottom')
+        bottom.loc_x('material_thickness',[material_thickness])
+        bottom.loc_y(value = 0)
+        bottom.loc_z('height-carcass_height',[height,carcass_height])
+        bottom.rot_y(value = 0)
+        bottom.dim_x('width-(material_thickness*2)',[width,material_thickness])
+        bottom.dim_y('depth',[depth])
+        bottom.dim_z('material_thickness',[material_thickness])
+
+    def pre_draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
         self.create_assembly("Refrigerator")
@@ -173,12 +239,37 @@ class Refrigerator(pc_types.Assembly):
         self.obj_y['IS_MIRROR'] = True
 
         self.add_prompt("Refrigerator Y Location",'DISTANCE',pc_unit.inch(1))
+        self.add_prompt("Add Cabinet Carcass",'CHECKBOX',False)
+        self.add_prompt("Carcass Height",'DISTANCE',pc_unit.inch(15))
+        common_prompts.add_carcass_prompts(self)
+        common_prompts.add_thickness_prompts(self)
 
         self.add_refrigerator()
+        self.add_carcass()
 
-        self.obj_x.location.x = pc_unit.inch(36)
+        material_thickness = self.get_prompt('Material Thickness')
+
+        self.obj_x.location.x = pc_unit.inch(36) + material_thickness.get_value()*2
         self.obj_y.location.y = -props.tall_cabinet_depth
-        self.obj_z.location.z = props.tall_cabinet_height        
+        self.obj_z.location.z = props.tall_cabinet_height       
+
+    def draw(self):
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        material_thickness = self.get_prompt("Material Thickness").get_var('material_thickness')
+        carcass_height = self.get_prompt("Carcass Height").get_var('carcass_height')
+
+        doors = data_cabinet_exteriors.Doors()
+        doors.carcass_type = 'Upper'
+        doors.door_swing = 2
+        insert = self.add_assembly(doors)
+        insert.loc_x('material_thickness',[material_thickness])
+        insert.loc_y('depth',[depth])
+        insert.loc_z('height-carcass_height+material_thickness',[height,carcass_height,material_thickness])
+        insert.dim_x('width-(material_thickness*2)',[width,material_thickness])
+        insert.dim_y('fabs(depth)-material_thickness',[depth,material_thickness])
+        insert.dim_z('carcass_height-material_thickness*2',[carcass_height,material_thickness])
 
 
 class Microwave(pc_types.Assembly):

@@ -1683,6 +1683,10 @@ class home_builder_OT_refrigerator_prompts(Appliance_Prompts):
         box = layout.box()
         y_loc = self.product.get_prompt("Refrigerator Y Location")
         y_loc.draw(box,allow_edit=False)
+        add_carcass = self.product.get_prompt("Add Cabinet Carcass")
+        add_carcass.draw(box,allow_edit=False)
+        carcass_height = self.product.get_prompt("Carcass Height")
+        carcass_height.draw(box,allow_edit=False)
 
     def draw(self, context):
         layout = self.layout
