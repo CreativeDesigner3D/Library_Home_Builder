@@ -904,17 +904,17 @@ class Home_Builder_Scene_Props(PropertyGroup):
             cabinet_box.label(text="Cabinets")
             cabinet_col = cabinet_box.column(align=True)
 
-            closet_box = asset_left_col.box()
+            closet_box = asset_right_col.box()
             closet_box.label(text="Closets")
             closet_col = closet_box.column(align=True)
+
+            appliance_box = asset_left_col.box()
+            appliance_box.label(text="Appliances")
+            appliance_col = appliance_box.column(align=True)
 
             wall_box = asset_left_col.box()
             wall_box.label(text="Walls")
             wall_col = wall_box.column(align=True)
-
-            appliance_box = asset_right_col.box()
-            appliance_box.label(text="Appliances")
-            appliance_col = appliance_box.column(align=True)
 
             door_box = asset_right_col.box()
             door_box.label(text="Doors")
