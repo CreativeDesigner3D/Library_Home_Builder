@@ -238,42 +238,27 @@ class Home_Builder_Scene_Props(PropertyGroup):
                           update=update_library_path)
 
     sidebar_tabs: EnumProperty(name="Sidebar Tabs",
-                          items=[('PROPERTIES',"Properties","Properties"),
-                                 ('TOOLS',"Tools","Tools")],
-                          default='PROPERTIES')
-    show_wall_options: bpy.props.BoolProperty(name="Show Wall Options",
-                                           description="Show Wall Options",
-                                           default=False)
-    show_cabinet_tools: bpy.props.BoolProperty(name="Show Cabinet Tools",
-                                           description="Show Cabinet Tools",
-                                           default=False)                                                
+                          items=[('MATERIALS',"Materials","Show Materials Options"),
+                                 ('FRONTS',"Fronts","Show Cabinet Front Selection"),
+                                 ('HARDWARE',"Hardware","Show Hardware Selection"),
+                                 ('BUILD',"Build","Show Build Options")],
+                          default='MATERIALS')
+                                             
     show_cabinet_front_tools: bpy.props.BoolProperty(name="Show Cabinet Front Tools",
                                            description="Show Cabinet Front Tools",
                                            default=False)                                           
     show_hardware_tools: bpy.props.BoolProperty(name="Show Hardware Tools",
                                            description="Show Hardware Tools",
                                            default=False)
-    show_2d_view_options: bpy.props.BoolProperty(name="Show 2D View Options",
-                                           description="Show 2D View Options",
-                                           default=False)
     show_cabinet_placement_options: bpy.props.BoolProperty(name="Show Cabinet Placement Options",
                                            description="Show Cabinet Placement Options",
                                            default=False)
-    show_material_options: bpy.props.BoolProperty(name="Show Material Options",
-                                           description="Show Material Options",
-                                           default=False)     
     show_material_pointer_options: bpy.props.BoolProperty(name="Show Material Pointer Options",
                                            description="Show Material Pointer Options",
-                                           default=False)    
-    show_report_options: bpy.props.BoolProperty(name="Show Report Options",
-                                           description="Show Report Options",
-                                           default=False)                    
+                                           default=False)                  
     show_add_part_options: bpy.props.BoolProperty(name="Show Add Part Options",
                                            description="Show Add Part Options",
                                            default=False)     
-    show_closet_options: bpy.props.BoolProperty(name="Show Closet Options",
-                                           description="Show Closet Options",
-                                           default=False)           
 
     active_category: StringProperty(name="Active Category")
     active_subcategory: StringProperty(name="Active Subcategory")

@@ -59,33 +59,23 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        box = layout.box()
 
         props = home_builder_utils.get_scene_props(context.scene)
-
-        # box = layout.box()
-        # row = box.row()
-        # row.prop(props,'show_2d_view_options',text="2D View Commands",emboss=False,icon='TRIA_DOWN' if props.show_2d_view_options else 'TRIA_RIGHT')            
-        # if props.show_2d_view_options:
-        #     box.operator('home_builder.create_2d_views',text="Create Wall Elevation Views",icon='CON_SIZELIMIT')
-        #     box.operator('home_builder.create_2d_cabinet_views',text="Create Cabinet Views",icon='CON_SIZELIMIT')
-
-        # box = layout.box()
-        # row = box.row()
-        # row.prop(props,'show_report_options',text="Reports",emboss=False,icon='TRIA_DOWN' if props.show_report_options else 'TRIA_RIGHT')            
-        # if props.show_report_options:
-        #     box.operator('home_builder.create_cabinet_list_report',text="Cabinet List Report",icon='TEXT')
-
-        box = layout.box()
+        
         row = box.row()
-        row.prop(props,'show_material_options',text="Material Selection",emboss=False,icon='TRIA_DOWN' if props.show_material_options else 'TRIA_RIGHT')            
-        if props.show_material_options:
+        row.scale_y = 1.3
+        row.prop(props,'sidebar_tabs',expand=True)
+
+        if props.sidebar_tabs == 'MATERIALS':
+
             box.prop(props,'material_category',text="",icon='FILE_FOLDER')  
             box.template_icon_view(props,"material_name",show_labels=True)  
             box.operator('home_builder.assign_material',text="Assign Material",icon='BRUSH_DATA')
 
-        if not context.object:
-            return
-        else:
+            if not context.object:
+                return
+
             row = box.row()
             row.prop(props,'show_material_pointer_options',text="Material Pointers",emboss=False,icon='TRIA_DOWN' if props.show_material_pointer_options else 'TRIA_RIGHT')            
             if props.show_material_pointer_options:
@@ -121,95 +111,26 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
                     row.operator("object.material_slot_select", text="Select")
                     row.operator("object.material_slot_deselect", text="Deselect")  
 
-        obj_bp = pc_utils.get_assembly_bp(context.object)
-        cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
-        exterior_bp = home_builder_utils.get_exterior_bp(context.object)
-        wall_bp = home_builder_utils.get_wall_bp(context.object)
-        closet_bp = home_builder_utils.get_closet_bp(context.object)
-
-        if obj_bp:
-            box = layout.box()
+        if props.sidebar_tabs == 'FRONTS':
+            box.prop(props,'cabinet_door_category',text="",icon='FILE_FOLDER')  
+            box.template_icon_view(props,"cabinet_door_name",show_labels=True)              
             row = box.row()
-            row.prop(props,'show_add_part_options',text="Add Part",emboss=False,icon='TRIA_DOWN' if props.show_add_part_options else 'TRIA_RIGHT')            
-            if props.show_add_part_options:
+            row.operator('home_builder.update_selected_cabinet_doors',text="Update Selected Front",icon='RESTRICT_SELECT_OFF')
+
+        if props.sidebar_tabs == 'HARDWARE':
+            box.prop(props,'pull_category',text="",icon='FILE_FOLDER')  
+            box.template_icon_view(props,"pull_name",show_labels=True)          
+            row = box.row()
+            row.operator('home_builder.update_selected_pulls',text="Update Selected Hardware",icon='RESTRICT_SELECT_OFF')
+
+        if props.sidebar_tabs == 'BUILD':
+            obj_bp = pc_utils.get_assembly_bp(context.object)
+            if obj_bp:
                 row = box.row()
                 row.label(text="Selected Assembly: " + obj_bp.name)
                 row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
-
                 box.prop(props,'selected_part',text="",icon='SNAP_FACE') 
                 box.operator('home_builder.add_part',text="Add Part",icon='BRUSH_DATA').object_name = obj_bp.name
-
-        if wall_bp:
-            box = layout.box()
-            row = box.row()
-            row.prop(props,'show_wall_options',text="Wall Commands",emboss=False,icon='TRIA_DOWN' if props.show_wall_options else 'TRIA_RIGHT')
-            if props.show_wall_options:
-                row = box.row()
-                row.operator('home_builder.wall_prompts',text="Wall Prompts",icon='WINDOW')
-
-        if cabinet_bp:
-            box = layout.box()
-            row = box.row()
-            row.prop(props,'show_cabinet_tools',text="Cabinet Commands",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_tools else 'TRIA_RIGHT')
-            if props.show_cabinet_tools:
-                col = box.column(align=True)
-                col.prop(cabinet_bp,'name')
-                col.separator()
-                col.menu('HOME_BUILDER_MT_change_product_material_group',text="Material Group",icon='COLOR')
-                col.separator()
-                col.operator('home_builder.cabinet_prompts',icon='WINDOW')
-                col.operator('home_builder.move_cabinet',text="Place Cabinet",icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
-                col.operator('home_builder.free_move_cabinet',text="Grab",icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
-                col.operator('home_builder.duplicate_cabinet',text="Duplicate",icon='DUPLICATE').obj_bp_name = cabinet_bp.name  
-                col.operator('home_builder.edit_part',text="Edit Part",icon='DUPLICATE')
-                
-                if exterior_bp:
-                    col.operator('home_builder.add_drawer',text="Add Drawer",icon='UGLYPACKAGE')
-                    col.operator('home_builder.change_cabinet_exterior',text="Change Cabinet Exterior",icon='FILE_REFRESH')
-                
-                col.operator('home_builder.delete_assembly',text="Delete Cabinet",icon='X').obj_name = cabinet_bp.name
-                
-            row = box.row()
-            row.prop(props,'show_cabinet_front_tools',text="Cabinet Fronts",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_front_tools else 'TRIA_RIGHT')
-            if props.show_cabinet_front_tools:
-                box.prop(props,'cabinet_door_category',text="",icon='FILE_FOLDER')  
-                box.template_icon_view(props,"cabinet_door_name",show_labels=True)              
-                row = box.row()
-                row.operator('home_builder.update_selected_cabinet_doors',text="Update Selected Front",icon='RESTRICT_SELECT_OFF')
-
-            row = box.row()
-            row.prop(props,'show_hardware_tools',text="Cabinet Hardware",emboss=False,icon='TRIA_DOWN' if props.show_hardware_tools else 'TRIA_RIGHT')            
-            if props.show_hardware_tools:
-                box.prop(props,'pull_category',text="",icon='FILE_FOLDER')  
-                box.template_icon_view(props,"pull_name",show_labels=True)          
-                row = box.row()
-                row.operator('home_builder.update_selected_pulls',text="Update Selected Hardware",icon='RESTRICT_SELECT_OFF')
-
-        if closet_bp:
-            box = layout.box()
-            row = box.row()
-            row.prop(props,'show_closet_options',text="Closet Commands",emboss=False,icon='TRIA_DOWN' if props.show_closet_options else 'TRIA_RIGHT')
-            if props.show_closet_options:
-                col = box.column(align=True)
-                col.operator('home_builder.closet_prompts',icon='WINDOW')
-                col.operator('home_builder.change_closet_openings',icon='WINDOW')
-                col.operator('home_builder.change_closet_offsets',text="Change Closet Offsets",icon='ARROW_LEFTRIGHT')
-                # col.operator('home_builder.move_cabinet',text="Place Closet",icon='OBJECT_ORIGIN').obj_bp_name = closet_bp.name
-                col.operator('home_builder.free_move_cabinet',text="Grab Closet",icon='VIEW_PAN').obj_bp_name = closet_bp.name                
-                col.operator('home_builder.add_drawer',text="Add Drawer",icon='UGLYPACKAGE')
-                col.separator()
-                col.operator('home_builder.delete_assembly',text="Delete Closet",icon='X').obj_name = closet_bp.name
-
-            row = box.row()
-            row.prop(props,'show_cabinet_front_tools',text="Cabinet Fronts",emboss=False,icon='TRIA_DOWN' if props.show_cabinet_front_tools else 'TRIA_RIGHT')
-            if props.show_cabinet_front_tools:
-                box.prop(props,'cabinet_door_category',text="",icon='FILE_FOLDER')  
-                box.template_icon_view(props,"cabinet_door_name",show_labels=True)              
-                row = box.row()
-                row.operator('home_builder.update_selected_cabinet_doors',text="Update Selected Front",icon='RESTRICT_SELECT_OFF')
-        #TODO
-        #Appliances
-        #Doors and Windows
 
 
 class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
