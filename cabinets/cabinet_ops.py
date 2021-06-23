@@ -1280,10 +1280,16 @@ class home_builder_OT_change_cabinet_exterior(bpy.types.Operator):
             if self.exterior != 'SELECT_EXTERIOR':
                 for exterior in self.selected_exteriors:
                     if self.exterior != 'OPEN':
+                        cabinet_bp = home_builder_utils.get_cabinet_bp(exterior)
+                        cabinet = data_cabinets.Cabinet(cabinet_bp)
                         carcass_bp = home_builder_utils.get_carcass_bp(exterior)
                         carcass = data_cabinet_carcass.Carcass(carcass_bp)
                         new_exterior = data_cabinet_exteriors.get_class_from_name(self.exterior)
-                        carcass.add_insert(new_exterior)
+                        corner_type = cabinet.get_prompt("Corner Type")
+                        if corner_type.get_value() == 'Blind':
+                            carcass.add_blind_exterior(new_exterior)
+                        else:
+                            carcass.add_insert(new_exterior)
                         home_builder_utils.update_object_and_children_id_props(new_exterior.obj_bp,carcass.obj_bp)
                         new_exterior.update_calculators()
                         new_exteriors.append(new_exterior.obj_bp)
