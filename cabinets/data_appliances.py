@@ -217,6 +217,7 @@ class Refrigerator(pc_types.Assembly):
         top.dim_x('width-(material_thickness*2)',[width,material_thickness])
         top.dim_y('depth',[depth])
         top.dim_z('-material_thickness',[material_thickness])
+        home_builder_pointers.update_top_material(top,finished_back.get_value(),finished_top.get_value())
         home_builder_utils.flip_normals(top)
 
         bottom = data_cabinet_parts.add_carcass_part(self)
@@ -229,6 +230,7 @@ class Refrigerator(pc_types.Assembly):
         bottom.dim_x('width-(material_thickness*2)',[width,material_thickness])
         bottom.dim_y('depth',[depth])
         bottom.dim_z('material_thickness',[material_thickness])
+        home_builder_pointers.update_bottom_material(bottom,finished_back.get_value(),finished_top.get_value())
 
     def pre_draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)

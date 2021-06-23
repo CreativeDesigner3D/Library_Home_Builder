@@ -101,7 +101,7 @@ class Carcass(pc_types.Assembly):
         top.dim_x('width-(material_thickness*2)',[width,material_thickness])
         top.dim_y('depth',[depth])
         top.dim_z('-material_thickness',[material_thickness])
-        home_builder_pointers.update_bottom_material(top,finished_back.get_value(),finished_top.get_value())
+        home_builder_pointers.update_top_material(top,finished_back.get_value(),finished_top.get_value())
         return top
 
     def add_cabinet_bottom(self):
