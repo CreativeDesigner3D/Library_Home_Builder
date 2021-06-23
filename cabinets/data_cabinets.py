@@ -436,7 +436,6 @@ class Blind_Corner_Cabinet(Cabinet):
     def draw(self):
         start_time = time.time()
         
-
         self.obj_bp["IS_CABINET_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.cabinet_prompts" 
         self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_cabinet_menu"

@@ -35,7 +35,13 @@ def add_blind_cabinet_prompts(assembly):
     props = home_builder_utils.get_scene_props(bpy.context.scene)
     blind_panel_location = assembly.add_prompt("Blind Panel Location",'COMBOBOX',0,["Left","Right"])
     blind_panel_location.combobox_columns = 2
-    assembly.add_prompt("Blind Panel Width",'DISTANCE',pc_unit.inch(21))  
+    carcass_type = assembly.get_prompt("Carcass Type")
+    if carcass_type.get_value() == 'Base':
+        assembly.add_prompt("Blind Panel Width",'DISTANCE',props.base_cabinet_depth)  
+    elif carcass_type.get_value() == 'Upper':
+        assembly.add_prompt("Blind Panel Width",'DISTANCE',props.upper_cabinet_depth)  
+    else:
+        assembly.add_prompt("Blind Panel Width",'DISTANCE',props.tall_cabinet_depth)  
     assembly.add_prompt("Blind Panel Reveal",'DISTANCE',pc_unit.inch(3))  
 
 def add_drawer_prompts(assembly):

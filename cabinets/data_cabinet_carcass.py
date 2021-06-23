@@ -208,11 +208,12 @@ class Carcass(pc_types.Assembly):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
-        toe_kick_height = self.get_prompt("Toe Kick Height").get_var("toe_kick_height")
+        
         material_thickness = self.get_prompt("Material Thickness").get_var("material_thickness")
         blind_panel_location = self.get_prompt("Blind Panel Location").get_var("blind_panel_location")
         blind_panel_width = self.get_prompt("Blind Panel Width").get_var("blind_panel_width")
         blind_panel_reveal = self.get_prompt("Blind Panel Reveal").get_var("blind_panel_reveal")
+        carcass_type = self.get_prompt("Carcass Type")
 
         blind_panel = data_cabinet_parts.add_double_sided_part(self)
         blind_panel.obj_bp["IS_BLIND_PANEL_BP"] = True
@@ -220,12 +221,17 @@ class Carcass(pc_types.Assembly):
         blind_panel.loc_x('IF(blind_panel_location==0,material_thickness,width-material_thickness-blind_panel_width-blind_panel_reveal)',
                           [blind_panel_location,material_thickness,width,blind_panel_width,blind_panel_reveal])
         blind_panel.loc_y('depth',[depth])
-        blind_panel.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])
         blind_panel.rot_y(value=math.radians(-90))
         blind_panel.rot_z(value=math.radians(90))
-        blind_panel.dim_x('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])
         blind_panel.dim_y('-blind_panel_width-blind_panel_reveal',[depth,blind_panel_width,blind_panel_reveal])
         blind_panel.dim_z('-material_thickness',[material_thickness])
+        if carcass_type.get_value() == "Upper":
+            blind_panel.loc_z('material_thickness',[material_thickness])
+            blind_panel.dim_x('height-(material_thickness*2)',[height,material_thickness])
+        else:
+            toe_kick_height = self.get_prompt("Toe Kick Height").get_var("toe_kick_height")
+            blind_panel.loc_z('toe_kick_height+material_thickness',[toe_kick_height,material_thickness])      
+            blind_panel.dim_x('height-toe_kick_height-(material_thickness*2)',[height,toe_kick_height,material_thickness])  
         return blind_panel
 
     def add_cabinet_sides(self,add_toe_kick_notch):
@@ -688,7 +694,7 @@ class Upper_Advanced(Carcass):
 
         carcass_type = self.get_prompt("Carcass Type")
         carcass_type.set_value("Upper")
-
+        print('CTYPE',carcass_type.get_value())
         self.obj_x.location.x = pc_unit.inch(18) 
         self.obj_y.location.y = -props.upper_cabinet_depth
         self.obj_z.location.z = props.upper_cabinet_height

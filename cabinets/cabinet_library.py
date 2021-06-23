@@ -72,6 +72,8 @@ class Base_1_Door_1_Drawer(data_cabinets.Standard_Cabinet):
 class Base_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
 
     def __init__(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        self.width = props.base_width_blind
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.exterior = data_cabinet_exteriors.Doors()
@@ -120,6 +122,18 @@ class Upper_2_Door(data_cabinets.Standard_Cabinet):
         # self.splitter = None
 
 
+class Upper_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
+
+    def __init__(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        self.width = props.upper_width_blind
+        self.carcass = data_cabinet_carcass.Upper_Advanced()
+        self.carcass.interior = data_cabinet_interiors.Shelves()
+        self.carcass.exterior = data_cabinet_exteriors.Doors()
+        # self.carcass.exterior.cabinet_type = 'Base'
+        self.splitter = None
+
+
 class Base_Drawer(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
@@ -147,6 +161,17 @@ class Tall_Open(data_cabinets.Standard_Cabinet):
         self.carcass.interior.shelf_qty = 3
         self.carcass.exterior = None
 
+
+class Tall_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
+
+    def __init__(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        self.width = props.tall_width_blind
+        self.carcass = data_cabinet_carcass.Tall_Advanced()
+        self.carcass.interior = data_cabinet_interiors.Shelves()
+        self.carcass.exterior = data_cabinet_exteriors.Doors()
+        # self.carcass.exterior.cabinet_type = 'Base'
+        self.splitter = None
 
 # class Tall_Split(data_cabinets.Standard_Cabinet):
 
