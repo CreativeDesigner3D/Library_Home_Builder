@@ -202,7 +202,8 @@ class Tall_Stacked(data_cabinets.Stacked_Cabinet):
         self.top_carcass.exterior = data_cabinet_exteriors.Doors()
         self.bottom_carcass = data_cabinet_carcass.Base_Advanced()
         self.bottom_carcass.interior = data_cabinet_interiors.Shelves()
-        self.bottom_carcass.exterior = data_cabinet_exteriors.Doors()        
+        self.bottom_carcass.exterior = data_cabinet_exteriors.Doors()      
+        self.bottom_carcass.exterior.carcass_type = "Tall"  
 
 class Upper_Stacked(data_cabinets.Stacked_Cabinet):
 

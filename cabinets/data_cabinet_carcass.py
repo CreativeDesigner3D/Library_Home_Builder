@@ -480,16 +480,14 @@ class Carcass(pc_types.Assembly):
         light_obj.pyclone.hide('IF(add_top_light==True,False,True)',[add_top_light])
 
     def add_insert(self,insert):
-        # x_loc_carcass = self.obj_bp.pyclone.get_var('location.x','x_loc_carcass')
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
         material_thickness = self.get_prompt('Material Thickness').get_var('material_thickness')
         carcass_type = self.get_prompt("Carcass Type")
 
-        #ADD NAME OF EXTERIOR TO 
-        #PASS PROMPTS IN CORRECT
-        insert.carcass_type = carcass_type.get_value()
+        if insert.carcass_type == "":
+            insert.carcass_type = carcass_type.get_value()
 
         insert = self.add_assembly(insert)
         insert.loc_x('material_thickness',[material_thickness])
