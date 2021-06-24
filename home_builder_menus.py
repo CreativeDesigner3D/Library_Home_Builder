@@ -54,10 +54,18 @@ class HOME_BUILDER_MT_cabinets(bpy.types.Menu):
     def draw(self, context):
         cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
         exterior_bp = home_builder_utils.get_exterior_bp(context.object)
+        wall_bp = home_builder_utils.get_wall_bp(context.object)
+
         layout = self.layout
         layout.operator('home_builder.cabinet_prompts',icon='WINDOW')
-        layout.operator('home_builder.move_cabinet',text="Place Cabinet",icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
+        layout.separator()
+        props = layout.operator('home_builder.move_cabinet',text="Place Cabinet",icon='OBJECT_ORIGIN')
+        props.obj_bp_name = cabinet_bp.name
+        props.snap_cursor_to_cabinet = True
+        if wall_bp:
+            layout.operator('home_builder.place_wall_cabinet',text="Place Cabinet on Wall",icon='EMPTY_ARROWS')
         layout.operator('home_builder.free_move_cabinet',text="Grab",icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
+        layout.separator()
         layout.operator('home_builder.duplicate_cabinet',text="Duplicate",icon='DUPLICATE').obj_bp_name = cabinet_bp.name  
         layout.operator('home_builder.edit_part',text="Edit Part Shape",icon='EDITMODE_HLT')
         

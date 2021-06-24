@@ -9,6 +9,7 @@ from . import data_cabinets
 from . import data_cabinet_carcass
 from . import data_appliances
 from . import data_cabinet_exteriors
+from . import data_cabinet_parts
 from .. import home_builder_utils
 from .. import home_builder_paths
 from .. import home_builder_enums
@@ -487,7 +488,8 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
     bl_label = "Move Cabinet"
     
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
-    
+    snap_cursor_to_cabinet: bpy.props.BoolProperty(name="Snap Cursor to Cabinet",default=False)
+
     cabinet = None
     selected_cabinet = None
 
@@ -534,6 +536,17 @@ class home_builder_OT_move_cabinet(bpy.types.Operator):
         self.reset_properties()
         self.create_drawing_plane(context)
         self.get_cabinet(context)
+
+        if self.snap_cursor_to_cabinet:
+            if self.obj_bp_name != "":
+                obj_bp = bpy.data.objects[self.obj_bp_name]
+            else:
+                obj_bp = self.cabinet.obj_bp            
+            region = context.region
+            co = location_3d_to_region_2d(region,context.region_data,obj_bp.matrix_world.translation)
+            region_offset = Vector((region.x,region.y))
+            context.window.cursor_warp(*(co + region_offset))  
+
         context.window_manager.modal_handler_add(self)
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
@@ -796,6 +809,19 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                                                 ('INTERIOR',"Interior","Interior Options"),
                                                 ('SPLITTER',"Openings","Openings Options")])
 
+    position: bpy.props.EnumProperty(name="Position",
+                                     items=[('OFF',"Off","Turn off automatic positioning"),
+                                            ('LEFT',"Left","Bump Left"),
+                                            ('RIGHT',"Right","Bump Right"),
+                                            ('FILL',"Fill","Fill Area")])
+
+    anchor: bpy.props.EnumProperty(name="Anchor",
+                                   items=[('TOP',"Top","Anchor Top"),
+                                          ('BOTTOM',"Bottom","Anchor Bottom")])
+
+    default_width = 0
+    selected_location = 0
+
     cabinet = None
 
     sink_changed: bpy.props.BoolProperty(name="Sink Changed",default=False)
@@ -837,6 +863,24 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.cabinet = None
 
     def update_product_size(self):
+        # wall_bp = home_builder_utils.get_wall_bp(self.cabinet.obj_bp)
+        # if wall_bp:
+        #     left_x = home_builder_utils.get_left_collision_location(self.cabinet)
+        #     right_x = home_builder_utils.get_right_collision_location(self.cabinet)
+        #     if self.position == 'OFF':
+        #         self.cabinet.obj_bp.location.x = self.selected_location
+        #         self.cabinet.obj_x.location.x = self.width
+        #     else:
+        #         self.cabinet.obj_bp.location.x = self.selected_location
+        #         self.cabinet.obj_x.location.x = self.default_width
+        #         if self.position == 'LEFT':
+        #             self.cabinet.obj_bp.location.x = left_x
+        #         elif self.position == 'RIGHT':
+        #             self.cabinet.obj_bp.location.x = right_x - self.cabinet.obj_x.location.x
+        #         else:
+        #             self.cabinet.obj_bp.location.x = left_x
+        #             self.cabinet.obj_x.location.x = right_x - left_x
+
         if 'IS_MIRROR' in self.cabinet.obj_x and self.cabinet.obj_x['IS_MIRROR']:
             self.cabinet.obj_x.location.x = -self.width
         else:
@@ -989,6 +1033,8 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.depth = math.fabs(self.cabinet.obj_y.location.y)
         self.height = math.fabs(self.cabinet.obj_z.location.z)
         self.width = math.fabs(self.cabinet.obj_x.location.x)
+        self.selected_location = self.cabinet.obj_bp.location.x
+        self.default_width = self.cabinet.obj_x.location.x
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
 
@@ -1106,10 +1152,11 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         props = home_builder_utils.get_scene_props(context.scene)
         row = box.row()
         row.alignment = 'LEFT'
-        row.prop(props,'show_cabinet_placement_options',emboss=False,icon='TRIA_DOWN' if props.show_cabinet_tools else 'TRIA_RIGHT')
+        row.prop(props,'show_cabinet_placement_options',emboss=False,icon='TRIA_DOWN' if props.show_cabinet_placement_options else 'TRIA_RIGHT')
         if props.show_cabinet_placement_options:
             row = box.row()
-            row.label(text="TODO: Implement Cabinet Placement Options")
+            row.label(text="Position Cabinet:")
+            row.prop(self,'position',expand=True)
 
     def draw_carcass_prompts(self,layout,context):
         for carcass in self.cabinet.carcasses:
@@ -1258,6 +1305,236 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                     box = prompt_box.box()
                     box.label(text=carcass.interior.obj_bp.name)
                     carcass.interior.draw_prompts(box,context)
+
+
+class home_builder_OT_place_wall_cabinet(bpy.types.Operator):
+    bl_idname = "home_builder.place_wall_cabinet"
+    bl_label = "Place Wall Cabinet"
+
+    cabinet_name: bpy.props.StringProperty(name="Cabinet Name",default="")
+    
+    allow_fills: bpy.props.BoolProperty(name="Allow Fills",default=True)
+    allow_quantities: bpy.props.BoolProperty(name="Allow Quantities",default=True)
+
+    width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
+    height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
+    depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
+
+    position: bpy.props.EnumProperty(name="Position",
+                                     items=[('SELECTED_POINT',"Selected Point","Turn off automatic positioning"),
+                                            ('FILL',"Fill","Fill"),
+                                            ('FILL_LEFT',"Fill Left","Fill Left"),
+                                            ('LEFT',"Left","Bump Left"),
+                                            ('CENTER',"Center","Center"),
+                                            ('RIGHT',"Right","Bump Right"),
+                                            ('FILL_RIGHT',"Fill Right","Fill Right")],
+                                     default='SELECTED_POINT')
+
+    quantity: bpy.props.IntProperty(name="Quantity",default=1)
+    left_offset: bpy.props.FloatProperty(name="Left Offset", default=0,subtype='DISTANCE')
+    right_offset: bpy.props.FloatProperty(name="Right Offset", default=0,subtype='DISTANCE')
+
+    default_width = 0
+    selected_location = 0
+
+    cabinet = None
+    qty_cage = None
+
+    @classmethod
+    def poll(cls, context):
+        if not context.object:
+            return False
+        obj_bp = home_builder_utils.get_wall_bp(context.object)
+        if obj_bp:
+            return True
+        else:
+            return False
+
+    def reset_variables(self):
+        self.quantity = 1
+        self.cabinet = None
+        self.position = 'SELECTED_POINT'
+        self.qty_cage = None
+
+    def set_product_defaults(self):
+        self.cabinet.obj_bp.location.x = self.selected_location + self.left_offset
+        self.cabinet.obj_x.location.x = self.default_width - (self.left_offset + self.right_offset)
+
+    def select_obj_and_children(self,obj):
+        obj.hide_viewport = False
+        obj.select_set(True)
+        for child in obj.children:
+            obj.hide_viewport = False
+            child.select_set(True)
+            self.select_obj_and_children(child)
+
+    def hide_empties_and_boolean_meshes(self,obj):
+        if obj.type == 'EMPTY' or obj.hide_render:
+            obj.hide_viewport = True
+        for child in obj.children:
+            self.hide_empties_and_boolean_meshes(child)
+    
+    def copy_cabinet(self,context,cabinet):
+        bpy.ops.object.select_all(action='DESELECT')
+        self.select_obj_and_children(cabinet.obj_bp)
+        bpy.ops.object.duplicate_move()
+        obj = context.active_object
+        cabinet_bp = home_builder_utils.get_cabinet_bp(obj)
+        return pc_types.Assembly(cabinet_bp)
+
+    def check(self, context):
+        # wall_bp = home_builder_utils.get_wall_bp(self.cabinet.obj_bp)
+        # if wall_bp:
+        left_x = home_builder_utils.get_left_collision_location(self.cabinet)
+        right_x = home_builder_utils.get_right_collision_location(self.cabinet)
+        offsets = self.left_offset + self.right_offset
+        self.set_product_defaults()
+        if self.position == 'FILL':
+            self.cabinet.obj_bp.location.x = left_x + self.left_offset
+            self.cabinet.obj_x.location.x = (right_x - left_x - offsets) / self.quantity
+        if self.position == 'FILL_LEFT':
+            self.cabinet.obj_bp.location.x = left_x + self.left_offset
+            self.cabinet.obj_x.location.x = (self.default_width + (self.selected_location - left_x) - offsets) / self.quantity
+        if self.position == 'LEFT':
+            # if self.cabinet.obj_bp.mv.placement_type == 'Corner':
+            #     self.cabinet.obj_bp.rotation_euler.z = math.radians(0)
+            self.cabinet.obj_bp.location.x = left_x + self.left_offset
+            self.cabinet.obj_x.location.x = self.default_width
+        if self.position == 'CENTER':
+            self.cabinet.obj_x.location.x = self.default_width
+            self.cabinet.obj_bp.location.x = left_x + (right_x - left_x)/2 - ((self.cabinet.obj_x.location.x/2) * self.quantity)
+        if self.position == 'RIGHT':
+            # if self.cabinet.obj_bp.mv.placement_type == 'Corner':
+            #     self.cabinet.obj_bp.rotation_euler.z = math.radians(-90)
+            self.cabinet.obj_x.location.x = self.default_width
+            self.cabinet.obj_bp.location.x = (right_x - self.cabinet.obj_x.location.x) - self.right_offset
+        if self.position == 'FILL_RIGHT':
+            self.cabinet.obj_bp.location.x = self.selected_location + self.left_offset
+            self.cabinet.obj_x.location.x = ((right_x - self.selected_location) - offsets) / self.quantity
+        self.update_quantity()
+        return True
+
+    def create_qty_cage(self):
+        width = self.cabinet.obj_x.pyclone.get_var('location.x','width')
+        height = self.cabinet.obj_z.pyclone.get_var('location.z','height')
+        depth = self.cabinet.obj_y.pyclone.get_var('location.y','depth')
+
+        self.qty_cage = data_cabinet_parts.add_cage(self.cabinet)
+        self.qty_cage.obj_bp["IS_REFERENCE"] = True
+        self.qty_cage.loc_x(value = 0)
+        self.qty_cage.loc_y(value = 0)
+        self.qty_cage.loc_z(value = 0)
+        self.qty_cage.rot_x(value = 0)
+        self.qty_cage.rot_y(value = 0)
+        self.qty_cage.rot_z(value = 0)      
+        self.qty_cage.dim_x('width',[width])
+        self.qty_cage.dim_y('depth',[depth])
+        self.qty_cage.dim_z('height',[height])   
+    
+    def update_quantity(self):
+        qty = self.qty_cage.get_prompt("Quantity")
+        a_left = self.qty_cage.get_prompt("Array Left")
+        qty.set_value(self.quantity)
+        if self.position == 'RIGHT':
+            a_left.set_value(True)
+        else:
+            a_left.set_value(False)
+
+    def execute(self, context):        
+        new_products = []  
+        previous_product = None
+        width = self.cabinet.obj_x.location.x 
+        pc_utils.delete_object_and_children(self.qty_cage.obj_bp)  
+        if self.quantity > 1:
+            for i in range(self.quantity - 1):
+                if previous_product:
+                    new_product = self.copy_cabinet(context,previous_product)
+                else:
+                    new_product = self.copy_cabinet(context,self.cabinet)
+                if self.position == 'RIGHT':
+                    new_product.obj_bp.location.x -= width
+                else:
+                    new_product.obj_bp.location.x += width
+                new_products.append(new_product)
+                previous_product = new_product
+
+        for new_p in new_products:
+            self.hide_empties_and_boolean_meshes(new_p.obj_bp)
+            home_builder_utils.show_assembly_xyz(new_p)
+
+        self.hide_empties_and_boolean_meshes(self.cabinet.obj_bp)
+        home_builder_utils.show_assembly_xyz(self.cabinet)
+
+        return {'FINISHED'}
+
+    def get_calculators(self,obj):
+        for cal in obj.pyclone.calculators:
+            self.calculators.append(cal)
+        for child in obj.children:
+            self.get_calculators(child)
+
+    def invoke(self,context,event):
+        self.reset_variables()
+        self.get_assemblies(context)
+        self.create_qty_cage()
+        self.cabinet_name = self.cabinet.obj_bp.name
+        self.depth = math.fabs(self.cabinet.obj_y.location.y)
+        self.height = math.fabs(self.cabinet.obj_z.location.z)
+        self.width = math.fabs(self.cabinet.obj_x.location.x)
+        self.selected_location = self.cabinet.obj_bp.location.x
+        self.default_width = self.cabinet.obj_x.location.x
+        bpy.ops.object.select_all(action='DESELECT')
+        for child in self.qty_cage.obj_bp.children:
+            if child.type == 'MESH':
+                child.select_set(True)          
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=400)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_cabinet_bp(context.object)
+        self.cabinet = data_cabinets.Cabinet(bp)
+
+    def draw(self, context):
+        layout = self.layout
+
+        #IF CORNER ALLOW FILLS FALSE
+
+        if self.cabinet.obj_x.lock_location[0]:
+            self.allow_fills = False
+
+        box = layout.box()
+        row = box.row(align=True)
+        row.label(text="Position Options:",icon='EMPTY_ARROWS')
+        row = box.row(align=False)
+        row.prop_enum(self,'position', 'SELECTED_POINT',icon='RESTRICT_SELECT_OFF',text="Selected Point")
+        if self.allow_fills:
+            row.prop_enum(self,'position', 'FILL',icon='ARROW_LEFTRIGHT',text="Fill")
+        row = box.row(align=True)
+        if self.allow_fills:
+            row.prop_enum(self, "position", 'FILL_LEFT', icon='REW', text="Fill Left") 
+        row.prop_enum(self, "position", 'LEFT', icon='TRIA_LEFT', text="Left") 
+        row.prop_enum(self, "position", 'CENTER', icon='TRIA_DOWN', text="Center")
+        row.prop_enum(self, "position", 'RIGHT', icon='TRIA_RIGHT', text="Right") 
+        if self.allow_fills:  
+            row.prop_enum(self, "position", 'FILL_RIGHT', icon='FF', text="Fill Right")
+        if self.allow_quantities:
+            row = box.row(align=True)
+            row.prop(self,'quantity')
+        split = box.split(factor=0.5)
+        col = split.column(align=True)
+        col.label(text="Dimensions:")
+        if self.position in {'SELECTED_POINT','LEFT','RIGHT','CENTER'}:
+            col.prop(self,"width",text="Width")
+        else:
+            col.label(text='Width: ' + str(round(pc_unit.meter_to_active_unit(self.cabinet.obj_x.location.x),4)))
+        col.prop(self.cabinet.obj_y,"location",index=1,text="Depth")
+        col.prop(self.cabinet.obj_z,"location",index=2,text="Height")
+
+        col = split.column(align=True)
+        col.label(text="Offset:")
+        col.prop(self,"left_offset",text="Left")
+        col.prop(self,"right_offset",text="Right")
+        col.prop(self.cabinet.obj_bp,"location",index=2,text="Height From Floor")
 
 
 class home_builder_OT_change_cabinet_exterior(bpy.types.Operator):
@@ -1460,7 +1737,6 @@ class home_builder_OT_range_prompts(Appliance_Prompts):
             self.depth = math.fabs(self.product.range_appliance.obj_y.location.y)
             self.height = self.product.range_appliance.obj_z.location.z
             context.view_layer.objects.active = self.product.obj_bp
-            home_builder_utils.hide_empties(self.product.obj_bp)
             self.get_assemblies(context)
 
     def update_range_hood(self,context):
@@ -1473,7 +1749,6 @@ class home_builder_OT_range_prompts(Appliance_Prompts):
 
             if self.add_range_hood:
                 self.product.add_range_hood(self.range_hood_category,self.range_hood_name)
-                home_builder_utils.hide_empties(self.product.obj_bp)
             context.view_layer.objects.active = self.product.obj_bp
             self.get_assemblies(context)
 
@@ -1897,6 +2172,7 @@ class home_builder_OT_free_move_cabinet(bpy.types.Operator):
 
 classes = (
     home_builder_OT_cabinet_prompts,
+    home_builder_OT_place_wall_cabinet,
     home_builder_OT_change_cabinet_exterior,
     home_builder_OT_range_prompts,
     home_builder_OT_dishwasher_prompts,

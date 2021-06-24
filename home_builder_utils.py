@@ -322,3 +322,111 @@ def copy_drivers(old_obj,new_obj):
                             newtarget.transform_space = target.transform_space
                             newtarget.transform_type = target.transform_type
                             newtarget.data_path = target.data_path
+
+def has_height_collision(active_assembly,assembly):
+    cab1_z_1 = active_assembly.obj_bp.matrix_world[2][3]
+    cab1_z_2 = active_assembly.obj_z.matrix_world[2][3]
+    cab2_z_1 = assembly.obj_bp.matrix_world[2][3]
+    cab2_z_2 = assembly.obj_z.matrix_world[2][3]
+    
+    if cab1_z_1 >= cab2_z_1 and cab1_z_1 <= cab2_z_2:
+        return True
+        
+    if cab1_z_2 >= cab2_z_1 and cab1_z_2 <= cab2_z_2:
+        return True
+
+    if cab2_z_1 >= cab1_z_1 and cab2_z_1 <= cab1_z_2:
+        return True
+        
+    if cab2_z_2 >= cab1_z_1 and cab2_z_2 <= cab1_z_2:
+        return True
+
+def get_cabinet_placement_location(cabinet,sel_cabinet,mouse_location):
+    sel_cabinet_world_loc = (sel_cabinet.obj_bp.matrix_world[0][3],
+                                sel_cabinet.obj_bp.matrix_world[1][3],
+                                sel_cabinet.obj_bp.matrix_world[2][3])
+    
+    sel_cabinet_x_world_loc = (sel_cabinet.obj_x.matrix_world[0][3],
+                               sel_cabinet.obj_x.matrix_world[1][3],
+                               sel_cabinet.obj_x.matrix_world[2][3])
+
+    dist_to_bp = pc_utils.calc_distance(mouse_location,sel_cabinet_world_loc)
+    dist_to_x = pc_utils.calc_distance(mouse_location,sel_cabinet_x_world_loc)
+
+    if has_height_collision(cabinet,sel_cabinet):
+        if dist_to_bp < dist_to_x:
+            return 'LEFT'
+        else:
+            return 'RIGHT'
+    else:
+        return 'CENTER'
+
+def get_connected_left_wall(current_wall):
+    for con in current_wall.obj_bp.constraints:
+        if con.type == 'COPY_LOCATION':
+            target = con.target
+            wall_bp = get_wall_bp(target)
+            if wall_bp:
+                return pc_types.Assembly(wall_bp)
+
+def get_connected_right_wall(current_wall):
+    props = get_object_props(current_wall.obj_x)
+    if props.connected_object:
+        wall_bp = get_wall_bp(props.connected_object)
+        if wall_bp:
+            return pc_types.Assembly(wall_bp)    
+
+def get_wall_assemblies(wall):
+    """ This returns a sorted list of all of the assemblies base points
+        parented to the wall
+    """
+    list_obj_bp = []
+    for child in wall.obj_bp.children:
+        if 'IS_ASSEMBLY_BP' in child:
+            list_obj_bp.append(child)
+    list_obj_bp.sort(key=lambda obj: obj.location.x, reverse=False)
+    return list_obj_bp
+
+def get_left_collision_location(assembly):
+    wall = pc_types.Assembly(get_wall_bp(assembly.obj_bp))
+    list_obj_bp = get_wall_assemblies(wall)
+    list_obj_left_bp = []
+    for index, obj_bp in enumerate(list_obj_bp):
+        if obj_bp.name == assembly.obj_bp.name:
+            list_obj_left_bp = list_obj_bp[:index]
+            break
+    list_obj_left_bp.reverse()
+    for obj_bp in list_obj_left_bp:
+        prev_assembly = pc_types.Assembly(obj_bp)
+        if has_height_collision(assembly,prev_assembly):
+            return prev_assembly.obj_bp.location.x + prev_assembly.obj_x.location.x
+        #TODO:CHECK NEXT WALL
+    
+    return 0
+    
+def get_right_collision_location(assembly):
+    wall = pc_types.Assembly(get_wall_bp(assembly.obj_bp))   
+    list_obj_bp = get_wall_assemblies(wall)
+    list_obj_right_bp = []   
+    for index, obj_bp in enumerate(list_obj_bp):
+        if obj_bp.name == assembly.obj_bp.name:
+            list_obj_right_bp = list_obj_bp[index + 1:]
+            break  
+    for obj_bp in list_obj_right_bp:
+        next_assembly = pc_types.Assembly(obj_bp)
+        if has_height_collision(assembly,next_assembly):
+            return obj_bp.location.x - math.sin(next_assembly.obj_bp.rotation_euler.z) * next_assembly.obj_y.location.y   
+        #TODO:CHECK NEXT WALL
+    return wall.obj_x.location.x   
+
+def show_assembly_xyz(assembly):
+    ''' For some reason matrix world doesn't evaluate correctly
+        when placing cabinets next to this if object is hidden
+        For now set x, y, z object to not be hidden.
+    '''
+    assembly.obj_x.hide_viewport = False
+    assembly.obj_y.hide_viewport = False
+    assembly.obj_z.hide_viewport = False
+    assembly.obj_x.empty_display_size = .001
+    assembly.obj_y.empty_display_size = .001
+    assembly.obj_z.empty_display_size = .001    
