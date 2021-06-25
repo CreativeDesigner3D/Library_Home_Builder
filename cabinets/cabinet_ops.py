@@ -815,13 +815,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
                                             ('RIGHT',"Right","Bump Right"),
                                             ('FILL',"Fill","Fill Area")])
 
-    anchor: bpy.props.EnumProperty(name="Anchor",
-                                   items=[('TOP',"Top","Anchor Top"),
-                                          ('BOTTOM',"Bottom","Anchor Bottom")])
-
     default_width = 0
-    selected_location = 0
-
     cabinet = None
 
     sink_changed: bpy.props.BoolProperty(name="Sink Changed",default=False)
@@ -863,28 +857,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.cabinet = None
 
     def update_product_size(self):
-        # wall_bp = home_builder_utils.get_wall_bp(self.cabinet.obj_bp)
-        # if wall_bp:
-        #     left_x = home_builder_utils.get_left_collision_location(self.cabinet)
-        #     right_x = home_builder_utils.get_right_collision_location(self.cabinet)
-        #     if self.position == 'OFF':
-        #         self.cabinet.obj_bp.location.x = self.selected_location
-        #         self.cabinet.obj_x.location.x = self.width
-        #     else:
-        #         self.cabinet.obj_bp.location.x = self.selected_location
-        #         self.cabinet.obj_x.location.x = self.default_width
-        #         if self.position == 'LEFT':
-        #             self.cabinet.obj_bp.location.x = left_x
-        #         elif self.position == 'RIGHT':
-        #             self.cabinet.obj_bp.location.x = right_x - self.cabinet.obj_x.location.x
-        #         else:
-        #             self.cabinet.obj_bp.location.x = left_x
-        #             self.cabinet.obj_x.location.x = right_x - left_x
-
-        if 'IS_MIRROR' in self.cabinet.obj_x and self.cabinet.obj_x['IS_MIRROR']:
-            self.cabinet.obj_x.location.x = -self.width
-        else:
-            self.cabinet.obj_x.location.x = self.width
+        self.cabinet.obj_x.location.x = self.width
 
         if 'IS_MIRROR' in self.cabinet.obj_y and self.cabinet.obj_y['IS_MIRROR']:
             self.cabinet.obj_y.location.y = -self.depth
@@ -1033,7 +1006,6 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         self.depth = math.fabs(self.cabinet.obj_y.location.y)
         self.height = math.fabs(self.cabinet.obj_z.location.z)
         self.width = math.fabs(self.cabinet.obj_x.location.x)
-        self.selected_location = self.cabinet.obj_bp.location.x
         self.default_width = self.cabinet.obj_x.location.x
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
@@ -1137,7 +1109,7 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
             col.label(text="Location X:")
             col.label(text="Location Y:")
             col.label(text="Location Z:")
-        
+            
             col = row.column(align=True)
             col.prop(self.cabinet.obj_bp,'location',text="")
         
@@ -1149,14 +1121,17 @@ class home_builder_OT_cabinet_prompts(bpy.types.Operator):
         row.label(text='Height from Floor:')
         row.prop(self.cabinet.obj_bp,'location',index=2,text="")          
 
-        props = home_builder_utils.get_scene_props(context.scene)
-        row = box.row()
-        row.alignment = 'LEFT'
-        row.prop(props,'show_cabinet_placement_options',emboss=False,icon='TRIA_DOWN' if props.show_cabinet_placement_options else 'TRIA_RIGHT')
-        if props.show_cabinet_placement_options:
-            row = box.row()
-            row.label(text="Position Cabinet:")
-            row.prop(self,'position',expand=True)
+        # props = home_builder_utils.get_scene_props(context.scene)
+        # row = box.row()
+        # row.alignment = 'LEFT'
+        # row.prop(props,'show_cabinet_placement_options',emboss=False,icon='TRIA_DOWN' if props.show_cabinet_placement_options else 'TRIA_RIGHT')
+        # if props.show_cabinet_placement_options:
+        #     row = box.row()
+        #     row.label(text="Anchor X:")
+        #     row.prop(self,'anchor_x',expand=True)
+        #     row = box.row()
+        #     row.label(text="Anchor Z:")
+        #     row.prop(self,'anchor_z',expand=True)            
 
     def draw_carcass_prompts(self,layout,context):
         for carcass in self.cabinet.carcasses:
@@ -1399,14 +1374,14 @@ class home_builder_OT_place_wall_cabinet(bpy.types.Operator):
             # if self.cabinet.obj_bp.mv.placement_type == 'Corner':
             #     self.cabinet.obj_bp.rotation_euler.z = math.radians(0)
             self.cabinet.obj_bp.location.x = left_x + self.left_offset
-            self.cabinet.obj_x.location.x = self.default_width
+            self.cabinet.obj_x.location.x = self.width
         if self.position == 'CENTER':
-            self.cabinet.obj_x.location.x = self.default_width
+            self.cabinet.obj_x.location.x = self.width
             self.cabinet.obj_bp.location.x = left_x + (right_x - left_x)/2 - ((self.cabinet.obj_x.location.x/2) * self.quantity)
         if self.position == 'RIGHT':
             # if self.cabinet.obj_bp.mv.placement_type == 'Corner':
             #     self.cabinet.obj_bp.rotation_euler.z = math.radians(-90)
-            self.cabinet.obj_x.location.x = self.default_width
+            self.cabinet.obj_x.location.x = self.width
             self.cabinet.obj_bp.location.x = (right_x - self.cabinet.obj_x.location.x) - self.right_offset
         if self.position == 'FILL_RIGHT':
             self.cabinet.obj_bp.location.x = self.selected_location + self.left_offset

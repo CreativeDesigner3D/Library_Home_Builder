@@ -217,13 +217,13 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         # row.label(text='Height from Floor:')
         # row.prop(self.closet.obj_bp,'location',index=2,text="")          
 
-        props = home_builder_utils.get_scene_props(context.scene)
-        row = box.row()
-        row.alignment = 'LEFT'
-        row.prop(props,'show_cabinet_placement_options',emboss=False,icon='TRIA_DOWN' if props.show_cabinet_tools else 'TRIA_RIGHT')
-        if props.show_cabinet_placement_options:
-            row = box.row()
-            row.label(text="TODO: Implement Closet Placement Options")
+        # props = home_builder_utils.get_scene_props(context.scene)
+        # row = box.row()
+        # row.alignment = 'LEFT'
+        # row.prop(props,'show_cabinet_placement_options',emboss=False,icon='TRIA_DOWN' if props.show_cabinet_tools else 'TRIA_RIGHT')
+        # if props.show_cabinet_placement_options:
+        #     row = box.row()
+        #     row.label(text="TODO: Implement Closet Placement Options")
 
     def draw_construction_prompts(self,layout,context):
         kick_height = self.closet.get_prompt("Closet Kick Height")
