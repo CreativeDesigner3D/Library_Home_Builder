@@ -4,6 +4,8 @@ import math
 from .pc_lib import pc_types, pc_unit, pc_utils
 from . import home_builder_paths
 
+addon_version = ()
+
 def get_preferences(context):
     preferences = context.preferences
     return preferences.addons[__name__].preferences

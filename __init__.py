@@ -6,6 +6,7 @@ sys.path.append(PATH)
 
 import bpy
 import inspect
+from . import addon_updater_ops
 from .pc_lib import pc_utils
 from . import home_builder_props
 from . import home_builder_ui
@@ -48,6 +49,7 @@ def load_pointers(scene=None):
     home_builder_pointers.update_pointer_properties()
 
 def register():
+    addon_updater_ops.register(bl_info)
     home_builder_props.register()
     home_builder_ui.register()
     home_builder_ops.register()
@@ -57,6 +59,7 @@ def register():
     cabinet_ops.register()
     closet_ops.register()
     door_window_ops.register()
+    home_builder_utils.addon_version = bl_info['version']
 
     load_library_on_file_load()
     bpy.app.handlers.load_post.append(load_library_on_file_load)

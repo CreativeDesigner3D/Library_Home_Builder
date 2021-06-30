@@ -22,6 +22,7 @@ from . import home_builder_utils
 from . import home_builder_enums
 from . import home_builder_paths
 from . import home_builder_pointers
+from . import addon_updater_ops
 from .walls import data_walls
 from .doors_windows import door_window_library
 from .cabinets import cabinet_library
@@ -63,9 +64,42 @@ class Home_Builder_AddonPreferences(AddonPreferences):
         subtype='FILE_PATH',
     )
 
+    auto_check_update: bpy.props.BoolProperty(
+        name="Auto-check for Update",
+        description="If enabled, auto-check for updates using an interval",
+        default=False)
+
+    updater_interval_months: bpy.props.IntProperty(
+        name='Months',
+        description="Number of months between checking for updates",
+        default=0,
+        min=0)
+
+    updater_interval_days: bpy.props.IntProperty(
+        name='Days',
+        description="Number of days between checking for updates",
+        default=7,
+        min=0,
+        max=31)
+
+    updater_interval_hours: bpy.props.IntProperty(
+        name='Hours',
+        description="Number of hours between checking for updates",
+        default=0,
+        min=0,
+        max=23)
+
+    updater_interval_minutes: bpy.props.IntProperty(
+        name='Minutes',
+        description="Number of minutes between checking for updates",
+        default=0,
+        min=0,
+        max=59)
+
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "assets_filepath")
+        addon_updater_ops.update_settings_ui(self, context)
 
 
 class Home_Builder_Window_Manager_Props(PropertyGroup):
@@ -99,15 +133,9 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
         filename, ext = os.path.splitext(file)   
         spec = importlib.util.spec_from_file_location("module.name",os.path.join(directory,filename+".py"))
         foo = importlib.util.module_from_spec(spec)
-        # print('MY VAR',foo.my_var)
-        # print('FOO',foo)
         spec.loader.exec_module(foo)
         c = foo.Item()
         c.name()
-        # print('MY VAR',foo.my_var)
-        # print('SCRIPT',script)
-        # print("SCRIPT_PATH",os.path.join(directory,filename+".py"))
-        # print('GET ASSET',filepath)
         #TODO:GET RIGHT CLASS
         for asset in self.assets:
             if asset.library_path in filepath and filename == asset.name:
@@ -1032,14 +1060,26 @@ class Home_Builder_Scene_Props(PropertyGroup):
         return False
 
     def draw_filebrowser_header(self,layout,context):
+        addon_updater_ops.check_for_update_background()
+
         main_box = layout.box()
         col = main_box.column()
 
+        version = home_builder_utils.addon_version
         row = col.row()
         row.scale_y = 1.3       
-        row.label(text="Home Builder v0.1",icon='HOME') 
+        row.label(text="Home Builder",icon='HOME') 
         row.separator()
         row.popover(panel="HOME_BUILDER_PT_library_settings",text="Settings",icon='SETTINGS')
+
+        row = col.row()
+        row.label(text="Version " + str(version[0]) + "." + str(version[1])+ "." + str(version[2]),icon='BLANK1')
+        if addon_updater_ops.updater.update_ready == True:
+            row.separator()
+            addon_updater_ops.update_notice_box_ui(self,context,row)        
+        else:
+            row.separator()
+            row.operator('home_builder.updater_check_now',text="Check for Updates")
 
         if self.library_path_not_correct(context):
             main_box.operator('home_builder.reload_library')
