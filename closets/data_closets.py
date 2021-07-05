@@ -93,6 +93,10 @@ class Closet_Starter(pc_types.Assembly):
                     [floor,height,next_floor,opening_height,next_height,dp])        
         panel.dim_y('IF(dp,-next_depth,-max(opening_depth,next_depth))',[dp,opening_depth,next_depth])
         panel.dim_z('-p_thickness',[p_thickness])
+        left_depth = panel.add_prompt("Left Depth",'DISTANCE',0)
+        left_depth.set_formula('IF(dp,0,opening_depth)',[opening_depth,dp])
+        right_depth = panel.add_prompt("Right Depth",'DISTANCE',0)
+        right_depth.set_formula('next_depth',[next_depth])
 
         d_panel = data_closet_parts.add_closet_part(self)
         d_panel.obj_bp["IS_PANEL_BP"] = True
@@ -108,6 +112,10 @@ class Closet_Starter(pc_types.Assembly):
         home_builder_utils.flip_normals(d_panel)
         hide = d_panel.get_prompt('Hide')
         hide.set_formula('IF(dp,False,True)',[dp])
+        left_depth = d_panel.add_prompt("Left Depth",'DISTANCE',0)
+        left_depth.set_formula('opening_depth',[opening_depth])
+        right_depth = d_panel.add_prompt("Right Depth",'DISTANCE',0)
+        right_depth.set_formula('0',[next_depth])        
 
         return panel
 
@@ -336,6 +344,37 @@ class Closet_Starter(pc_types.Assembly):
         home_builder_utils.flip_normals(right_bridge_kick)
         self.right_bridge_parts.append(right_bridge_kick)
 
+    def add_system_holes(self,index,left_panel,right_panel):
+        left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
+
+        p_height = self.obj_z.pyclone.get_var('location.z','p_height')
+        floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
+        opening_width = self.get_prompt("Opening " + str(index) + " Width").get_var('Opening Calculator','opening_width')
+        opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
+        opening_height = self.get_prompt("Opening " + str(index) + " Height").get_var('opening_height')
+        p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
+
+        holes = data_closet_parts.add_shelf_holes(self)
+        holes.set_name('System Holes ' + str(index))
+        holes.loc_x('left_panel_x+p_thickness',[left_panel_x,p_thickness])
+        holes.loc_y('-opening_depth',[opening_depth])
+        holes.loc_z('IF(floor,0,p_height-opening_height)',[floor,p_height,opening_height])
+        holes.rot_x(value = 0)
+        holes.rot_y(value = 0)
+        holes.rot_z(value = 0)
+        holes.dim_x('opening_width',[opening_width])
+        holes.dim_y('opening_depth',[opening_depth])
+        holes.dim_z('opening_height',[opening_height])
+        dim_from_bottom = holes.get_prompt("Shelf Hole Dim From Bottom")
+        dim_from_bottom.set_value(pc_unit.millimeter(9.525))
+        dim_from_top = holes.get_prompt("Shelf Hole Dim From Top")
+        dim_from_top.set_value(0)
+        dim_from_front = holes.get_prompt("Shelf Hole Dim From Front")
+        dim_from_front.set_value(pc_unit.inch(1.25))
+        dim_from_rear = holes.get_prompt("Shelf Hole Dim From Rear")
+        dim_from_rear.set_value(pc_unit.inch(1.25))
+        return holes
+
     def draw(self):
         self.panels = []
         start_time = time.time()
@@ -439,8 +478,8 @@ class Closet_Starter(pc_types.Assembly):
                 top.loc_z('IF(floor,opening_height,height)-shelf_thickness_var',[floor,opening_height,height,shelf_thickness_var])
 
                 kick = self.add_toe_kick(index + 1,panel,self.panels[index+1])
-
                 opening = self.add_opening(index + 1,panel,self.panels[index+1])
+                system_holes = self.add_system_holes(index + 1,panel,self.panels[index+1])
 
         calculator = self.get_calculator('Opening Calculator')
         bpy.context.view_layer.update()

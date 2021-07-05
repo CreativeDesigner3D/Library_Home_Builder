@@ -122,3 +122,15 @@ def add_door_part(assembly,pointer):
     part.obj_prompts.empty_display_size = .001
     home_builder_pointers.assign_materials_to_assembly(part)
     return part    
+
+def add_shelf_holes(assembly):
+    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Machining","Shelf Holes.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001   
+    home_builder_pointers.assign_pointer_to_assembly(part,"Shelf Holes")
+    return part    

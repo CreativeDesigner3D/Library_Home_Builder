@@ -124,6 +124,7 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
             row.operator('home_builder.update_selected_pulls',text="Update Selected Hardware",icon='RESTRICT_SELECT_OFF')
 
         if props.sidebar_tabs == 'BUILD':
+            box.operator('pc_assembly.create_new_assembly',text="Create New Assembly",icon='FILE_3D')
             obj_bp = pc_utils.get_assembly_bp(context.object)
             if obj_bp:
                 row = box.row()

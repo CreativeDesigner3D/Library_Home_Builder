@@ -825,6 +825,16 @@ class home_builder_OT_delete_closet_opening(bpy.types.Operator):
 
     insert = None
 
+    @classmethod
+    def poll(cls, context):
+        if not context.object:
+            return False
+        bp = home_builder_utils.get_closet_insert_bp(context.object)
+        if bp:
+            return True
+        else:
+            return False
+
     def execute(self, context):    
         self.get_assemblies(context)
         props = home_builder_utils.get_object_props(self.insert.obj_bp)
