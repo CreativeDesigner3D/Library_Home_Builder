@@ -434,6 +434,12 @@ class Closet_Starter(pc_types.Assembly):
         left_side.dim_y('-depth_1',[depth_1])
         left_side.dim_z('-panel_thickness_var',[panel_thickness_var])
         self.panels.append(left_side)
+        left_depth = left_side.add_prompt("Left Depth",'DISTANCE',0)
+        left_depth.set_formula('0',[])
+        right_depth = left_side.add_prompt("Right Depth",'DISTANCE',0)
+        right_depth.set_formula('depth_1',[depth_1])  
+        is_left_end_panel = left_side.add_prompt("Is Left End Panel",'CHECKBOX',True)
+
         bpy.context.view_layer.update()
 
         # self.add_left_blind_parts()
@@ -460,6 +466,11 @@ class Closet_Starter(pc_types.Assembly):
         right_side.dim_z('panel_thickness_var',[panel_thickness_var])
         home_builder_utils.flip_normals(right_side)
         self.panels.append(right_side)
+        left_depth = right_side.add_prompt("Left Depth",'DISTANCE',0)
+        left_depth.set_formula('depth_last',[depth_last])
+        right_depth = right_side.add_prompt("Right Depth",'DISTANCE',0)
+        right_depth.set_formula('0',[])  
+        is_right_end_panel = right_side.add_prompt("Is Right End Panel",'CHECKBOX',True)
 
         bpy.context.view_layer.update()
 
