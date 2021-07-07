@@ -1079,7 +1079,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
             addon_updater_ops.update_notice_box_ui(self,context,row)        
         else:
             row.separator()
-            row.operator('home_builder.updater_check_now',text="Check for Updates")
+            row.operator('home_builder.updater_check_now',text="Check for Updates",icon='FILE_REFRESH')
 
         if self.library_path_not_correct(context):
             main_box.operator('home_builder.reload_library')
