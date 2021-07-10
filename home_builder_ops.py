@@ -2556,80 +2556,85 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
         width = sel_assembly.obj_x.location.x
         height = sel_assembly.obj_z.location.z
         depth = sel_assembly.obj_y.location.y
-
+        cabinet_type = sel_assembly.get_prompt("Cabinet Type").get_value()
+        lfe = None
+        rfe = None
         for carcass in sel_assembly.carcasses:
-            carcass_type = carcass.get_prompt("Carcass Type").get_value()
             lfe = carcass.get_prompt("Left Finished End").get_value()
             rfe = carcass.get_prompt("Right Finished End").get_value()
+            break
 
-            if carcass_type not in ("Upper","Tall"):
-                return None
+        if cabinet_type not in ("Upper","Tall"):
+            return None
 
-            obj_curve = self.create_curve()
-            obj_curve["IS_CABINET_CROWN_MOLDING"] = True
-            obj_curve.name = "Crown Cabinet Molding"
-            obj_curve.parent = sel_assembly.obj_bp
-            obj_curve.data.bevel_object = self.crown_profile
-            obj_curve.location.z = height
-            spline = obj_curve.data.splines.new('BEZIER')
+        obj_curve = self.create_curve()
+        obj_curve["IS_CABINET_CROWN_MOLDING"] = True
+        obj_curve.name = "Crown Cabinet Molding"
+        obj_curve.parent = sel_assembly.obj_bp
+        obj_curve.data.bevel_object = self.crown_profile
+        obj_curve.location.z = height
+        spline = obj_curve.data.splines.new('BEZIER')
 
+        if lfe:
+            spline.bezier_points.add(count=2)   
+            spline.bezier_points[0].co = (0,0,0)
+            spline.bezier_points[1].co = (0,depth,0)
+            spline.bezier_points[2].co = (width,depth,0)
+        else:
+            spline.bezier_points.add(count=1)   
+            spline.bezier_points[0].co = (0,depth,0)
+            spline.bezier_points[1].co = (width,depth,0)
+
+        if rfe:
+            spline.bezier_points.add(count=1) 
             if lfe:
-                spline.bezier_points.add(count=2)   
-                spline.bezier_points[0].co = (0,0,0)
-                spline.bezier_points[1].co = (0,depth,0)
-                spline.bezier_points[2].co = (width,depth,0)
+                spline.bezier_points[3].co = (width,0,0)
             else:
-                spline.bezier_points.add(count=1)   
-                spline.bezier_points[0].co = (0,depth,0)
-                spline.bezier_points[1].co = (width,depth,0)
+                spline.bezier_points[2].co = (width,0,0)
 
-            if rfe:
-                spline.bezier_points.add(count=1) 
-                if lfe:
-                    spline.bezier_points[3].co = (width,0,0)
-                else:
-                    spline.bezier_points[2].co = (width,0,0)
-
-            self.assign_active_curve_properties(obj_curve)
+        self.assign_active_curve_properties(obj_curve)
 
     def add_light_rail_molding_to_cabinet(self,sel_assembly):
         width = sel_assembly.obj_x.location.x
         height = sel_assembly.obj_z.location.z
         depth = sel_assembly.obj_y.location.y
+        cabinet_type = sel_assembly.get_prompt("Cabinet Type").get_value()
+        lfe = None
+        rfe = None
 
         for carcass in sel_assembly.carcasses:
-            carcass_type = carcass.get_prompt("Carcass Type").get_value()
             lfe = carcass.get_prompt("Left Finished End").get_value()
             rfe = carcass.get_prompt("Right Finished End").get_value()
+            break
 
-            if carcass_type not in ("Upper"):
-                return None
+        if cabinet_type not in ("Upper"):
+            return None
 
-            obj_curve = self.create_curve()
-            obj_curve["IS_CABINET_LIGHT_MOLDING"] = True
-            obj_curve.name = "Light Rail Cabinet Molding"
-            obj_curve.parent = sel_assembly.obj_bp
-            obj_curve.data.bevel_object = self.light_profile
-            spline = obj_curve.data.splines.new('BEZIER')
+        obj_curve = self.create_curve()
+        obj_curve["IS_CABINET_LIGHT_MOLDING"] = True
+        obj_curve.name = "Light Rail Cabinet Molding"
+        obj_curve.parent = sel_assembly.obj_bp
+        obj_curve.data.bevel_object = self.light_profile
+        spline = obj_curve.data.splines.new('BEZIER')
 
+        if lfe:
+            spline.bezier_points.add(count=2)   
+            spline.bezier_points[0].co = (0,0,0)
+            spline.bezier_points[1].co = (0,depth,0)
+            spline.bezier_points[2].co = (width,depth,0)
+        else:
+            spline.bezier_points.add(count=1)   
+            spline.bezier_points[0].co = (0,depth,0)
+            spline.bezier_points[1].co = (width,depth,0)
+
+        if rfe:
+            spline.bezier_points.add(count=1) 
             if lfe:
-                spline.bezier_points.add(count=2)   
-                spline.bezier_points[0].co = (0,0,0)
-                spline.bezier_points[1].co = (0,depth,0)
-                spline.bezier_points[2].co = (width,depth,0)
+                spline.bezier_points[3].co = (width,0,0)
             else:
-                spline.bezier_points.add(count=1)   
-                spline.bezier_points[0].co = (0,depth,0)
-                spline.bezier_points[1].co = (width,depth,0)
+                spline.bezier_points[2].co = (width,0,0)
 
-            if rfe:
-                spline.bezier_points.add(count=1) 
-                if lfe:
-                    spline.bezier_points[3].co = (width,0,0)
-                else:
-                    spline.bezier_points[2].co = (width,0,0)
-
-            self.assign_active_curve_properties(obj_curve)
+        self.assign_active_curve_properties(obj_curve)
 
     def add_base_molding_to_closet(self,closet):
         pt = closet.get_prompt("Panel Thickness").get_value()
