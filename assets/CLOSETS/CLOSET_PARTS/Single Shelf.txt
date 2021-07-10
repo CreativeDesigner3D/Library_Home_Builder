@@ -1,1 +1,0 @@
-bpy.ops.home_builder.place_closet_part(filepath=self.filepath)

@@ -14,7 +14,7 @@ from os import path
 def get_range(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_range_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"_Sample","Generic Range.blend")  
+        return path.join(ASSET_DIR,"_Sample","Range.blend")  
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")       
 
@@ -28,14 +28,14 @@ def get_range_hood(category,assembly_name):
 def get_dishwasher(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_dishwasher_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"_Sample","Generic Dishwasher.blend")  
+        return path.join(ASSET_DIR,"_Sample","Dishwasher.blend")  
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")   
 
 def get_refrigerator(category,assembly_name):
     ASSET_DIR = home_builder_paths.get_refrigerator_path()
     if assembly_name == "":
-        return path.join(ASSET_DIR,"_Sample","Generic Refrigerator.blend")  
+        return path.join(ASSET_DIR,"_Sample","Refrigerator.blend")  
     else:
         return path.join(ASSET_DIR, category, assembly_name + ".blend")    
 
@@ -45,8 +45,13 @@ class Range(pc_types.Assembly):
     subcategory_name = "APPLIANCES"
     obj = None
 
+    category = ""
+    assembly = ""
+
     range_appliance = None
     range_hood_appliance = None
+
+    default_range_path = ""
 
     def __init__(self,obj_bp=None):
         super().__init__(obj_bp=obj_bp)  
@@ -121,7 +126,7 @@ class Range(pc_types.Assembly):
         self.obj_bp["PROMPT_ID"] = "home_builder.range_prompts"
         self.obj_y['IS_MIRROR'] = True
         self.add_prompt("Add Range Hood",'CHECKBOX',False)
-        self.add_range()
+        self.add_range(self.category,self.assembly)
 
 
 class Refrigerator(pc_types.Assembly):
@@ -129,6 +134,9 @@ class Refrigerator(pc_types.Assembly):
     category_name = 'KITCHENS'
     subcategory_name = "APPLIANCES"
     obj = None
+
+    category = ""
+    assembly = ""
 
     refrigerator = None
 
@@ -246,7 +254,7 @@ class Refrigerator(pc_types.Assembly):
         common_prompts.add_carcass_prompts(self)
         common_prompts.add_thickness_prompts(self)
 
-        self.add_refrigerator()
+        self.add_refrigerator(self.category,self.assembly)
         self.add_carcass()
 
         material_thickness = self.get_prompt('Material Thickness')
@@ -305,6 +313,9 @@ class Dishwasher(pc_types.Assembly):
     category_name = 'KITCHENS'
     subcategory_name = "APPLIANCES"
     obj = None
+
+    category = ""
+    assembly = ""
 
     dishwasher = None
     countertop = None
@@ -371,7 +382,7 @@ class Dishwasher(pc_types.Assembly):
         self.obj_bp["PROMPT_ID"] = "home_builder.dishwasher_prompts"       
         self.obj_y['IS_MIRROR'] = True
 
-        self.add_dishwasher()
+        self.add_dishwasher(self.category,self.assembly)
         self.add_countertop()      
 
         self.obj_x.location.x = pc_unit.inch(24)

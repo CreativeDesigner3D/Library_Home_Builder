@@ -96,7 +96,7 @@ class home_builder_OT_activate(Operator):
         pc_utils.update_file_browser_path(context,path)
         return {'FINISHED'}
 
-#REMOVE
+
 class home_builder_OT_change_library_category(bpy.types.Operator):
     bl_idname = "home_builder.change_library_category"
     bl_label = "Change Library Category"
@@ -106,26 +106,61 @@ class home_builder_OT_change_library_category(bpy.types.Operator):
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
-        props.active_category = self.category
-        if props.active_category == 'Custom Cabinets':
-            path = os.path.join(home_builder_paths.get_custom_cabinet_library_path())
-            if not os.path.exists(path):
-                os.makedirs(path)
-            pc_utils.update_file_browser_path(context,path)
-        elif props.active_category == "Closets":
-            path = os.path.join(home_builder_paths.get_library_path(),props.active_category)
-            dirs = os.listdir(path)
-            for d in dirs:
-                path = os.path.join(path,d)
-                if os.path.isdir(path):
-                    props.active_subcategory = d
-            sub_path = os.path.join(home_builder_paths.get_library_path(),props.active_category,props.active_subcategory)
-            if os.path.exists(sub_path):
-                pc_utils.update_file_browser_path(context,sub_path)                    
-        else:
-            path = os.path.join(home_builder_paths.get_library_path(),self.category)
-            if os.path.exists(path):
-                pc_utils.update_file_browser_path(context,path)
+        root_path = props.get_current_catalog_path()
+        path = os.path.join(root_path,self.category)
+        if os.path.exists(path):
+            if props.library_tabs == 'ROOMS':
+                if props.room_tabs == 'WALLS':
+                    props.active_wall_catalog = self.category
+                if props.room_tabs == 'DOORS':
+                    props.active_door_catalog = self.category
+                if props.room_tabs == 'WINDOWS':
+                    props.active_window_catalog = self.category
+                if props.room_tabs == 'OBSTACLES':
+                    props.active_obstacle_catalog = self.category               
+                if props.room_tabs == 'DECORATIONS':
+                    props.active_room_decoration_catalog = self.category  
+
+            if props.library_tabs == 'KITCHENS':
+                if props.kitchen_tabs == 'RANGES':
+                    props.active_range_catalog = self.category
+                if props.kitchen_tabs == 'REFRIGERATORS':
+                    props.active_regfrigerator_catalog = self.category
+                if props.kitchen_tabs == 'DISHWASHERS':
+                    props.active_dishwasher_catalog = self.category                                        
+                if props.kitchen_tabs == 'CABINETS':
+                    props.active_cabinet_catalog = self.category    
+                if props.kitchen_tabs == 'PARTS':
+                    props.active_cabinet_part_catalog = self.category    
+                if props.kitchen_tabs == 'CUSTOM_CABINETS':
+                    props.active_custom_cabinet_catalog = self.category   
+                if props.kitchen_tabs == 'DECORATIONS':
+                    props.active_kitchen_decoration_catalog = self.category 
+
+            if props.library_tabs == 'BATHS':
+                if props.bath_tabs == 'TOILETS':
+                    props.active_toilet_catalog = self.category 
+                if props.bath_tabs == 'BATHS':
+                    props.active_bath_catalog = self.category               
+                if props.bath_tabs == 'VANITIES':
+                    props.active_vanity_catalog = self.category 
+                if props.bath_tabs == 'DECORATIONS':
+                    props.active_bath_decoration_catalog = self.category                   
+
+            if props.library_tabs == 'CLOSETS':
+                if props.closet_tabs == 'STARTERS':
+                    props.active_closet_starter_catalog = self.category   
+                if props.closet_tabs == 'INSERTS':
+                    props.active_closet_insert_catalog = self.category  
+                if props.closet_tabs == 'SPLITTERS':
+                    props.active_closet_splitter_catalog = self.category  
+                if props.closet_tabs == 'CLOSET_PARTS':
+                    props.active_closet_part_catalog = self.category                             
+                if props.closet_tabs == 'DECORATIONS':
+                    props.active_closet_decoration_catalog = self.category            
+                
+            pc_utils.update_file_browser_path(context,path)        
+
         return {'FINISHED'}
 
 #REMOVE

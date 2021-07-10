@@ -34,6 +34,21 @@ class HOME_BUILDER_MT_closet_category_menu(bpy.types.Menu):
                 layout.operator('home_builder.change_closet_category',text=d,icon='FILEBROWSER').category = d
 
 
+class HOME_BUILDER_MT_change_catalog_selection(bpy.types.Menu):
+    bl_label = "Library"
+
+    def draw(self, context):
+        layout = self.layout
+
+        props = home_builder_utils.get_scene_props(context.scene)
+        path = props.get_current_catalog_path()
+        dirs = os.listdir(path)
+
+        for d in dirs:
+            path = os.path.join(path,d)
+            layout.operator('home_builder.change_library_category',text=d,icon='FILEBROWSER').category = d    
+
+
 class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_label = "Library"
@@ -197,6 +212,7 @@ class HOME_BUILDER_UL_assets(bpy.types.UIList):
 
 
 classes = (
+    HOME_BUILDER_MT_change_catalog_selection,
     HOME_BUILDER_MT_category_menu,
     HOME_BUILDER_MT_closet_category_menu,
     HOME_BUILDER_PT_library_settings,

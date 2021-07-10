@@ -14,8 +14,8 @@ class Base_1_Door(data_cabinets.Standard_Cabinet):
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.exterior = data_cabinet_exteriors.Doors()
-        # self.carcass.exterior.cabinet_type = 'Base'
         self.splitter = None
+        self.cabinet_type = "Base"
         
 
 class Base_2_Door(data_cabinets.Standard_Cabinet):
@@ -26,8 +26,7 @@ class Base_2_Door(data_cabinets.Standard_Cabinet):
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Doors()
         self.carcass.exterior.door_swing = 2
-        # self.exterior.cabinet_type = 'Base'
-        # self.splitter = None
+        self.cabinet_type = "Base"
 
 
 class Base_2_Door_2_Drawer(data_cabinets.Standard_Cabinet):
@@ -39,8 +38,7 @@ class Base_2_Door_2_Drawer(data_cabinets.Standard_Cabinet):
         self.carcass.exterior = data_cabinet_exteriors.Door_Drawer()
         self.carcass.exterior.door_swing = 2
         self.carcass.exterior.two_drawers = True
-        # self.exterior.cabinet_type = 'Base'
-        # self.splitter = None
+        self.cabinet_type = "Base"
 
 
 class Base_2_Door_1_Drawer(data_cabinets.Standard_Cabinet):
@@ -52,8 +50,7 @@ class Base_2_Door_1_Drawer(data_cabinets.Standard_Cabinet):
         self.carcass.exterior = data_cabinet_exteriors.Door_Drawer()
         self.carcass.exterior.door_swing = 2
         self.carcass.exterior.two_drawers = False
-        # self.exterior.cabinet_type = 'Base'
-        # self.splitter = None
+        self.cabinet_type = "Base"
 
 
 class Base_1_Door_1_Drawer(data_cabinets.Standard_Cabinet):
@@ -65,8 +62,7 @@ class Base_1_Door_1_Drawer(data_cabinets.Standard_Cabinet):
         self.carcass.exterior = data_cabinet_exteriors.Door_Drawer()
         self.carcass.exterior.door_swing = 0
         self.carcass.exterior.two_drawers = False
-        # self.exterior.cabinet_type = 'Base'
-        # self.splitter = None
+        self.cabinet_type = "Base"
 
 
 class Base_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
@@ -77,8 +73,7 @@ class Base_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.exterior = data_cabinet_exteriors.Doors()
-        # self.carcass.exterior.cabinet_type = 'Base'
-        self.splitter = None
+        self.cabinet_type = "Base"
 
 
 class Tall_1_Door(data_cabinets.Standard_Cabinet):
@@ -87,7 +82,7 @@ class Tall_1_Door(data_cabinets.Standard_Cabinet):
         self.carcass = data_cabinet_carcass.Tall_Advanced()
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Doors()
-        # self.splitter = None
+        self.cabinet_type = "Tall"
 
 
 class Tall_2_Door(data_cabinets.Standard_Cabinet):
@@ -98,7 +93,7 @@ class Tall_2_Door(data_cabinets.Standard_Cabinet):
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Doors()
         self.carcass.exterior.door_swing = 2
-        # self.splitter = None
+        self.cabinet_type = "Tall"
 
 
 class Upper_1_Door(data_cabinets.Standard_Cabinet):
@@ -107,7 +102,7 @@ class Upper_1_Door(data_cabinets.Standard_Cabinet):
         self.carcass = data_cabinet_carcass.Upper_Advanced()
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Doors()
-        # self.splitter = None
+        self.cabinet_type = "Upper"
 
 
 class Upper_2_Door(data_cabinets.Standard_Cabinet):
@@ -118,8 +113,7 @@ class Upper_2_Door(data_cabinets.Standard_Cabinet):
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Doors()
         self.carcass.exterior.door_swing = 2
-        self.carcass.exterior.cabinet_type = 'Upper'
-        # self.splitter = None
+        self.cabinet_type = "Upper"
 
 
 class Upper_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
@@ -130,8 +124,7 @@ class Upper_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
         self.carcass = data_cabinet_carcass.Upper_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.exterior = data_cabinet_exteriors.Doors()
-        # self.carcass.exterior.cabinet_type = 'Base'
-        self.splitter = None
+        self.cabinet_type = "Upper"
 
 
 class Base_Drawer(data_cabinets.Standard_Cabinet):
@@ -141,7 +134,7 @@ class Base_Drawer(data_cabinets.Standard_Cabinet):
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Drawers()
         self.carcass.exterior.drawer_qty = 3
-        # self.splitter = None
+        self.cabinet_type = "Base"
 
 
 class Base_Open(data_cabinets.Standard_Cabinet):
@@ -150,7 +143,7 @@ class Base_Open(data_cabinets.Standard_Cabinet):
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.exterior = None
-        # self.splitter = None        
+        self.cabinet_type = "Base"     
 
 
 class Tall_Open(data_cabinets.Standard_Cabinet):
@@ -160,6 +153,7 @@ class Tall_Open(data_cabinets.Standard_Cabinet):
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.interior.shelf_qty = 3
         self.carcass.exterior = None
+        self.cabinet_type = "Tall"
 
 
 class Tall_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
@@ -170,8 +164,7 @@ class Tall_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
         self.carcass = data_cabinet_carcass.Tall_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.exterior = data_cabinet_exteriors.Doors()
-        # self.carcass.exterior.cabinet_type = 'Base'
-        self.splitter = None
+        self.cabinet_type = "Tall"
 
 # class Tall_Split(data_cabinets.Standard_Cabinet):
 
@@ -204,6 +197,7 @@ class Tall_Stacked(data_cabinets.Stacked_Cabinet):
         self.bottom_carcass.interior = data_cabinet_interiors.Shelves()
         self.bottom_carcass.exterior = data_cabinet_exteriors.Doors()      
         self.bottom_carcass.exterior.carcass_type = "Tall"  
+        self.cabinet_type = "Tall"
 
 class Upper_Stacked(data_cabinets.Stacked_Cabinet):
 
@@ -222,6 +216,8 @@ class Upper_Stacked(data_cabinets.Stacked_Cabinet):
         self.bottom_carcass.interior = data_cabinet_interiors.Shelves()
         self.bottom_carcass.exterior = data_cabinet_exteriors.Doors()    
         self.bottom_carcass.exterior.door_swing = 2
+        self.cabinet_type = "Upper"
+
 
 class Upper_Open(data_cabinets.Standard_Cabinet):
 
@@ -231,3 +227,4 @@ class Upper_Open(data_cabinets.Standard_Cabinet):
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.interior.shelf_qty = 2
         self.carcass.exterior = None
+        self.cabinet_type = "Upper"

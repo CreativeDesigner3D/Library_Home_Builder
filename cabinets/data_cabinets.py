@@ -45,6 +45,7 @@ class Cabinet(pc_types.Assembly):
     category_name = "KITCHENS"
     subcategory_name = "CABINETS"
 
+    cabinet_type = ""
     corner_type = ""
 
     left_filler = None
@@ -60,9 +61,12 @@ class Cabinet(pc_types.Assembly):
         super().__init__(obj_bp=obj_bp)  
         self.carcasses = []
         if obj_bp:
+            cabinet_type = self.get_prompt("Cabinet Type")
+            if cabinet_type:
+                self.cabinet_type = cabinet_type.get_value()
             corner_type = self.get_prompt("Corner Type")
             if corner_type:
-                self.corner_type = corner_type.get_value()
+                self.corner_type = corner_type.get_value()                
             for child in obj_bp.children:
                 if "IS_LEFT_FILLER_BP" in child:
                     self.left_filler = pc_types.Assembly(child)
@@ -240,6 +244,9 @@ class Cabinet(pc_types.Assembly):
         self.countertop.dim_x('width+ctop_overhang_left+ctop_overhang_right',[width,ctop_overhang_left,ctop_overhang_right])
         self.countertop.dim_y('depth-(ctop_overhang_front+ctop_overhang_back)',[depth,ctop_overhang_front,ctop_overhang_back])
 
+    def set_cabinet_properties(self):
+        cabinet_type = self.get_prompt("Cabinet Type")
+        cabinet_type.set_value(self.cabinet_type)
 
 class Standard_Cabinet(Cabinet):
     show_in_library = True
@@ -274,6 +281,7 @@ class Standard_Cabinet(Cabinet):
             common_prompts.add_sink_prompts(self)
             common_prompts.add_cooktop_prompts(self)
 
+        self.set_cabinet_properties()
         print("Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
 
     def pre_draw(self):
@@ -375,6 +383,8 @@ class Stacked_Cabinet(Cabinet):
         #     common_prompts.add_sink_prompts(self)
         #     common_prompts.add_cooktop_prompts(self)
 
+        self.set_cabinet_properties()
+
         print("Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
 
     def pre_draw(self):
@@ -458,6 +468,8 @@ class Blind_Corner_Cabinet(Cabinet):
             common_prompts.add_sink_prompts(self)
             common_prompts.add_cooktop_prompts(self)
 
+        self.set_cabinet_properties()
+        
         print("Cabinet: Draw Time --- %s seconds ---" % (time.time() - start_time))
 
     def pre_draw(self):

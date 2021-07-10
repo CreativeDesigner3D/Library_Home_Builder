@@ -19,6 +19,9 @@ def get_asset_folder_path():
     else:
         return os.path.join(os.path.dirname(__file__),'assets')
 
+def get_assembly_path():
+    return os.path.join(get_asset_folder_path(),'ASSEMBLIES') 
+
 def get_material_path():
     return os.path.join(get_asset_folder_path(),'Materials') 
 
@@ -27,9 +30,6 @@ def get_custom_cabinet_library_path():
 
 def get_vanity_library_path():
     return os.path.join(get_asset_folder_path(),"BATHS","VANITIES")  
-
-def get_cabinet_parts_path():
-    return os.path.join(get_asset_folder_path(),'Cabinet Parts') 
 
 def get_pull_path():
     return os.path.join(get_asset_folder_path(),'Cabinet Pulls') 
@@ -41,7 +41,7 @@ def get_faucet_path():
     return os.path.join(get_asset_folder_path(),'Faucets') 
 
 def get_range_path():
-    return os.path.join(get_asset_folder_path(),'Ranges')     
+    return os.path.join(get_asset_folder_path(),'KITCHENS','RANGES')     
 
 def get_built_in_appliances_path():
     return os.path.join(get_asset_folder_path(),'Built in Appliances') 
@@ -50,10 +50,10 @@ def get_range_hood_path():
     return os.path.join(get_asset_folder_path(),'Range Hoods')         
 
 def get_dishwasher_path():
-    return os.path.join(get_asset_folder_path(),'Dishwashers')     
+    return os.path.join(get_asset_folder_path(),'KITCHENS','DISHWASHERS')     
 
 def get_refrigerator_path():
-    return os.path.join(get_asset_folder_path(),'Refrigerators')     
+    return os.path.join(get_asset_folder_path(),'KITCHENS','REFRIGERATORS')     
 
 def get_cooktop_path():
     return os.path.join(get_asset_folder_path(),'Cooktops')    

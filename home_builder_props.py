@@ -160,14 +160,15 @@ def update_active_asset_index(self,context):
 
 def update_library_path(self,context):
     root_path = os.path.join(home_builder_paths.get_asset_folder_path(),self.library_tabs)
+    catalog_name = self.get_active_catalog_name()
     if self.library_tabs == 'ROOMS':
-        final_path = os.path.join(root_path,self.room_tabs)
+        final_path = os.path.join(root_path,self.room_tabs,catalog_name)
     if self.library_tabs == 'KITCHENS':
-        final_path = os.path.join(root_path,self.kitchen_tabs)
+        final_path = os.path.join(root_path,self.kitchen_tabs,catalog_name)
     if self.library_tabs == 'BATHS':
-        final_path = os.path.join(root_path,self.bath_tabs)       
+        final_path = os.path.join(root_path,self.bath_tabs,catalog_name)       
     if self.library_tabs == 'CLOSETS':
-        final_path = os.path.join(root_path,self.closet_tabs)     
+        final_path = os.path.join(root_path,self.closet_tabs,catalog_name)     
     if os.path.exists(final_path):
         pc_utils.update_file_browser_path(context,final_path)       
 
@@ -194,7 +195,6 @@ class Home_Builder_Scene_Props(PropertyGroup):
                              items=[('PYTHON',"Python Classes","Show the Assets Defined in Python"),
                                     ('BUILT_IN_APPLIANCES',"Built in Appliances","Show the Built in Appliances"),
                                     ('CABINET_DOORS',"Cabinet Doors","Show the Cabinet Doors"),
-                                    ('CABINET_PARTS',"Cabinet Parts","Show the Cabinet Parts"),
                                     ('CABINET_PULLS',"Cabinet Pulls","Show the Cabinet Pulls"),
                                     ('COOKTOPS',"Cooktops","Show the Cooktops"),
                                     ('DISHWASHERS',"Dishwashers","Show the Dishwashers"),
@@ -233,17 +233,20 @@ class Home_Builder_Scene_Props(PropertyGroup):
                           items=[('WALLS',"Walls","Show the Walls"),
                                  ('DOORS',"Doors","Show the Doors"),
                                  ('WINDOWS',"Windows","Show the Windows"),
-                                 ('OBSTACLES',"Obstacles","Show the Obstacles")],
+                                 ('OBSTACLES',"Obstacles","Show the Obstacles"),
+                                 ('DECORATIONS',"Decorations","Show the Room Decorations")],
                           default='WALLS',
                           update=update_library_path)
 
     kitchen_tabs: EnumProperty(name="Kitchen Tabs",
-                          items=[('APPLIANCES',"Appliances","Show the Appliances"),
+                          items=[('RANGES',"Ranges","Show the Ranges"),
+                                 ('REFRIGERATORS',"Refrigerators","Show the Refrigerators"),
+                                 ('DISHWASHERS',"Dishwashers","Show the Dishwashers"),
                                  ('CABINETS',"Cabinets","Show the Cabinets"),
                                  ('PARTS',"Parts","Show the Parts"),
                                  ('CUSTOM_CABINETS',"Custom Cabinets","Show the Custom Cabinets"),
                                  ('DECORATIONS',"Decorations","Show the Kitchen Decorations")],
-                          default='APPLIANCES',
+                          default='CABINETS',
                           update=update_library_path)
 
     bath_tabs: EnumProperty(name="Bath Tabs",
@@ -259,7 +262,6 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                  ('HANGING_PANELS',"Hanging Panels","Show the Hanging Closet Panels"),
                                  ('INSERTS',"Inserts","Show the Closet Inserts"),
                                  ('SPLITTERS',"Splitters","Show the Closet Splitters"),
-                                 ('CLOSET_ACCESSORIES',"Accessories","Show the Closet Accessories"),
                                  ('CLOSET_PARTS',"Parts","Show the Closet Parts"),
                                  ('DECORATIONS',"Decorations","Show the Closet Decorations")],
                           default='STARTERS',
@@ -287,6 +289,28 @@ class Home_Builder_Scene_Props(PropertyGroup):
     show_add_part_options: bpy.props.BoolProperty(name="Show Add Part Options",
                                            description="Show Add Part Options",
                                            default=False)     
+
+    active_wall_catalog: StringProperty(name="Active Wall Catalog")
+    active_door_catalog: StringProperty(name="Active Door Catalog")
+    active_window_catalog: StringProperty(name="Active Window Catalog")
+    active_obstacle_catalog: StringProperty(name="Active Obstacle Catalog")
+    active_room_decoration_catalog: StringProperty(name="Active Room Decoration Catalog")
+    active_range_catalog: StringProperty(name="Active Range Catalog")
+    active_refrigerator_catalog: StringProperty(name="Active Refrigerator Catalog")
+    active_dishwasher_catalog: StringProperty(name="Active Dishwasher Catalog")
+    active_cabinet_catalog: StringProperty(name="Active Cabinet Catalog")
+    active_cabinet_part_catalog: StringProperty(name="Active Cabinet Part Catalog")
+    active_custom_cabinet_catalog: StringProperty(name="Active Custom Cabinet Catalog")
+    active_kitchen_decoration_catalog: StringProperty(name="Active Kitchen Decoration Catalog")
+    active_toilet_catalog: StringProperty(name="Active Toilet Catalog")
+    active_bath_catalog: StringProperty(name="Active Bath Catalog")
+    active_vanity_catalog: StringProperty(name="Active Vanity Catalog")
+    active_bath_decoration_catalog: StringProperty(name="Active Bath Decoration Catalog")
+    active_closet_starter_catalog: StringProperty(name="Active Closet Starter Catalog")
+    active_closet_insert_catalog: StringProperty(name="Active Closet Insert Catalog")
+    active_closet_part_catalog: StringProperty(name="Active Closet Part Catalog")
+    active_closet_splitter_catalog: StringProperty(name="Active Closet Splitter Catalog")
+    active_closet_decoration_catalog: StringProperty(name="Active Closet Decoration Catalog")
 
     active_category: StringProperty(name="Active Category")
     active_subcategory: StringProperty(name="Active Subcategory")
@@ -974,8 +998,6 @@ class Home_Builder_Scene_Props(PropertyGroup):
             return home_builder_paths.get_built_in_appliances_path()
         if self.asset_tabs == 'CABINET_DOORS':
             return home_builder_paths.get_cabinet_door_path()
-        if self.asset_tabs == 'CABINET_PARTS':
-            return home_builder_paths.get_cabinet_parts_path()
         if self.asset_tabs == 'CABINET_PULLS':
             return home_builder_paths.get_pull_path()
         if self.asset_tabs == 'COOKTOPS':
@@ -1039,6 +1061,69 @@ class Home_Builder_Scene_Props(PropertyGroup):
         if self.ui_tabs == 'LIBRARY':
             self.draw_library(box)
 
+    def get_current_catalog_path(self):
+        root_path = home_builder_paths.get_asset_folder_path()
+        library_path = os.path.join(root_path,self.library_tabs)
+        if self.library_tabs == 'ROOMS':
+            return os.path.join(library_path,self.room_tabs)
+        if self.library_tabs == 'KITCHENS':
+            return os.path.join(library_path,self.kitchen_tabs)
+        if self.library_tabs == 'BATHS':
+            return os.path.join(library_path,self.bath_tabs)
+        if self.library_tabs == 'CLOSETS':
+            return os.path.join(library_path,self.closet_tabs)                  
+
+    def get_active_catalog_name(self):
+        if self.library_tabs == 'ROOMS':
+            if self.room_tabs == 'WALLS':
+                return "_Sample" if self.active_wall_catalog == "" else self.active_wall_catalog
+            if self.room_tabs == 'DOORS':
+                return "_Sample" if self.active_door_catalog == "" else self.active_door_catalog
+            if self.room_tabs == 'WINDOWS':
+                return "_Sample" if self.active_window_catalog == "" else self.active_window_catalog
+            if self.room_tabs == 'OBSTACLES':
+                return "_Sample" if self.active_obstacle_catalog == "" else self.active_obstacle_catalog              
+            if self.room_tabs == 'DECORATIONS':
+                return "_Sample" if self.active_room_decoration_catalog == "" else self.active_room_decoration_catalog
+
+        if self.library_tabs == 'KITCHENS':
+            if self.kitchen_tabs == 'RANGES':
+                return "_Sample" if self.active_range_catalog == "" else self.active_range_catalog
+            if self.kitchen_tabs == 'REFRIGERATORS':
+                return "_Sample" if self.active_refrigerator_catalog == "" else self.active_refrigerator_catalog
+            if self.kitchen_tabs == 'DISHWASHERS':
+                return "_Sample" if self.active_dishwasher_catalog == "" else self.active_dishwasher_catalog                                
+            if self.kitchen_tabs == 'CABINETS':
+                return "_Sample" if self.active_cabinet_catalog == "" else self.active_cabinet_catalog
+            if self.kitchen_tabs == 'PARTS':
+                return "_Sample" if self.active_cabinet_part_catalog == "" else self.active_cabinet_part_catalog
+            if self.kitchen_tabs == 'CUSTOM_CABINETS':
+                return "_Sample" if self.active_custom_cabinet_catalog == "" else self.active_custom_cabinet_catalog
+            if self.kitchen_tabs == 'DECORATIONS':
+                return "_Sample" if self.active_kitchen_decoration_catalog == "" else self.active_kitchen_decoration_catalog
+
+        if self.library_tabs == 'BATHS':
+            if self.bath_tabs == 'TOILETS':
+                return "_Sample" if self.active_toilet_catalog == "" else self.active_toilet_catalog
+            if self.bath_tabs == 'BATHS':
+                return "_Sample" if self.active_bath_catalog == "" else self.active_bath_catalog          
+            if self.bath_tabs == 'VANITIES':
+                return "_Sample" if self.active_vanity_catalog == "" else self.active_vanity_catalog
+            if self.bath_tabs == 'DECORATIONS':
+                return "_Sample" if self.active_bath_decoration_catalog == "" else self.active_bath_decoration_catalog                 
+
+        if self.library_tabs == 'CLOSETS':
+            if self.closet_tabs == 'STARTERS':
+                return "_Sample" if self.active_closet_starter_catalog == "" else self.active_closet_starter_catalog
+            if self.closet_tabs == 'INSERTS':
+                return "_Sample" if self.active_closet_insert_catalog == "" else self.active_closet_insert_catalog
+            if self.closet_tabs == 'SPLITTERS':
+                return "_Sample" if self.active_closet_splitter_catalog == "" else self.active_closet_splitter_catalog
+            if self.closet_tabs == 'CLOSET_PARTS':
+                return "_Sample" if self.active_closet_part_catalog == "" else self.active_closet_part_catalog
+            if self.closet_tabs == 'DECORATIONS':
+                return "_Sample" if self.active_closet_decoration_catalog == "" else self.active_closet_decoration_catalog
+
     def library_path_not_correct(self,context):
         current_path = context.space_data.params.directory.decode('utf-8')
         if not os.path.exists(current_path):
@@ -1083,85 +1168,97 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
         if self.library_path_not_correct(context):
             main_box.operator('home_builder.reload_library')
-        else:
+
+        box = main_box.box()
+        box.label(text="Library")
+        lib_col = box.column(align=True)
+        row = lib_col.row(align=True)
+        row.scale_y = 1.3
+        row.prop_enum(self, "library_tabs", 'ROOMS') 
+        row.prop_enum(self, "library_tabs", 'KITCHENS') 
+        row.prop_enum(self, "library_tabs", 'BATHS')  
+        row.prop_enum(self, "library_tabs", 'CLOSETS') 
+
+        if self.library_tabs == 'ROOMS':
             box = main_box.box()
-            box.label(text="Library")
-            lib_col = box.column(align=True)
-            row = lib_col.row(align=True)
+            box.label(text="Rooms")
+            col = box.column(align=True)
+            row = col.row(align=True)
             row.scale_y = 1.3
-            row.prop_enum(self, "library_tabs", 'ROOMS') 
-            row.prop_enum(self, "library_tabs", 'KITCHENS') 
-            row.prop_enum(self, "library_tabs", 'BATHS')  
-            row.prop_enum(self, "library_tabs", 'CLOSETS') 
+            row.prop_enum(self, "room_tabs", 'WALLS') 
+            row.prop_enum(self, "room_tabs", 'DOORS') 
+            row.prop_enum(self, "room_tabs", 'WINDOWS')  
+            row = col.row(align=True)
+            row.scale_y = 1.3                
+            row.prop_enum(self, "room_tabs", 'OBSTACLES')  
+            row.prop_enum(self, "room_tabs", 'DECORATIONS')  
 
-            if self.library_tabs == 'ROOMS':
-                box = main_box.box()
-                box.label(text="Rooms")
-                col = box.column(align=True)
-                row = col.row(align=True)
-                row.scale_y = 1.3
-                row.prop_enum(self, "room_tabs", 'WALLS') 
-                row.prop_enum(self, "room_tabs", 'DOORS') 
-                row.prop_enum(self, "room_tabs", 'WINDOWS')  
-                row.prop_enum(self, "room_tabs", 'OBSTACLES')  
+        if self.library_tabs == 'KITCHENS':
+            box = main_box.box()
+            box.label(text="Kitchens")
+            col = box.column(align=True)
+            row = col.row(align=True)
+            row.scale_y = 1.3
+            row.prop_enum(self, "kitchen_tabs", 'RANGES') 
+            row.prop_enum(self, "kitchen_tabs", 'REFRIGERATORS') 
+            row.prop_enum(self, "kitchen_tabs", 'DISHWASHERS') 
+            row = col.row(align=True)             
+            row.scale_y = 1.3
+            # row.prop_enum(self, "kitchen_tabs", 'APPLIANCES') 
+            row.prop_enum(self, "kitchen_tabs", 'CABINETS') 
+            row.prop_enum(self, "kitchen_tabs", 'PARTS')  
+            row = col.row(align=True)
+            row.scale_y = 1.3                
+            row.prop_enum(self, "kitchen_tabs", 'CUSTOM_CABINETS')  
+            row.prop_enum(self, "kitchen_tabs", 'DECORATIONS')  
 
-            if self.library_tabs == 'KITCHENS':
-                box = main_box.box()
-                box.label(text="Kitchens")
-                col = box.column(align=True)
-                row = col.row(align=True)
-                row.scale_y = 1.3
-                row.prop_enum(self, "kitchen_tabs", 'APPLIANCES') 
-                row.prop_enum(self, "kitchen_tabs", 'CABINETS') 
-                row.prop_enum(self, "kitchen_tabs", 'PARTS')  
-                row = col.row(align=True)
-                row.scale_y = 1.3                
-                row.prop_enum(self, "kitchen_tabs", 'CUSTOM_CABINETS')  
-                row.prop_enum(self, "kitchen_tabs", 'DECORATIONS')  
+        if self.library_tabs == 'BATHS':
+            box = main_box.box()
+            box.label(text="Bathroom")
+            col = box.column(align=True)
+            row = col.row(align=True)
+            row.scale_y = 1.3
+            row.prop_enum(self, "bath_tabs", 'TOILETS') 
+            row.prop_enum(self, "bath_tabs", 'BATHS')  
+            row.prop_enum(self, "bath_tabs", 'VANITIES') 
+            row.prop_enum(self, "bath_tabs", 'DECORATIONS')  
 
-            if self.library_tabs == 'BATHS':
-                box = main_box.box()
-                box.label(text="Bathroom")
-                col = box.column(align=True)
-                row = col.row(align=True)
-                row.scale_y = 1.3
-                row.prop_enum(self, "bath_tabs", 'TOILETS') 
-                row.prop_enum(self, "bath_tabs", 'BATHS')  
-                row.prop_enum(self, "bath_tabs", 'VANITIES') 
-                row.prop_enum(self, "bath_tabs", 'DECORATIONS')  
+        if self.library_tabs == 'CLOSETS':
+            box = main_box.box()
+            box.label(text="Closets")
+            col = box.column(align=True)
+            row = col.row(align=True)
+            row.scale_y = 1.3
+            row.prop_enum(self, "closet_tabs", 'STARTERS') 
+            row.prop_enum(self, "closet_tabs", 'INSERTS')  
+            row = col.row(align=True)
+            row.scale_y = 1.3                 
+            row.prop_enum(self, "closet_tabs", 'CLOSET_PARTS') 
+            row.prop_enum(self, "closet_tabs", 'SPLITTERS')        
+            row.prop_enum(self, "closet_tabs", 'DECORATIONS') 
 
-            if self.library_tabs == 'CLOSETS':
-                box = main_box.box()
-                box.label(text="Closets")
-                col = box.column(align=True)
-                row = col.row(align=True)
-                row.scale_y = 1.3
-                row.prop_enum(self, "closet_tabs", 'STARTERS') 
-                row.prop_enum(self, "closet_tabs", 'INSERTS')  
-                row.prop_enum(self, "closet_tabs", 'CLOSET_PARTS') 
-                row = col.row(align=True)
-                row.scale_y = 1.3     
-                row.prop_enum(self, "closet_tabs", 'SPLITTERS')     
-                row.prop_enum(self, "closet_tabs", 'CLOSET_ACCESSORIES')     
-                row.prop_enum(self, "closet_tabs", 'DECORATIONS') 
+        col.separator()
+        row = col.row()
+        row.scale_y = 1.3 
+        row.menu('HOME_BUILDER_MT_change_catalog_selection',text=self.get_active_catalog_name()) 
 
-            if (self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS') or \
-               (self.library_tabs == 'BATHS' and self.bath_tabs == 'VANITIES'):
-                if context.object:
-                    obj_bp = pc_utils.get_assembly_bp(context.object)
+        if (self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS') or \
+            (self.library_tabs == 'BATHS' and self.bath_tabs == 'VANITIES'):
+            if context.object:
+                obj_bp = pc_utils.get_assembly_bp(context.object)
 
-                    if obj_bp:
-                        row = main_box.row()
-                        row.label(text='Selected Assembly: ' + obj_bp.name)
-                        row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
-                        row = main_box.row()
-                        row.operator('home_builder.save_custom_cabinet',text="Save Custom Cabinet",icon='SCREEN_BACK')    
-                    else:
-                        row = main_box.row()
-                        row.label(text='Select Assembly to Save')   
+                if obj_bp:
+                    row = main_box.row()
+                    row.label(text='Selected Assembly: ' + obj_bp.name)
+                    row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
+                    row = main_box.row()
+                    row.operator('home_builder.save_custom_cabinet',text="Save Custom Cabinet",icon='SCREEN_BACK')    
                 else:
                     row = main_box.row()
-                    row.label(text='No Object Selected')                       
+                    row.label(text='Select Assembly to Save')   
+            else:
+                row = main_box.row()
+                row.label(text='No Object Selected')                       
 
 
     @classmethod

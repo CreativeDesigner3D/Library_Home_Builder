@@ -106,28 +106,31 @@ class home_builder_OT_drop(Operator):
 
         directory, file = os.path.split(self.filepath)
         filename, ext = os.path.splitext(file)
-
         drop_id = self.get_drop_script(os.path.join(directory,filename + ".txt"))
+
         if drop_id != "":
             eval(drop_id)
             return {'FINISHED'}
 
         if props.library_tabs == 'ROOMS':
             if props.room_tabs == 'WALLS':
-                if filename == 'Pick Points':
-                    bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)
-                else:
-                    bpy.ops.home_builder.place_room(filepath=self.filepath)
+                bpy.ops.home_builder.place_room(filepath=self.filepath)
             if props.room_tabs == 'DOORS':
                 bpy.ops.home_builder.place_door_window(filepath=self.filepath)
             if props.room_tabs == 'WINDOWS':
                 bpy.ops.home_builder.place_door_window(filepath=self.filepath)
             if props.room_tabs == 'OBSTACLES':
                 bpy.ops.home_builder.place_wall_obstacle(filepath=self.filepath)                
+            if props.room_tabs == 'DECORATIONS':
+                bpy.ops.home_builder.place_decoration(filepath=self.filepath)      
 
         if props.library_tabs == 'KITCHENS':
-            if props.kitchen_tabs == 'APPLIANCES':
+            if props.kitchen_tabs == 'RANGES':
                 bpy.ops.home_builder.place_appliance(filepath=self.filepath)
+            if props.kitchen_tabs == 'REFRIGERATORS':
+                bpy.ops.home_builder.place_appliance(filepath=self.filepath)
+            if props.kitchen_tabs == 'DISHWASHERS':
+                bpy.ops.home_builder.place_appliance(filepath=self.filepath)                                
             if props.kitchen_tabs == 'CABINETS':
                 bpy.ops.home_builder.place_cabinet(filepath=self.filepath)
             if props.kitchen_tabs == 'PARTS':
@@ -156,8 +159,6 @@ class home_builder_OT_drop(Operator):
                 bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
             if props.closet_tabs == 'SPLITTERS':
                 bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
-            if props.closet_tabs == 'CLOSET_ACCESSORIES':
-                pass
             if props.closet_tabs == 'CLOSET_PARTS':
                 pass                           
             if props.closet_tabs == 'DECORATIONS':
@@ -708,7 +709,11 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.cabinet.add_left_filler() 
 
         if self.current_wall:
+            props = home_builder_utils.get_scene_props(context.scene)
+            cabinet_type = self.cabinet.get_prompt("Cabinet Type")
             self.cabinet.obj_bp.location.z = 0
+            if cabinet_type.get_value() == 'Upper':
+                self.cabinet.obj_bp.location.z += props.height_above_floor - self.cabinet.obj_z.location.z
 
     def modal(self, context, event):
         
@@ -1139,8 +1144,21 @@ class home_builder_OT_place_appliance(bpy.types.Operator):
 
     def get_appliance(self,context):
         directory, file = os.path.split(self.filepath)
+        path, category = os.path.split(directory)
         filename, ext = os.path.splitext(file)
-        self.appliance = eval("data_appliances." + filename.replace(" ","_") + "()")
+        props = home_builder_utils.get_scene_props(context.scene)
+        if props.kitchen_tabs == 'RANGES':
+            self.appliance = data_appliances.Range()
+            self.appliance.category = category
+            self.appliance.assembly = filename
+        if props.kitchen_tabs == 'REFRIGERATORS':
+            self.appliance = data_appliances.Refrigerator()
+            self.appliance.category = category
+            self.appliance.assembly = filename            
+        if props.kitchen_tabs == 'DISHWASHERS':
+            self.appliance = data_appliances.Dishwasher()
+            self.appliance.category = category
+            self.appliance.assembly = filename            
 
         if hasattr(self.appliance,'pre_draw'):
             self.appliance.pre_draw()
@@ -2014,7 +2032,7 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
                 return opening
 
     def create_shelf(self,context):
-        path = os.path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
+        path = os.path.join(home_builder_paths.get_assembly_path(),"Part.blend")
         self.cabinet = pc_types.Assembly(filepath=path)
         self.cabinet.obj_z.location.z = pc_unit.inch(.75)
 
@@ -2230,7 +2248,7 @@ class home_builder_OT_place_slanted_shoe_shelf(bpy.types.Operator):
                 return opening
 
     def create_shelf(self,context):
-        path = os.path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
+        path = os.path.join(home_builder_paths.get_assembly_path(),"Part.blend")
         self.cabinet = data_closet_inserts.Slanted_Shoe_Shelf()
         self.cabinet.pre_draw()
         # self.cabinet = pc_types.Assembly(filepath=path)

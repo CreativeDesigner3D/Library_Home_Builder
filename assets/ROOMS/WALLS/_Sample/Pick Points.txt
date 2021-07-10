@@ -1,0 +1,1 @@
+bpy.ops.home_builder.draw_multiple_walls(filepath=self.filepath)

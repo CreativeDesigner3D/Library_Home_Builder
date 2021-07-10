@@ -6,7 +6,7 @@ from os import path
 
 
 def add_closet_part(assembly):
-    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Part.blend")
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     part.obj_bp['IS_CUTPART_BP'] = True
     assembly.add_assembly(part)
@@ -21,7 +21,7 @@ def add_closet_part(assembly):
     return part
 
 def add_closet_array_part(assembly):
-    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Cutparts","Z Array Part.blend")
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Z Array Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     part.obj_bp['IS_CUTPART_BP'] = True
     assembly.add_assembly(part)
@@ -36,7 +36,7 @@ def add_closet_array_part(assembly):
     return part
 
 def add_closet_hangers(assembly):
-    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Closets","Hangers.blend")
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Hangers.blend")
     if path.exists(part_path):
         part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
         part.obj_bp['IS_HANGERS_BP'] = True
@@ -50,7 +50,7 @@ def add_closet_hangers(assembly):
         return part    
 
 def add_closet_wire_basket(assembly):
-    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Closets","Wire Basket.blend")
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Wire Basket.blend")
     if path.exists(part_path):
         part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
         part.obj_bp['IS_WIRE_BASKET_BP'] = True
@@ -64,7 +64,7 @@ def add_closet_wire_basket(assembly):
         return part    
 
 def add_closet_oval_hanging_rod(assembly):
-    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Closets","Oval Hanging Rod.blend")
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Oval Hanging Rod.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     part.obj_bp['IS_HANGING_ROD_BP'] = True
     assembly.add_assembly(part)
@@ -79,7 +79,7 @@ def add_closet_oval_hanging_rod(assembly):
     return part
 
 def add_closet_opening(assembly):
-    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Opening","Opening.blend")
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Opening.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     part.obj_bp['IS_OPENING_BP'] = True
     assembly.add_assembly(part)
@@ -95,7 +95,7 @@ def add_closet_opening(assembly):
     return part    
 
 def add_closet_reference(assembly):
-    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Opening","Opening.blend")
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Opening.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     part.obj_bp["IS_REFERENCE"] = True
     assembly.add_assembly(part)
@@ -124,7 +124,7 @@ def add_door_part(assembly,pointer):
     return part    
 
 def add_shelf_holes(assembly):
-    part_path = path.join(home_builder_paths.get_cabinet_parts_path(),"Machining","Shelf Holes.blend")
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Shelf Holes.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     assembly.add_assembly(part)
     part.obj_bp.empty_display_size = .001
