@@ -2640,34 +2640,43 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
         pt = closet.get_prompt("Panel Thickness").get_value()
         start_x = 0
         for i in range(1,10):
-            obj_curve = self.create_curve()
-            obj_curve["IS_CABINET_BASE_MOLDING"] = True
-            obj_curve.name = "Base Closet Molding"
-            obj_curve.parent = closet.obj_bp
-            obj_curve.data.bevel_object = self.base_profile
-            obj_curve.data.dimensions = '2D'
-            spline = obj_curve.data.splines.new('BEZIER')
             width_p = closet.get_prompt("Opening " + str(i) + " Width")
-
             if width_p:
-                
+                width = width_p.get_value()
+                floor = closet.get_prompt("Opening " + str(i) + " Floor Mounted").get_value()
+                if not floor:
+                    start_x += width + pt
+                    continue #DONT ADD MOLDING TO HANGING UNITS
+
+                obj_curve = self.create_curve()
+                obj_curve["IS_CABINET_BASE_MOLDING"] = True
+                obj_curve.name = "Base Closet Molding"
+                obj_curve.parent = closet.obj_bp
+                obj_curve.data.bevel_object = self.base_profile
+                obj_curve.data.dimensions = '2D'
+                spline = obj_curve.data.splines.new('BEZIER')
+            
                 next_width_p = closet.get_prompt("Opening " + str(i + 1) + " Width")
                 next_depth_p = closet.get_prompt("Opening " + str(i + 1) + " Depth")
-                prev_depth_p = closet.get_prompt("Opening " + str(i - 1) + " Depth")                
-                width = width_p.get_value()
+                next_floor = closet.get_prompt("Opening " + str(i + 1) + " Floor Mounted")  
+                prev_floor = closet.get_prompt("Opening " + str(i - 1) + " Floor Mounted") 
+                prev_depth_p = closet.get_prompt("Opening " + str(i - 1) + " Depth")       
+                
                 depth = closet.get_prompt("Opening " + str(i) + " Depth").get_value()
-                floor = closet.get_prompt("Opening " + str(i) + " Floor Mounted").get_value()
-
+                
                 current_index = 0
 
                 no_back_left_point = False
                 #BACK LEFT
                 if prev_depth_p:
-                    prev_depth = prev_depth_p.get_value()
-                    if prev_depth >= depth:
-                        no_back_left_point = True
+                    if not prev_floor.get_value():
+                        spline.bezier_points[current_index].co = (start_x,0,0)  
                     else:
-                        spline.bezier_points[current_index].co = (start_x,-prev_depth,0)  
+                        prev_depth = prev_depth_p.get_value()
+                        if prev_depth >= depth:
+                            no_back_left_point = True
+                        else:
+                            spline.bezier_points[current_index].co = (start_x,-prev_depth,0)  
                 else:
                     spline.bezier_points[current_index].co = (start_x,0,0)  
 
@@ -2685,12 +2694,17 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
                 #BACK RIGHT
                 if next_width_p:
                     next_depth = next_depth_p.get_value()
-                    if next_depth >= depth:
-                        pass
-                    else:
+                    if not next_floor.get_value():
                         spline.bezier_points.add(count=1)  
-                        current_index += 1 
-                        spline.bezier_points[current_index].co = (start_x+width+(pt*2),-next_depth,0)  
+                        current_index += 1                        
+                        spline.bezier_points[current_index].co = (start_x+width+(pt*2),0,0)  
+                    else:
+                        if next_depth >= depth:
+                            pass
+                        else:
+                            spline.bezier_points.add(count=1)  
+                            current_index += 1 
+                            spline.bezier_points[current_index].co = (start_x+width+(pt*2),-next_depth,0)  
                 else:
                     #LAST RETURN
                     spline.bezier_points.add(count=1)  
@@ -2704,6 +2718,7 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
     def add_crown_molding_to_closet(self,closet):
         pt = closet.get_prompt("Panel Thickness").get_value()
         start_x = 0
+        hanging_height = closet.obj_z.location.z
         for i in range(1,10):
             obj_curve = self.create_curve()
             obj_curve["IS_CABINET_CROWN_MOLDING"] = True
@@ -2724,8 +2739,10 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
                 height = closet.get_prompt("Opening " + str(i) + " Height").get_value()
                 depth = closet.get_prompt("Opening " + str(i) + " Depth").get_value()
                 floor = closet.get_prompt("Opening " + str(i) + " Floor Mounted").get_value()
-
-                obj_curve.location.z = height
+                if floor:
+                    obj_curve.location.z = height
+                else:
+                    obj_curve.location.z = hanging_height
                 current_index = 0
 
                 no_back_left_point = False
