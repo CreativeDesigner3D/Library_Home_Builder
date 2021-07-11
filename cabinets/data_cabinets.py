@@ -41,9 +41,10 @@ def get_range_hood(category,assembly_name):
         return path.join(ASSET_DIR, category, assembly_name + ".blend")   
 
 class Cabinet(pc_types.Assembly):
-
+    show_in_library = True
     category_name = "KITCHENS"
     subcategory_name = "CABINETS"
+    catalog_name = ""
 
     cabinet_type = ""
     corner_type = ""
@@ -249,8 +250,6 @@ class Cabinet(pc_types.Assembly):
         cabinet_type.set_value(self.cabinet_type)
 
 class Standard_Cabinet(Cabinet):
-    show_in_library = True
-    
     width = pc_unit.inch(18)
     calculators = []
 

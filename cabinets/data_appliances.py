@@ -43,6 +43,7 @@ class Range(pc_types.Assembly):
     show_in_library = True
     category_name = 'KITCHENS'
     subcategory_name = "APPLIANCES"
+    catalog_name = "_Sample"
     obj = None
 
     category = ""
@@ -133,6 +134,7 @@ class Refrigerator(pc_types.Assembly):
     show_in_library = True
     category_name = 'KITCHENS'
     subcategory_name = "APPLIANCES"
+    catalog_name = "_Sample"
     obj = None
 
     category = ""
@@ -282,36 +284,11 @@ class Refrigerator(pc_types.Assembly):
         insert.dim_z('carcass_height-material_thickness*2',[carcass_height,material_thickness])
 
 
-class Microwave(pc_types.Assembly):
-    show_in_library = True
-    category_name = 'KITCHENS'
-    subcategory_name = "APPLIANCES"
-    obj = None
-
-    def draw(self):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
-
-        self.create_assembly("Microwave")
-        self.obj_bp["IS_RANGE_BP"] = True          
-
-
-class Range_Hood(pc_types.Assembly):
-    show_in_library = True
-    category_name = 'KITCHENS'
-    subcategory_name = "APPLIANCES"
-    obj = None
-
-    def draw(self):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
-
-        self.create_assembly("Range Hood")
-        self.obj_bp["IS_RANGE_BP"] = True        
-
-
 class Dishwasher(pc_types.Assembly):
     show_in_library = True
     category_name = 'KITCHENS'
     subcategory_name = "APPLIANCES"
+    catalog_name = "_Sample"
     obj = None
 
     category = ""
@@ -388,29 +365,3 @@ class Dishwasher(pc_types.Assembly):
         self.obj_x.location.x = pc_unit.inch(24)
         self.obj_y.location.y = -props.base_cabinet_depth
         self.obj_z.location.z = props.base_cabinet_height
-
-
-class Sink(pc_types.Assembly):
-    # show_in_library = True
-    category_name = 'KITCHENS'
-    subcategory_name = "APPLIANCES"
-    obj = None
-
-    def draw(self):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
-
-        self.create_assembly("Dishwasher")
-        self.obj_bp["IS_RANGE_BP"] = True            
-
-
-class Cook_Top(pc_types.Assembly):
-    # show_in_library = True
-    category_name = 'KITCHENS'
-    subcategory_name = "APPLIANCES"
-    obj = None
-
-    def draw(self):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
-
-        self.create_assembly("Dishwasher")
-        self.obj_bp["IS_RANGE_BP"] = True    

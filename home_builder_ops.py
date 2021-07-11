@@ -645,7 +645,9 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         for asset in wm_props.assets:
             if asset.is_selected:
                 script = self.create_item_thumbnail_script(asset)
-                subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path() + '" -b --python "' + script + '"',shell=True) 
+                command = [bpy.app.binary_path,self.get_thumbnail_path(),"-b","--python",script]
+                subprocess.call(command) 
+                # subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path() + '" -b --python "' + script + '"',shell=True) 
         return {'FINISHED'}
 
 class home_builder_OT_save_custom_cabinet(Operator):
@@ -769,8 +771,14 @@ class home_builder_OT_save_custom_cabinet(Operator):
 
 #         subprocess.Popen(r'explorer ' + bpy.app.tempdir)
         
-        subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path() + '" -b --python "' + thumbnail_script_path + '"')
-        subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"')
+        tn_command = [bpy.app.binary_path,self.get_thumbnail_path(),"-b","--python",thumbnail_script_path]
+        save_command = [bpy.app.binary_path,"-b","--python",save_script_path]
+
+        subprocess.call(tn_command)
+        subprocess.call(save_command)
+
+        # subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path() + '" -b --python "' + thumbnail_script_path + '"')
+        # subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"')
         
         os.remove(thumbnail_script_path)
         os.remove(save_script_path)
@@ -960,8 +968,10 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
                     script = self.create_molding_thumbnail_script(asset)                    
                 else:
                     script = self.create_thumbnail_script(asset)
-                subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path(asset) + '" -b --python "' + script + '"',shell=True) 
-                # subprocess.call(bpy.app.binary_path + ' -b --python "' + script + '"',shell=True) 
+                command = [bpy.app.binary_path,self.get_thumbnail_path(asset),"-b","--python",script]
+                subprocess.call(command) 
+                # subprocess.call(bpy.app.binary_path + ' "' + self.get_thumbnail_path(asset) + '" -b --python "' + script + '"',shell=True) 
+
         scene_props.asset_tabs = scene_props.asset_tabs
         return {'FINISHED'}
 
@@ -1058,15 +1068,21 @@ class home_builder_OT_save_asset_to_library(Operator):
 
         if scene_props.asset_tabs in self.object_libraries:
             save_script_path = self.create_save_object_script(path, self.get_asset(context))
-            subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"',shell=True)
+            command = [bpy.app.binary_path,"-b","--python",save_script_path]
+            subprocess.call(command)
+            # subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"',shell=True)
 
         if scene_props.asset_tabs in self.assembly_libraries:
             save_script_path = self.create_save_object_script(path, self.get_asset(context))
-            subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"',shell=True)
+            command = [bpy.app.binary_path,"-b","--python",save_script_path]
+            subprocess.call(command)            
+            # subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"',shell=True)
 
         if scene_props.asset_tabs in self.material_libraries:
             save_script_path = self.create_save_material_script(path, self.get_asset(context))
-            subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"',shell=True)
+            command = [bpy.app.binary_path,"-b","--python",save_script_path]
+            subprocess.call(command)            
+            # subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"',shell=True)
 
         file_path = os.path.join(path,self.get_asset(context).name + ".blend")
 

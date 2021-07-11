@@ -6,6 +6,7 @@ class Floor_Mounted(data_closets.Closet_Starter):
 
     def __init__(self):
         self.is_hanging = False
+        self.catalog_name = "_Sample"
 
 class Hanging(data_closets.Closet_Starter):
 

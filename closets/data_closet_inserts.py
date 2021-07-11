@@ -14,6 +14,7 @@ class Shelves(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "INSERTS"
+    catalog_name = "_Sample"
 
     def add_adj_prompts(self):
         self.add_prompt(name="Shelf Qty",
@@ -97,6 +98,7 @@ class Single_Shelf(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_PARTS"
+    catalog_name = "_Sample"
     drop_id = ""
 
     def add_adj_prompts(self):
@@ -181,6 +183,7 @@ class Vertical_Splitter(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_PARTS"
+    catalog_name = "_Sample"
     drop_id = ""
 
     splitter_qty = 1
@@ -294,6 +297,7 @@ class Horizontal_Splitter(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_PARTS"
+    catalog_name = "_Sample"
     drop_id = ""
 
     splitter_qty = 1
@@ -411,6 +415,7 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_PARTS"
+    catalog_name = "_Sample"
     drop_id = ""
 
     def pre_draw(self):
@@ -534,6 +539,7 @@ class Hanging_Rod(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "INSERTS"
+    catalog_name = "_Sample"
 
     is_double = False
 
@@ -689,6 +695,7 @@ class Doors(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "INSERTS"
+    catalog_name = "_Sample"
     overlay_prompts = None
 
     def add_overlay_prompts(self):
@@ -1323,7 +1330,12 @@ class Single_Drawer(Doors):
 
 
 class Wire_Baskets(pc_types.Assembly):
-
+    show_in_library = True
+    category_name = "CLOSETS"
+    subcategory_name = "CLOSET_INSERTS"
+    catalog_name = "_Sample"
+    drop_id = ""
+    
     def pre_draw(self):
         self.create_assembly()
         self.obj_bp['IS_WIRE_BASKET_INSERT_BP'] = True
@@ -1448,6 +1460,7 @@ class Cubbies(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_INSERTS"
+    catalog_name = "_Sample"
     drop_id = ""
 
     def pre_draw(self):

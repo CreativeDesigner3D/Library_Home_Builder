@@ -31,7 +31,6 @@ from .closets import closet_library
 
 library_modules = [cabinet_library,
                    closet_library,
-                   data_walls,
                    door_window_library,
                    data_appliances]
 
@@ -53,6 +52,7 @@ class Asset(PropertyGroup):
     module_name: StringProperty(name="Module Name")
     category_name: StringProperty(name="Category Name")
     subcategory_name: StringProperty(name="Subcategory Name")
+    catalog_name: StringProperty(name="Catalog Name")
     class_name: StringProperty(name="Class Name")
 
 
@@ -117,12 +117,8 @@ class Home_Builder_Window_Manager_Props(PropertyGroup):
                     asset.name = name.replace("_"," ")
                     asset.category_name = obj.category_name
                     asset.subcategory_name = obj.subcategory_name
-                    asset.library_path = os.path.join(library_path,asset.category_name,asset.subcategory_name)
-                    # if asset.category_name == 'Closets':
-                    #     asset.subcategory_name = obj.subcategory_name
-                    #     asset.library_path = os.path.join(library_path,asset.category_name,asset.subcategory_name)
-                    # else:
-                    #     asset.library_path = os.path.join(library_path,asset.category_name)
+                    asset.catalog_name = obj.catalog_name
+                    asset.library_path = os.path.join(library_path,asset.category_name,asset.subcategory_name,asset.catalog_name)
                     asset.package_name = module.__name__.split(".")[-2]
                     asset.module_name = module.__name__.split(".")[-1]
                     asset.class_name = name
@@ -950,10 +946,6 @@ class Home_Builder_Scene_Props(PropertyGroup):
             appliance_box.label(text="Appliances")
             appliance_col = appliance_box.column(align=True)
 
-            wall_box = asset_left_col.box()
-            wall_box.label(text="Walls")
-            wall_col = wall_box.column(align=True)
-
             door_box = asset_right_col.box()
             door_box.label(text="Doors")
             door_col = door_box.column(align=True)
@@ -971,8 +963,6 @@ class Home_Builder_Scene_Props(PropertyGroup):
                     cabinet_col.prop(asset,'is_selected',text=text)
                 if asset.category_name == 'CLOSETS':
                     closet_col.prop(asset,'is_selected',text=text)                    
-                if asset.category_name == 'ROOMS' and asset.subcategory_name == 'WALLS': 
-                    wall_col.prop(asset,'is_selected',text=text)
                 if asset.category_name == 'ROOMS'and asset.subcategory_name == 'DOORS':
                     door_col.prop(asset,'is_selected',text=text)     
                 if asset.category_name == 'ROOMS'and asset.subcategory_name == 'WINDOWS':
@@ -1277,7 +1267,6 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.prop_enum(self, "kitchen_tabs", 'DISHWASHERS') 
             row = col.row(align=True)             
             row.scale_y = 1.3
-            # row.prop_enum(self, "kitchen_tabs", 'APPLIANCES') 
             row.prop_enum(self, "kitchen_tabs", 'CABINETS') 
             row.prop_enum(self, "kitchen_tabs", 'PARTS')  
             row = col.row(align=True)

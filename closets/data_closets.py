@@ -13,6 +13,7 @@ class Closet_Starter(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "FLOOR_PANELS"
+    catalog_name = "_Sample"
 
     panel_height = 0
     is_hanging = False

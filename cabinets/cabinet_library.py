@@ -11,6 +11,7 @@ from .. import home_builder_utils
 class Base_1_Door(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.exterior = data_cabinet_exteriors.Doors()
@@ -21,6 +22,7 @@ class Base_1_Door(data_cabinets.Standard_Cabinet):
 class Base_2_Door(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.width = pc_unit.inch(36)
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = None
@@ -32,6 +34,7 @@ class Base_2_Door(data_cabinets.Standard_Cabinet):
 class Base_2_Door_2_Drawer(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.width = pc_unit.inch(36)
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = None
@@ -44,6 +47,7 @@ class Base_2_Door_2_Drawer(data_cabinets.Standard_Cabinet):
 class Base_2_Door_1_Drawer(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.width = pc_unit.inch(36)
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = None
@@ -56,6 +60,7 @@ class Base_2_Door_1_Drawer(data_cabinets.Standard_Cabinet):
 class Base_1_Door_1_Drawer(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.width = pc_unit.inch(18)
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = None
@@ -68,6 +73,7 @@ class Base_1_Door_1_Drawer(data_cabinets.Standard_Cabinet):
 class Base_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.width = props.base_width_blind
         self.carcass = data_cabinet_carcass.Base_Advanced()
@@ -79,6 +85,7 @@ class Base_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
 class Tall_1_Door(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.carcass = data_cabinet_carcass.Tall_Advanced()
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Doors()
@@ -88,6 +95,7 @@ class Tall_1_Door(data_cabinets.Standard_Cabinet):
 class Tall_2_Door(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.width = pc_unit.inch(36)
         self.carcass = data_cabinet_carcass.Tall_Advanced()
         self.carcass.interior = None
@@ -99,6 +107,7 @@ class Tall_2_Door(data_cabinets.Standard_Cabinet):
 class Upper_1_Door(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.carcass = data_cabinet_carcass.Upper_Advanced()
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Doors()
@@ -108,6 +117,7 @@ class Upper_1_Door(data_cabinets.Standard_Cabinet):
 class Upper_2_Door(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.width = pc_unit.inch(36)
         self.carcass = data_cabinet_carcass.Upper_Advanced()
         self.carcass.interior = None
@@ -119,6 +129,7 @@ class Upper_2_Door(data_cabinets.Standard_Cabinet):
 class Upper_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.width = props.upper_width_blind
         self.carcass = data_cabinet_carcass.Upper_Advanced()
@@ -130,6 +141,7 @@ class Upper_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
 class Base_Drawer(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = None
         self.carcass.exterior = data_cabinet_exteriors.Drawers()
@@ -140,6 +152,7 @@ class Base_Drawer(data_cabinets.Standard_Cabinet):
 class Base_Open(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.carcass = data_cabinet_carcass.Base_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.exterior = None
@@ -149,6 +162,7 @@ class Base_Open(data_cabinets.Standard_Cabinet):
 class Tall_Open(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.carcass = data_cabinet_carcass.Tall_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
         self.carcass.interior.shelf_qty = 3
@@ -159,6 +173,7 @@ class Tall_Open(data_cabinets.Standard_Cabinet):
 class Tall_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.width = props.tall_width_blind
         self.carcass = data_cabinet_carcass.Tall_Advanced()
@@ -186,6 +201,7 @@ class Tall_Blind_1_Door(data_cabinets.Blind_Corner_Cabinet):
 class Tall_Stacked(data_cabinets.Stacked_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.height = props.tall_cabinet_height
         self.depth = props.tall_cabinet_depth
@@ -202,6 +218,7 @@ class Tall_Stacked(data_cabinets.Stacked_Cabinet):
 class Upper_Stacked(data_cabinets.Stacked_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.width = pc_unit.inch(36)
         self.height = props.upper_stacked_cabinet_height
@@ -222,6 +239,7 @@ class Upper_Stacked(data_cabinets.Stacked_Cabinet):
 class Upper_Open(data_cabinets.Standard_Cabinet):
 
     def __init__(self):
+        self.catalog_name = "_Sample"
         self.width = pc_unit.inch(36)
         self.carcass = data_cabinet_carcass.Upper_Advanced()
         self.carcass.interior = data_cabinet_interiors.Shelves()
