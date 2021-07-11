@@ -42,7 +42,7 @@ def get_refrigerator(category,assembly_name):
 class Range(pc_types.Assembly):
     show_in_library = True
     category_name = 'KITCHENS'
-    subcategory_name = "APPLIANCES"
+    subcategory_name = "RANGES"
     catalog_name = "_Sample"
     obj = None
 
@@ -129,11 +129,13 @@ class Range(pc_types.Assembly):
         self.add_prompt("Add Range Hood",'CHECKBOX',False)
         self.add_range(self.category,self.assembly)
 
+    def render(self):
+        self.draw()
 
 class Refrigerator(pc_types.Assembly):
     show_in_library = True
     category_name = 'KITCHENS'
-    subcategory_name = "APPLIANCES"
+    subcategory_name = "REFRIGERATORS"
     catalog_name = "_Sample"
     obj = None
 
@@ -283,11 +285,15 @@ class Refrigerator(pc_types.Assembly):
         insert.dim_y('fabs(depth)-material_thickness',[depth,material_thickness])
         insert.dim_z('carcass_height-material_thickness*2',[carcass_height,material_thickness])
 
+    def render(self):
+        self.pre_draw()
+        self.draw()
+
 
 class Dishwasher(pc_types.Assembly):
     show_in_library = True
     category_name = 'KITCHENS'
-    subcategory_name = "APPLIANCES"
+    subcategory_name = "DISHWASHERS"
     catalog_name = "_Sample"
     obj = None
 
@@ -365,3 +371,6 @@ class Dishwasher(pc_types.Assembly):
         self.obj_x.location.x = pc_unit.inch(24)
         self.obj_y.location.y = -props.base_cabinet_depth
         self.obj_z.location.z = props.base_cabinet_height
+
+    def render(self):
+        self.draw()

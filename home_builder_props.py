@@ -957,8 +957,12 @@ class Home_Builder_Scene_Props(PropertyGroup):
             wm_props = home_builder_utils.get_wm_props(bpy.context.window_manager)
             for asset in wm_props.assets:
                 text = asset.name
-                if asset.category_name == 'KITCHENS' and asset.subcategory_name == 'APPLIANCES':
+                if asset.category_name == 'KITCHENS' and asset.subcategory_name == 'RANGES':
+                    appliance_col.prop(asset,'is_selected',text=text)   
+                if asset.category_name == 'KITCHENS' and asset.subcategory_name == 'REFRIGERATORS':
                     appliance_col.prop(asset,'is_selected',text=text)            
+                if asset.category_name == 'KITCHENS' and asset.subcategory_name == 'DISHWASHERS':
+                    appliance_col.prop(asset,'is_selected',text=text)                                                             
                 if asset.category_name == 'KITCHENS' and asset.subcategory_name == 'CABINETS':
                     cabinet_col.prop(asset,'is_selected',text=text)
                 if asset.category_name == 'CLOSETS':
