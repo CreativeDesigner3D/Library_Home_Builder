@@ -160,6 +160,7 @@ def update_active_asset_index(self,context):
 
 def update_library_path(self,context):
     root_path = os.path.join(home_builder_paths.get_asset_folder_path(),self.library_tabs)
+    self.set_active_catalog_name()
     catalog_name = self.get_active_catalog_name()
     if self.library_tabs == 'ROOMS':
         final_path = os.path.join(root_path,self.room_tabs,catalog_name)
@@ -1072,6 +1073,78 @@ class Home_Builder_Scene_Props(PropertyGroup):
             return os.path.join(library_path,self.bath_tabs)
         if self.library_tabs == 'CLOSETS':
             return os.path.join(library_path,self.closet_tabs)                  
+
+    def set_active_catalog_name(self):
+        if self.library_tabs == 'ROOMS':
+            if self.room_tabs == 'WALLS':
+                cat = "_Sample" if self.active_wall_catalog == "" else self.active_wall_catalog
+                self.active_wall_catalog = cat
+            if self.room_tabs == 'DOORS':
+                cat = "_Sample" if self.active_door_catalog == "" else self.active_door_catalog
+                self.active_door_catalog = cat
+            if self.room_tabs == 'WINDOWS':
+                cat = "_Sample" if self.active_window_catalog == "" else self.active_window_catalog
+                self.active_window_catalog = cat
+            if self.room_tabs == 'OBSTACLES':
+                cat = "_Sample" if self.active_obstacle_catalog == "" else self.active_obstacle_catalog  
+                self.active_obstacle_catalog = cat            
+            if self.room_tabs == 'DECORATIONS':
+                cat = "_Sample" if self.active_room_decoration_catalog == "" else self.active_room_decoration_catalog
+                self.active_room_decoration_catalog = cat
+
+        if self.library_tabs == 'KITCHENS':
+            if self.kitchen_tabs == 'RANGES':
+                cat = "_Sample" if self.active_range_catalog == "" else self.active_range_catalog
+                self.active_range_catalog = cat
+            if self.kitchen_tabs == 'REFRIGERATORS':
+                cat = "_Sample" if self.active_refrigerator_catalog == "" else self.active_refrigerator_catalog
+                self.active_refrigerator_catalog = cat
+            if self.kitchen_tabs == 'DISHWASHERS':
+                cat = "_Sample" if self.active_dishwasher_catalog == "" else self.active_dishwasher_catalog    
+                self.active_dishwasher_catalog = cat                            
+            if self.kitchen_tabs == 'CABINETS':
+                cat = "_Sample" if self.active_cabinet_catalog == "" else self.active_cabinet_catalog
+                self.active_cabinet_catalog = cat
+            if self.kitchen_tabs == 'PARTS':
+                cat = "_Sample" if self.active_cabinet_part_catalog == "" else self.active_cabinet_part_catalog
+                self.active_cabinet_part_catalog = cat
+            if self.kitchen_tabs == 'CUSTOM_CABINETS':
+                cat = "_Sample" if self.active_custom_cabinet_catalog == "" else self.active_custom_cabinet_catalog
+                self.active_custom_cabinet_catalog = cat
+            if self.kitchen_tabs == 'DECORATIONS':
+                cat = "_Sample" if self.active_kitchen_decoration_catalog == "" else self.active_kitchen_decoration_catalog
+                self.active_kitchen_decoration_catalog = cat
+
+        if self.library_tabs == 'BATHS':
+            if self.bath_tabs == 'TOILETS':
+                cat = "_Sample" if self.active_toilet_catalog == "" else self.active_toilet_catalog
+                self.active_toilet_catalog = cat
+            if self.bath_tabs == 'BATHS':
+                cat = "_Sample" if self.active_bath_catalog == "" else self.active_bath_catalog 
+                self.active_bath_catalog = cat         
+            if self.bath_tabs == 'VANITIES':
+                cat = "_Sample" if self.active_vanity_catalog == "" else self.active_vanity_catalog
+                self.active_vanity_catalog = cat
+            if self.bath_tabs == 'DECORATIONS':
+                cat = "_Sample" if self.active_bath_decoration_catalog == "" else self.active_bath_decoration_catalog  
+                self.active_bath_decoration_catalog = cat               
+
+        if self.library_tabs == 'CLOSETS':
+            if self.closet_tabs == 'STARTERS':
+                cat = "_Sample" if self.active_closet_starter_catalog == "" else self.active_closet_starter_catalog
+                self.active_closet_starter_catalog = cat
+            if self.closet_tabs == 'INSERTS':
+                cat = "_Sample" if self.active_closet_insert_catalog == "" else self.active_closet_insert_catalog
+                self.active_closet_insert_catalog = cat
+            if self.closet_tabs == 'SPLITTERS':
+                cat = "_Sample" if self.active_closet_splitter_catalog == "" else self.active_closet_splitter_catalog
+                self.active_closet_splitter_catalog = cat
+            if self.closet_tabs == 'CLOSET_PARTS':
+                cat = "_Sample" if self.active_closet_part_catalog == "" else self.active_closet_part_catalog
+                self.active_closet_part_catalog = cat
+            if self.closet_tabs == 'DECORATIONS':
+                cat = "_Sample" if self.active_closet_decoration_catalog == "" else self.active_closet_decoration_catalog
+                self.active_closet_decoration_catalog = cat
 
     def get_active_catalog_name(self):
         if self.library_tabs == 'ROOMS':

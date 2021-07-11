@@ -697,9 +697,11 @@ class home_builder_OT_save_custom_cabinet(Operator):
     def get_path(self,context):
         props = home_builder_utils.get_scene_props(context.scene)
         if props.library_tabs == 'KITCHENS':
-            return home_builder_paths.get_custom_cabinet_library_path()
+            cat = props.active_custom_cabinet_catalog
+            return os.path.join(home_builder_paths.get_custom_cabinet_library_path(),cat)
         else:
-            return home_builder_paths.get_vanity_library_path()
+            cat = props.active_vanity_catalog
+            return os.path.join(home_builder_paths.get_vanity_library_path(),cat)
 
     def create_assembly_thumbnail_script(self,source_dir,source_file,assembly_name,obj_list):
         file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
