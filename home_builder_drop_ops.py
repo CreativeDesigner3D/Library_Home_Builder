@@ -1645,7 +1645,7 @@ class home_builder_OT_place_closet(bpy.types.Operator):
         if event_is_place_asset(event):
             self.confirm_placement(context)
 
-            return self.finish(context)
+            return self.finish(context,event.shift)
             
         if event_is_cancel_command(event):
             return self.cancel_drop(context)
@@ -1681,7 +1681,7 @@ class home_builder_OT_place_closet(bpy.types.Operator):
         if self.placement_obj:
             pc_utils.delete_object_and_children(self.placement_obj)
 
-    def finish(self,context):
+    def finish(self,context,is_recursive):
         context.window.cursor_set('DEFAULT')
         if self.drawing_plane:
             pc_utils.delete_obj_list([self.drawing_plane])
@@ -1689,7 +1689,8 @@ class home_builder_OT_place_closet(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
         ## keep placing until event_is_cancel_command
-        bpy.ops.home_builder.place_closet(filepath=self.filepath)
+        if is_recursive:
+            bpy.ops.home_builder.place_closet(filepath=self.filepath)
         return {'FINISHED'}
 
 
@@ -1871,7 +1872,7 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         if self.event_is_place_first_point(event):
             self.confirm_placement(context,opening)
 
-            return self.finish(context)
+            return self.finish(context,event.shift)
             
         if self.event_is_cancel_command(event):
             return self.cancel_drop(context)
@@ -1941,13 +1942,13 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
             if "IS_REFERENCE" in obj:
                 pc_utils.delete_object_and_children(obj)
 
-    def finish(self,context):
+    def finish(self,context,is_recursive):
         context.window.cursor_set('DEFAULT')
         self.set_placed_properties(self.cabinet.obj_bp) 
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
-        ## keep placing until event_is_cancel_command
-        bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
+        if is_recursive:
+            bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
         return {'FINISHED'}
 
 
@@ -2124,7 +2125,7 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
         if event_is_place_asset(event):
             self.confirm_placement(context,opening)
 
-            return self.finish(context)
+            return self.finish(context,event.shift)
             
         if event_is_cancel_command(event):
             return self.cancel_drop(context)
@@ -2158,13 +2159,13 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
             if "IS_REFERENCE" in obj:
                 pc_utils.delete_object_and_children(obj)
 
-    def finish(self,context):
+    def finish(self,context,is_recursive):
         context.window.cursor_set('DEFAULT')
         self.set_placed_properties(self.cabinet.obj_bp) 
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
-        ## keep placing until event_is_cancel_command
-        bpy.ops.home_builder.place_closet_part(filepath=self.filepath)
+        if is_recursive:
+            bpy.ops.home_builder.place_closet_part(filepath=self.filepath)
         return {'FINISHED'}
 
 
@@ -2444,7 +2445,7 @@ class home_builder_OT_place_wall_obstacle(bpy.types.Operator):
         self.position_object(selected_point,selected_obj)
 
         if event_is_place_asset(event):
-            return self.finish(context)
+            return self.finish(context,event.shift)
             
         if event_is_cancel_command(event):
             return self.cancel_drop(context)
@@ -2467,11 +2468,13 @@ class home_builder_OT_place_wall_obstacle(bpy.types.Operator):
         pc_utils.delete_object_and_children(self.obj)
         return {'CANCELLED'}
 
-    def finish(self,context):
+    def finish(self,context,is_recursive):
         context.window.cursor_set('DEFAULT')
         self.set_placed_properties(self.obj) 
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
+        if is_recursive:
+            bpy.ops.home_builder.place_wall_obstacle(filepath=self.filepath)
         return {'FINISHED'}
 
 
@@ -2540,7 +2543,7 @@ class home_builder_OT_place_bathroom_fixture(bpy.types.Operator):
         self.position_object(selected_point,selected_obj)
 
         if event_is_place_asset(event):
-            return self.finish(context)
+            return self.finish(context,event.shift)
             
         if event_is_cancel_command(event):
             return self.cancel_drop(context)
@@ -2582,7 +2585,7 @@ class home_builder_OT_place_bathroom_fixture(bpy.types.Operator):
         self.drawing_plane.display_type = 'WIRE'
         self.drawing_plane.dimensions = (100,100,1)
 
-    def finish(self,context):
+    def finish(self,context,is_recursive):
         context.window.cursor_set('DEFAULT')
         bpy.ops.object.select_all(action='DESELECT')
         if self.drawing_plane:
@@ -2594,6 +2597,8 @@ class home_builder_OT_place_bathroom_fixture(bpy.types.Operator):
         for obj in self.all_objects:
             self.set_placed_properties(obj) 
         context.area.tag_redraw()
+        if is_recursive:
+            bpy.ops.home_builder.place_bathroom_fixture(filepath=self.filepath)
         return {'FINISHED'}
 
 
@@ -2656,7 +2661,7 @@ class home_builder_OT_place_decoration(bpy.types.Operator):
         self.position_object(selected_point,selected_obj)
 
         if event_is_place_asset(event):
-            return self.finish(context)
+            return self.finish(context,event.shift)
             
         if event_is_cancel_command(event):
             return self.cancel_drop(context)
@@ -2689,7 +2694,7 @@ class home_builder_OT_place_decoration(bpy.types.Operator):
         self.drawing_plane.display_type = 'WIRE'
         self.drawing_plane.dimensions = (100,100,1)
 
-    def finish(self,context):
+    def finish(self,context,is_recursive):
         context.window.cursor_set('DEFAULT')
         bpy.ops.object.select_all(action='DESELECT')
         if self.drawing_plane:
@@ -2701,6 +2706,8 @@ class home_builder_OT_place_decoration(bpy.types.Operator):
         for obj in self.all_objects:
             self.set_placed_properties(obj) 
         context.area.tag_redraw()
+        if is_recursive:
+            bpy.ops.home_builder.place_decoration(filepath=self.filepath)
         return {'FINISHED'}
 
 classes = (
