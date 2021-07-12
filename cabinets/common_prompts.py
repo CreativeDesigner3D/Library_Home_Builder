@@ -49,6 +49,7 @@ def add_drawer_prompts(assembly):
     assembly.add_prompt("Drawer Box Gap",'DISTANCE',pc_unit.inch(.25))
 
 def add_front_overlay_prompts(assembly):
+    assembly.add_prompt("Hide",'CHECKBOX',False)
     assembly.add_prompt("Inset Front",'CHECKBOX',False)
     assembly.add_prompt("Door to Cabinet Gap",'DISTANCE',pc_unit.inch(.125))    
     assembly.add_prompt("Half Overlay Top",'CHECKBOX',False)

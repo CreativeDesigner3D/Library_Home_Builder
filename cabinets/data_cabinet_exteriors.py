@@ -343,6 +343,7 @@ class Doors(Cabinet_Exterior):
         door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
         open_door = self.get_prompt("Open Door").get_var('open_door')
         door_swing = self.get_prompt("Door Swing").get_var('door_swing')
+        hide_doors = self.get_prompt("Hide").get_var('hide_doors')
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
@@ -377,7 +378,7 @@ class Doors(Cabinet_Exterior):
         l_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)*-1',[door_swing,x,lo_var,ro_var,vertical_gap])            
         l_door.dim_z('front_thickness',[front_thickness])
         hide = l_door.get_prompt("Hide") 
-        hide.set_formula('IF(door_swing==1,True,False)',[door_swing])
+        hide.set_formula('IF(door_swing==1,True,hide_doors)',[door_swing,hide_doors])
         self.add_door_pull(l_door,pull_pointer)
 
         #RIGHT DOOR
@@ -392,7 +393,7 @@ class Doors(Cabinet_Exterior):
         r_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)',[door_swing,x,lo_var,ro_var,vertical_gap])     
         r_door.dim_z('front_thickness',[front_thickness])
         hide = r_door.get_prompt("Hide") 
-        hide.set_formula('IF(door_swing==0,True,False)',[door_swing])
+        hide.set_formula('IF(door_swing==0,True,hide_doors)',[door_swing,hide_doors])
         self.add_door_pull(r_door,pull_pointer)
 
         self.set_prompts()
