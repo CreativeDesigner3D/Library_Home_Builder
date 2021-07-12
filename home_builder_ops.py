@@ -1008,7 +1008,7 @@ class home_builder_OT_save_asset_to_library(Operator):
         file.write("    bpy.data.objects.remove(obj,do_unlink=True)\n")        
         file.write("bpy.context.preferences.filepaths.save_version = 0\n")
         file.write("with bpy.data.libraries.load(r'" + source_file + "', False, True) as (data_from, data_to):\n")
-        file.write("    data_to.objects = data_from.objects\n")
+        file.write("    data_to.objects = ['" + asset.name + "']\n")
         file.write("for obj in data_to.objects:\n")
         file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
         # file.write("    obj.select_set(True)\n")
