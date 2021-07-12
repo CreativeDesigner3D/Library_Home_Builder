@@ -432,3 +432,11 @@ def show_assembly_xyz(assembly):
     assembly.obj_x.empty_display_size = .001
     assembly.obj_y.empty_display_size = .001
     assembly.obj_z.empty_display_size = .001    
+
+def get_file_browser_path(context):
+    for area in context.screen.areas:
+        if area.type == 'FILE_BROWSER':
+            for space in area.spaces:
+                if space.type == 'FILE_BROWSER':
+                    params = space.params     
+                    return params.directory.decode('utf-8')    

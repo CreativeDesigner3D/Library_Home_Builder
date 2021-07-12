@@ -49,6 +49,75 @@ class HOME_BUILDER_MT_change_catalog_selection(bpy.types.Menu):
             layout.operator('home_builder.change_library_category',text=d,icon='FILEBROWSER').category = d    
 
 
+class HOME_BUILDER_MT_catalog_menu(bpy.types.Menu):
+    bl_label = "Catalog"
+
+    def allow_save_asset_command(self,props):
+        if props.library_tabs == 'ROOMS':
+            if props.room_tabs == 'WALLS':
+                return False
+            if props.room_tabs == 'DOORS':
+                return False
+            if props.room_tabs == 'WINDOWS':
+                return False
+            if props.room_tabs == 'OBSTACLES':
+                return True          
+            if props.room_tabs == 'DECORATIONS':
+                return True
+
+        if props.library_tabs == 'KITCHENS':
+            if props.kitchen_tabs == 'RANGES':
+                return False
+            if props.kitchen_tabs == 'REFRIGERATORS':
+                return False
+            if props.kitchen_tabs == 'DISHWASHERS':
+                return False
+            if props.kitchen_tabs == 'CABINETS':
+                return False
+            if props.kitchen_tabs == 'PARTS':
+                return False
+            if props.kitchen_tabs == 'CUSTOM_CABINETS':
+                return False
+            if props.kitchen_tabs == 'DECORATIONS':
+                return True
+
+        if props.library_tabs == 'BATHS':
+            if props.bath_tabs == 'TOILETS':
+                return False
+            if props.bath_tabs == 'BATHS':
+                return False
+            if props.bath_tabs == 'VANITIES':
+                return False
+            if props.bath_tabs == 'DECORATIONS':
+                return True             
+
+        if props.library_tabs == 'CLOSETS':
+            if props.closet_tabs == 'STARTERS':
+                return False
+            if props.closet_tabs == 'INSERTS':
+                return False
+            if props.closet_tabs == 'SPLITTERS':
+                return False
+            if props.closet_tabs == 'CLOSET_PARTS':
+                return False
+            if props.closet_tabs == 'DECORATIONS':
+                return True      
+
+    def draw(self, context):
+        fb_path = home_builder_utils.get_file_browser_path(context)
+        props = home_builder_utils.get_scene_props(context.scene)
+        category_name = props.get_active_catalog_name()        
+        layout = self.layout
+        if self.allow_save_asset_command(props):
+            layout.operator('home_builder.save_decoration_to_library',text="Save Asset to Library",icon='BACK')
+        layout.operator('home_builder.open_browser_window',icon='FILEBROWSER').path = fb_path
+        layout.separator()
+        if 'iMeshh' in category_name:
+            layout.operator('wm.url_open',text="Visit iMeshh Website",icon='URL').url = "https://www.imeshh.com/"
+        else:
+            layout.operator('wm.url_open',text="Download Extended Asset Library",icon='URL').url = "https://creativedesigner3d.com/extended-asset-library/"
+
+
 class HOME_BUILDER_PT_library_settings(bpy.types.Panel):
     bl_space_type = 'FILE_BROWSER'
     bl_label = "Library"
@@ -215,6 +284,7 @@ classes = (
     HOME_BUILDER_MT_change_catalog_selection,
     HOME_BUILDER_MT_category_menu,
     HOME_BUILDER_MT_closet_category_menu,
+    HOME_BUILDER_MT_catalog_menu,
     HOME_BUILDER_PT_library_settings,
     HOME_BUILDER_MT_asset_commands_menu,
     HOME_BUILDER_PT_home_builder_properties,

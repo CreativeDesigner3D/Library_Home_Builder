@@ -1304,9 +1304,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.prop_enum(self, "closet_tabs", 'DECORATIONS') 
 
         col.separator()
-        row = col.row()
+        row = col.row(align=True)
         row.scale_y = 1.3 
         row.menu('HOME_BUILDER_MT_change_catalog_selection',text=self.get_active_catalog_name()) 
+        row.menu('HOME_BUILDER_MT_catalog_menu',text="",icon='TRIA_DOWN')
 
         if (self.library_tabs == 'KITCHENS' and self.kitchen_tabs == 'CUSTOM_CABINETS') or \
             (self.library_tabs == 'BATHS' and self.bath_tabs == 'VANITIES'):

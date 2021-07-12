@@ -788,6 +788,135 @@ class home_builder_OT_save_custom_cabinet(Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_save_decoration_to_library(Operator):
+    bl_idname = "home_builder.save_decoration_to_library"
+    bl_label = "Save Decoration to Library"
+    bl_description = "This will save the selected object and it's children to the library"
+    bl_options = {'UNDO'}
+
+    obj_name = ""
+
+    @classmethod
+    def poll(cls, context):
+        if context.object:
+            return True
+        else:
+            return False
+
+    def check(self, context):    
+        return True
+
+    def invoke(self,context,event):
+        self.obj_name = context.object.name
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)
+
+    def draw(self, context):
+        layout = self.layout
+        obj = context.object
+        obj_list = []
+        obj_list = self.get_children_list(obj,obj_list)
+
+        path = self.get_path(context)
+        files = os.listdir(path) if os.path.exists(path) else []
+
+        layout.label(text="Object Name: " + obj.name)
+        if len(obj_list) > 1:
+            layout.label(text=str(len(obj_list) - 1) + " child objects will also be saved.")
+
+        if self.obj_name + ".blend" in files or self.obj_name + ".png" in files:
+            layout.label(text="File already exists",icon="ERROR")
+
+    def select_assembly_objects(self,coll):
+        for obj in coll.objects:
+            obj.select_set(True)
+        for child in coll.children:
+            self.select_collection_objects(child)
+
+    def get_path(self,context):
+        return home_builder_utils.get_file_browser_path(context)
+
+    def create_thumbnail_script(self,source_dir,source_file,assembly_name,obj_list):
+        file = codecs.open(os.path.join(bpy.app.tempdir,"thumb_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        
+        file.write("with bpy.data.libraries.load(r'" + source_file + "', False, True) as (data_from, data_to):\n")
+        file.write("    data_to.objects = " + str(obj_list) + "\n")    
+
+        file.write("for obj in data_to.objects:\n")
+        file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+        file.write("    obj.select_set(True)\n")
+        
+        file.write("bpy.ops.view3d.camera_to_view_selected()\n")
+
+        file.write("render = bpy.context.scene.render\n")
+        file.write("render.use_file_extension = True\n")
+        file.write("render.filepath = r'" + os.path.join(source_dir,assembly_name) + "'\n")
+        file.write("bpy.ops.render.render(write_still=True)\n")
+        file.close()
+
+        return os.path.join(bpy.app.tempdir,'thumb_temp.py')
+        
+    def create_save_script(self,source_dir,source_file,assembly_name,obj_list):
+        file = codecs.open(os.path.join(bpy.app.tempdir,"save_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+
+        file.write("for mat in bpy.data.materials:\n")
+        file.write("    bpy.data.materials.remove(mat,do_unlink=True)\n")
+        file.write("for obj in bpy.data.objects:\n")
+        file.write("    bpy.data.objects.remove(obj,do_unlink=True)\n")               
+        file.write("bpy.context.preferences.filepaths.save_version = 0\n")
+        
+        file.write("with bpy.data.libraries.load(r'" + source_file + "', False, True) as (data_from, data_to):\n")
+        file.write("    data_to.objects = " + str(obj_list) + "\n")        
+
+        file.write("parent_obj = None\n")
+        file.write("for obj in data_to.objects:\n")
+        file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+        file.write("    if obj.parent == None:\n")
+        file.write("        parent_obj = obj\n")
+
+        file.write("parent_obj.location = (0,0,0)\n")
+        file.write("bpy.ops.wm.save_as_mainfile(filepath=r'" + os.path.join(source_dir,assembly_name) + ".blend')\n")
+        file.close()
+        return os.path.join(bpy.app.tempdir,'save_temp.py')
+
+    def get_children_list(self,obj_bp,obj_list):
+        obj_list.append(obj_bp.name)
+        for obj in obj_bp.children:
+            self.get_children_list(obj,obj_list)
+        return obj_list
+
+    def get_thumbnail_path(self):
+        return os.path.join(home_builder_paths.get_asset_folder_path(),"thumbnail.blend")
+
+    def execute(self, context):
+        if bpy.data.filepath == "":
+            bpy.ops.wm.save_as_mainfile(filepath=os.path.join(bpy.app.tempdir,"temp_blend.blend"))
+                    
+        directory_to_save_to = self.get_path(context)
+
+        obj_list = []
+        obj_list = self.get_children_list(context.object,obj_list)
+
+        thumbnail_script_path = self.create_thumbnail_script(directory_to_save_to, bpy.data.filepath, self.obj_name, obj_list)
+        save_script_path = self.create_save_script(directory_to_save_to, bpy.data.filepath, self.obj_name, obj_list)
+
+        tn_command = [bpy.app.binary_path,self.get_thumbnail_path(),"-b","--python",thumbnail_script_path]
+        save_command = [bpy.app.binary_path,"-b","--python",save_script_path]
+
+        subprocess.call(tn_command)
+        subprocess.call(save_command)
+
+        os.remove(thumbnail_script_path)
+        os.remove(save_script_path)
+        
+        bpy.ops.file.refresh()
+        
+        return {'FINISHED'}
+
+
 class home_builder_OT_message(bpy.types.Operator):
     bl_idname = "home_builder.message"
     bl_label = "Message"
@@ -1137,6 +1266,7 @@ class home_builder_OT_open_browser_window(bpy.types.Operator):
         else:
             subprocess.Popen(['xdg-open' , os.path.normpath(self.path)])
         return {'FINISHED'}
+
 
 class home_builder_OT_create_new_asset(bpy.types.Operator):
     bl_idname = "home_builder.create_new_asset"
@@ -2984,6 +3114,7 @@ classes = (
     home_builder_OT_create_2d_views,
     home_builder_OT_create_2d_cabinet_views,
     home_builder_OT_save_custom_cabinet,
+    home_builder_OT_save_decoration_to_library,
     home_builder_OT_assign_material,
     home_builder_OT_assign_material_dialog,
     home_builder_OT_assign_material_to_slot,
