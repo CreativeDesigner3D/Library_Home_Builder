@@ -100,8 +100,10 @@ class Standard_Door(pc_types.Assembly):
             door_handle_obj.pyclone.rot_y(value=math.radians(180))
             door_handle_obj.pyclone.loc_x('door_panel_width+handle_location_from_edge',[door_panel_width,handle_location_from_edge])
             door_handle_obj.pyclone.hide('IF(OR(entry_door_swing==0,turn_off_handles),True,False)',[entry_door_swing,turn_off_handles])
+            door_handle_obj.scale.z = -1
         home_builder_pointers.assign_pointer_to_object(door_handle_obj,"Entry Door Handle")  
-
+        home_builder_utils.update_id_props(door_handle_obj,self.obj_bp)
+        
         mirror = door_handle_obj.modifiers.new('Mirror','MIRROR')
         mirror.mirror_object = door_handle_center
         mirror.use_axis[0] = False
