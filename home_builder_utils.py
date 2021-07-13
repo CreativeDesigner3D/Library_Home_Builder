@@ -187,6 +187,14 @@ def get_exterior_bp(obj):
     elif obj.parent:
         return get_exterior_bp(obj.parent)
 
+def get_shelf_bp(obj):
+    if not obj:
+        return None    
+    if "IS_SHELF_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_shelf_bp(obj.parent)
+
 def get_material(category,material_name):
     if material_name in bpy.data.materials:
         return bpy.data.materials[material_name]

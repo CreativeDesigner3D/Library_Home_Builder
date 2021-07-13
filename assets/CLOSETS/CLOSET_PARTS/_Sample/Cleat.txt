@@ -1,0 +1,1 @@
+bpy.ops.home_builder.place_closet_cleat(filepath=self.filepath)
