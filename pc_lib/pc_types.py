@@ -439,6 +439,23 @@ class Assembly_Layout():
         bpy.ops.view3d.view_camera()
         bpy.ops.view3d.view_center_camera()        
 
+    def add_3d_layout_camera(self):
+        spd = bpy.context.space_data
+        bpy.ops.object.camera_add(align='VIEW')
+        camera = bpy.context.active_object
+        camera["PROMPT_ID"] = "camera_presets.camera_properties"   
+        bpy.ops.view3d.camera_to_view()
+        camera.data.clip_start = spd.clip_start
+        camera.data.clip_end = spd.clip_end
+        camera.data.ortho_scale = 200.0
+        camera.data.sensor_width = 72  
+        camera.data.lens = spd.lens
+        spd.region_3d.view_camera_offset = [0,0]
+        spd.region_3d.view_camera_zoom = 29.0746         
+
+        self.scene.render.resolution_x = 1920
+        self.scene.render.resolution_y = 1486
+  
 
 class Title_Block(Assembly):
 
@@ -516,7 +533,10 @@ class Title_Block(Assembly):
         if bpy.context.scene.pyclone.page_size == 'LETTER':
             self.obj_bp.location.x = -0.13959
             self.obj_bp.location.y = -0.108
-            self.obj_bp.location.z = -1.001
+            if layout_view.camera.type == 'ORTHO':
+                self.obj_bp.location.z = -1.001
+            else:
+                self.obj_bp.location.z = -0.19328
             self.obj_x.location.x = pc_unit.inch(11)
             self.obj_y.location.y = pc_unit.inch(8.5)
         else:
