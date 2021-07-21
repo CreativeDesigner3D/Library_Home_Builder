@@ -435,10 +435,16 @@ class Assembly_Layout():
         self.scene.render.resolution_y = 1486
         self.scene.camera = self.camera
 
-        # bpy.ops.view3d.camera_to_view_selected()
-        bpy.ops.view3d.view_camera()
-        bpy.ops.view3d.view_center_camera()        
+        for window in bpy.context.window_manager.windows:
+            screen = window.screen
 
+            for area in screen.areas:
+                if area.type == 'VIEW_3D':
+                    override = {'window': window, 'screen': screen, 'area': area}
+                    bpy.ops.view3d.view_camera(override)
+                    bpy.ops.view3d.view_center_camera(override)   
+                    break                
+     
     def add_3d_layout_camera(self):
         spd = bpy.context.space_data
         bpy.ops.object.camera_add(align='VIEW')
