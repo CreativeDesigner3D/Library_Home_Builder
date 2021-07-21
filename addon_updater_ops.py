@@ -970,7 +970,7 @@ def update_settings_ui(self, context, element=None):
 
     # auto-update settings
     box.label(text="Updater Settings")
-    box.prop(settings,'user_token')
+    # box.prop(settings,'user_token')
     row = box.row()
 
     # special case to tell user to restart blender, if set that way
