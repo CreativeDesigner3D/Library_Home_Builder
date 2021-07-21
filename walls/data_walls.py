@@ -320,6 +320,8 @@ class Square_Room(pc_types.Assembly):
 
         #ASSIGN PROPERTY
         self.obj_bp["IS_ROOM_BP"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.room_prompts" 
+        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_wall_menu"
 
         #Set Default Dimensions
         self.obj_x.location.x = pc_unit.inch(120) #Length

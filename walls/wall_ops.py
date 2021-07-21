@@ -487,6 +487,60 @@ class home_builder_OT_wall_prompts(bpy.types.Operator):
         # layout.label(text=str(right_angle.get_value()))
 
 
+class home_builder_OT_room_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.room_prompts"
+    bl_label = "Room Prompts"
+
+    room = None
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def check(self, context):
+        pass
+
+    def invoke(self,context,event):
+        room_bp = home_builder_utils.get_room_bp(context.object)
+        self.room = pc_types.Assembly(room_bp)
+        wm = context.window_manager           
+        return wm.invoke_props_dialog(self, width=370)
+
+    def draw(self, context):
+        layout = self.layout
+        box = layout.box()
+        row = box.row()
+
+        wall_thickness = self.room.get_prompt('Wall Thickness')
+
+        col = row.column(align=True)
+        row1 = col.row(align=True)
+        row1.label(text='Length:')
+        row1.prop(self.room.obj_x,'location',index=0,text="")
+        row1.prop(self.room.obj_x,'hide_viewport',text="")
+        
+        row1 = col.row(align=True)
+        row1.label(text='Depth:')
+        row1.prop(self.room.obj_y,'location',index=1,text="")
+        row1.prop(self.room.obj_y,'hide_viewport',text="")
+        
+        row1 = col.row(align=True)
+        row1.label(text='Height:')
+        row1.prop(self.room.obj_z,'location',index=2,text="")
+        row1.prop(self.room.obj_z,'hide_viewport',text="")
+            
+        col = row.column(align=True)
+        col.label(text="Location X:")
+        col.label(text="Location Y:")
+        col.label(text="Location Z:")
+    
+        col = row.column(align=True)
+        col.prop(self.room.obj_bp,'location',text="")
+
+        row = box.row()
+        row.label(text="Wall Thickness")
+        row.prop(wall_thickness,'distance_value',text="")
+
+
 class HOMEBUILDER_MT_wall_menu(bpy.types.Menu):
     bl_label = "Wall Commands"
 
@@ -514,6 +568,7 @@ class HOMEBUILDER_MT_wall_menu(bpy.types.Menu):
 
 classes = (
     home_builder_OT_wall_prompts,
+    home_builder_OT_room_prompts,
     home_builder_OT_draw_multiple_walls,
     HOMEBUILDER_MT_wall_menu
 )

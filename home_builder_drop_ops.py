@@ -235,6 +235,9 @@ class home_builder_OT_place_room(bpy.types.Operator):
             obj.hide_viewport = True           
         if obj.type == 'MESH' and obj.hide_render == False:
             obj.display_type = 'TEXTURED'
+        home_builder_utils.update_id_props(obj,self.room.obj_bp)
+        for child in obj.children:
+            self.set_placed_properties(child)
 
     def modal(self, context, event):
         bpy.ops.object.select_all(action='DESELECT')
