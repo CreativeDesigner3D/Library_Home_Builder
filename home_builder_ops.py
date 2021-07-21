@@ -79,16 +79,9 @@ class home_builder_OT_activate(Operator):
 
     def execute(self, context):
         props = home_builder_utils.get_scene_props(context.scene)
-        library_path = os.path.join(home_builder_paths.get_asset_folder_path(),props.library_tabs)
 
-        if props.library_tabs == 'ROOMS':
-            path = os.path.join(library_path,props.room_tabs)
-        if props.library_tabs == 'KITCHENS':
-            path = os.path.join(library_path,props.kitchen_tabs)
-        if props.library_tabs == 'BATHS':
-            path = os.path.join(library_path,props.bath_tabs)
-        if props.library_tabs == 'CLOSETS':
-            path = os.path.join(library_path,props.closet_tabs)       
+        root_path = props.get_current_catalog_path()
+        path = os.path.join(root_path,props.get_active_catalog_name())
 
         if len(props.material_pointer_groups) == 0:
             home_builder_pointers.update_pointer_properties()
