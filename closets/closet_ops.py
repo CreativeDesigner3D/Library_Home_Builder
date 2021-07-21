@@ -510,6 +510,77 @@ class home_builder_OT_closet_single_shelf_prompts(bpy.types.Operator):
         layout.prop(self.insert.obj_bp,'location',index=2,text="Shelf Location")
 
 
+class home_builder_OT_closet_cleat_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_cleat_prompts"
+    bl_label = "Closet Cleat Prompts"
+
+    cleat_width: bpy.props.FloatProperty(name="Width",min=pc_unit.inch(1),unit='LENGTH',precision=4)
+
+    part = None
+    calculators = []
+
+    def check(self, context):
+        if self.part.obj_y.location.y > 0:
+            self.part.obj_y.location.y = self.cleat_width
+        else:
+            self.part.obj_y.location.y = -self.cleat_width
+        return True
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=200)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_cleat_bp(context.object)
+        self.part = pc_types.Assembly(bp)
+        self.cleat_width = math.fabs(self.part.obj_y.location.y)
+
+    def draw(self, context):
+        layout = self.layout
+        inset = self.part.get_prompt("Cleat Inset")
+        width = self.part.get_prompt("Cleat Width")
+        row = layout.row()
+        row.label(text="Cleat Inset")
+        row.prop(inset,'distance_value',text="")
+        row = layout.row()
+        row.label(text="Cleat Width")
+        row.prop(self,'cleat_width',text="")
+
+
+class home_builder_OT_closet_back_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_back_prompts"
+    bl_label = "Closet Back Prompts"
+
+    part = None
+    calculators = []
+
+    def check(self, context):
+        return True
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=200)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_closet_back_bp(context.object)
+        self.part = pc_types.Assembly(bp)
+
+    def draw(self, context):
+        layout = self.layout
+        inset = self.part.get_prompt("Back Inset")
+        row = layout.row()
+        row.label(text="Back Inset")
+        row.prop(inset,'distance_value',text="")
+
+
 class home_builder_OT_hanging_rod_prompts(bpy.types.Operator):
     bl_idname = "home_builder.hanging_rod_prompts"
     bl_label = "Hanging Rod Prompts"
@@ -926,6 +997,8 @@ classes = (
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
     home_builder_OT_closet_shelves_prompts,
+    home_builder_OT_closet_cleat_prompts,
+    home_builder_OT_closet_back_prompts,
     home_builder_OT_closet_single_shelf_prompts,
     home_builder_OT_hanging_rod_prompts,
     home_builder_OT_closet_door_prompts,
