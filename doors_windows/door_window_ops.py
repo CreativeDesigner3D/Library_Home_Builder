@@ -472,39 +472,10 @@ class home_builder_OT_window_prompts(bpy.types.Operator):
         if self.window_tabs == 'INSERT':
             self.draw_window_insert(box,context)           
 
-class HOMEBUILDER_MT_window_door_menu(bpy.types.Menu):
-    bl_label = "Window and Door Commands"
-
-    def draw(self, context):
-        layout = self.layout
-        obj_bp = pc_utils.get_assembly_bp(context.object)
-        door_window_bp = None
-
-        door_bp = home_builder_utils.get_door_bp(context.object)  
-        if door_bp:
-            door_window_bp = door_bp
-        window_bp = home_builder_utils.get_window_bp(context.object)  
-        if window_bp:
-            door_window_bp = window_bp
-
-        layout.operator_context = 'INVOKE_DEFAULT'
-
-        #TODO: Implement same commands as cabinets
-        # if door_window_bp:
-        #     layout.operator('home_builder.move_cabinet',text="Move Appliance - " + door_window_bp.name,icon='OBJECT_ORIGIN').obj_bp_name = door_window_bp.name
-        #     layout.operator('home_builder.free_move_cabinet',text="Grab Appliance - " + door_window_bp.name,icon='VIEW_PAN').obj_bp_name = door_window_bp.name
-        #     layout.operator('home_builder.duplicate_cabinet',text="Duplicate Appliance - " + door_window_bp.name,icon='DUPLICATE').obj_bp_name = door_window_bp.name
-        #     layout.separator()
-
-        layout.operator('home_builder.part_prompts',text="Assembly Prompts - " + obj_bp.name,icon='WINDOW')
-        layout.operator('home_builder.edit_part',icon='EDITMODE_HLT')
-        layout.separator()
-        layout.operator('home_builder.delete_assembly',text="Delete",icon='X').obj_name = door_window_bp.name
 
 classes = (
     home_builder_OT_door_prompts,
     home_builder_OT_window_prompts,
-    HOMEBUILDER_MT_window_door_menu,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

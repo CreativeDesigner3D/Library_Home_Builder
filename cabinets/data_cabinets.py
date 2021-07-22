@@ -263,7 +263,7 @@ class Standard_Cabinet(Cabinet):
         
         self.obj_bp["IS_CABINET_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.cabinet_prompts" 
-        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_cabinet_menu"
+        self.obj_bp["MENU_ID"] = "HOME_BUILDER_MT_cabinets"
         self.obj_y['IS_MIRROR'] = True
 
         carcass_type = self.carcass.get_prompt("Carcass Type")
@@ -362,7 +362,7 @@ class Stacked_Cabinet(Cabinet):
         
         self.obj_bp["IS_CABINET_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.cabinet_prompts" 
-        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_cabinet_menu"
+        self.obj_bp["MENU_ID"] = "HOME_BUILDER_MT_cabinets"
         self.obj_y['IS_MIRROR'] = True
 
         # cabinet_type = self.carcass.get_prompt("Cabinet Type")
@@ -447,7 +447,7 @@ class Blind_Corner_Cabinet(Cabinet):
         
         self.obj_bp["IS_CABINET_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.cabinet_prompts" 
-        self.obj_bp["MENU_ID"] = "HOMEBUILDER_MT_cabinet_menu"
+        self.obj_bp["MENU_ID"] = "HOME_BUILDER_MT_cabinets"
         self.obj_y['IS_MIRROR'] = True
 
         common_prompts.add_blind_cabinet_prompts(self.carcass)

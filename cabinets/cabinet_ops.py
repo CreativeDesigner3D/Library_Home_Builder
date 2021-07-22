@@ -1951,34 +1951,6 @@ class home_builder_OT_refrigerator_prompts(Appliance_Prompts):
         self.draw_refrigerator_selection(layout,context)
 
 
-class HOMEBUILDER_MT_cabinet_menu(bpy.types.Menu):
-    bl_label = "Cabinet Commands"
-
-    def draw(self, context):
-        layout = self.layout
-        obj_bp = pc_utils.get_assembly_bp(context.object)
-        cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
-        appliance_bp = home_builder_utils.get_appliance_bp(context.object)
-        exterior_bp = home_builder_utils.get_exterior_bp(context.object)
-
-        layout.operator_context = 'INVOKE_DEFAULT'
-
-        if cabinet_bp:
-            layout.operator('home_builder.move_cabinet',text="Move Cabinet - " + cabinet_bp.name,icon='OBJECT_ORIGIN').obj_bp_name = cabinet_bp.name
-            layout.operator('home_builder.free_move_cabinet',text="Grab Cabinet - " + cabinet_bp.name,icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
-            layout.operator('home_builder.duplicate_cabinet',text="Duplicate Cabinet - " + cabinet_bp.name,icon='DUPLICATE').obj_bp_name = cabinet_bp.name
-            layout.separator()
-            
-        if exterior_bp:
-            layout.operator('home_builder.change_cabinet_exterior',text="Change Cabinet Exterior",icon='FILE_REFRESH')
-            layout.separator()
-
-        layout.operator('home_builder.part_prompts',text="Part Prompts - " + obj_bp.name,icon='WINDOW')
-        layout.operator('home_builder.edit_part',icon='EDITMODE_HLT')
-        layout.separator()
-        layout.operator('home_builder.delete_assembly',text="Delete Cabinet",icon='X').obj_name = cabinet_bp.name
-
-
 class home_builder_OT_delete_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.delete_cabinet"
     bl_label = "Delete Cabinet"
@@ -2152,7 +2124,6 @@ classes = (
     home_builder_OT_range_prompts,
     home_builder_OT_dishwasher_prompts,
     home_builder_OT_refrigerator_prompts,
-    HOMEBUILDER_MT_cabinet_menu,
     home_builder_OT_delete_cabinet,
     home_builder_OT_delete_part,
     home_builder_OT_part_prompts,

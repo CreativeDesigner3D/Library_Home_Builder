@@ -19,6 +19,7 @@ from bpy.props import (StringProperty,
                        EnumProperty,
                        CollectionProperty)
 from mathutils import Vector
+from bpy_extras.view3d_utils import location_3d_to_region_2d
 
 from .pc_lib import pc_unit, pc_utils, pc_types
 from .doors_windows import door_window_library
@@ -302,6 +303,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+    snap_cursor_to_cabinet: bpy.props.BoolProperty(name="Snap Cursor to Cabinet",default=False)
 
     cabinet = None
     selected_cabinet = None
@@ -345,6 +347,17 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         self.reset_properties()
         self.create_drawing_plane(context)
         self.get_cabinet(context)
+
+        if self.snap_cursor_to_cabinet:
+            if self.obj_bp_name != "":
+                obj_bp = bpy.data.objects[self.obj_bp_name]
+            else:
+                obj_bp = self.cabinet.obj_bp            
+            region = context.region
+            co = location_3d_to_region_2d(region,context.region_data,obj_bp.matrix_world.translation)
+            region_offset = Vector((region.x,region.y))
+            context.window.cursor_warp(*(co + region_offset))  
+
         self.placement_obj = create_placement_obj(context)
 
         context.window_manager.modal_handler_add(self)
@@ -589,16 +602,20 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             self.position_cabinet_on_object(mouse_location,event,selected_obj,cursor_z)
 
     def get_cabinet(self,context):
-        directory, file = os.path.split(self.filepath)
-        filename, ext = os.path.splitext(file)
-        self.cabinet = eval("cabinet_library." + filename.replace(" ","_") + "()")
-
-        if hasattr(self.cabinet,'pre_draw'):
-            self.cabinet.pre_draw()
+        if self.obj_bp_name in bpy.data.objects:
+            obj_bp = bpy.data.objects[self.obj_bp_name]
+            self.cabinet = data_cabinets.Cabinet(obj_bp)
         else:
-            self.cabinet.draw()
+            directory, file = os.path.split(self.filepath)
+            filename, ext = os.path.splitext(file)
+            self.cabinet = eval("cabinet_library." + filename.replace(" ","_") + "()")
 
-        self.cabinet.set_name(filename)
+            if hasattr(self.cabinet,'pre_draw'):
+                self.cabinet.pre_draw()
+            else:
+                self.cabinet.draw()
+
+            self.cabinet.set_name(filename)
         self.set_child_properties(self.cabinet.obj_bp)
 
         ## added base_height to handle upper cabinets in position_cabinet. Can't use += as it accumulates
@@ -719,10 +736,8 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
                 self.cabinet.obj_bp.location.z += props.height_above_floor - self.cabinet.obj_z.location.z
 
     def modal(self, context, event):
-        
         bpy.ops.object.select_all(action='DESELECT')
 
-        context.view_layer.update()
         #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
         self.cabinet.obj_z.empty_display_size = .001
         self.cabinet.obj_z.hide_viewport = False
@@ -734,6 +749,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         self.mouse_y = event.mouse_y
         self.reset_selection()
 
+        context.view_layer.update()
         ## selected_normal added in to pass this info on from ray cast to position_cabinet
         selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
 
@@ -811,14 +827,30 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
 
+    def remove_old_boolean_modifier(self):
+        wall_bp = home_builder_utils.get_wall_bp(self.assembly.obj_bp)
+        wall_mesh = None
+        for child in wall_bp.children:
+            if child.type == 'MESH':
+                wall_mesh = child
+        obj_bool = self.get_boolean_obj(self.assembly.obj_bp)
+        if wall_mesh:
+            for mod in wall_mesh.modifiers:
+                if mod.type == 'BOOLEAN':
+                    if mod.object == obj_bool:
+                        wall_mesh.modifiers.remove(mod)
+                        
     def create_assembly(self,context):
-        directory, file = os.path.split(self.filepath)
-        filename, ext = os.path.splitext(file)
+        if self.obj_bp_name in bpy.data.objects:
+            obj_bp = bpy.data.objects[self.obj_bp_name]
+            self.assembly = pc_types.Assembly(obj_bp)
+            self.remove_old_boolean_modifier()
+        else:
+            directory, file = os.path.split(self.filepath)
+            filename, ext = os.path.splitext(file)
+            self.assembly = eval("door_window_library." + filename.replace(" ","_") + "()")     
+            self.assembly.draw_assembly()
 
-        self.assembly = eval("door_window_library." + filename.replace(" ","_") + "()")
-
-        # self.assembly = wm_props.get_asset(self.filepath)        
-        self.assembly.draw_assembly()
         self.set_child_properties(self.assembly.obj_bp)
 
     def set_child_properties(self,obj):
@@ -875,7 +907,7 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
         self.assembly.obj_bp.location.y = 0
 
     def modal(self, context, event):
-        context.area.tag_redraw()
+        context.view_layer.update()
         self.mouse_x = event.mouse_x
         self.mouse_y = event.mouse_y
 
@@ -935,7 +967,7 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
             pc_utils.delete_obj_list([self.drawing_plane])
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
-        if is_recursive:
+        if is_recursive and self.obj_bp_name == "":
             bpy.ops.home_builder.place_door_window(filepath=self.filepath)
         return {'FINISHED'}
         
@@ -947,6 +979,7 @@ class home_builder_OT_place_appliance(bpy.types.Operator):
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+    snap_cursor_to_cabinet: bpy.props.BoolProperty(name="Snap Cursor to Cabinet",default=False)
 
     appliance = None
     selected_cabinet = None
@@ -989,6 +1022,17 @@ class home_builder_OT_place_appliance(bpy.types.Operator):
         self.reset_properties()
         self.create_drawing_plane(context)
         self.get_appliance(context)
+
+        if self.snap_cursor_to_cabinet:
+            if self.obj_bp_name != "":
+                obj_bp = bpy.data.objects[self.obj_bp_name]
+            else:
+                obj_bp = self.cabinet.obj_bp            
+            region = context.region
+            co = location_3d_to_region_2d(region,context.region_data,obj_bp.matrix_world.translation)
+            region_offset = Vector((region.x,region.y))
+            context.window.cursor_warp(*(co + region_offset))  
+
         context.window_manager.modal_handler_add(self)
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
@@ -1146,29 +1190,34 @@ class home_builder_OT_place_appliance(bpy.types.Operator):
             self.appliance.obj_bp.location.z = self.base_height + cursor_z
 
     def get_appliance(self,context):
-        directory, file = os.path.split(self.filepath)
-        path, category = os.path.split(directory)
-        filename, ext = os.path.splitext(file)
-        props = home_builder_utils.get_scene_props(context.scene)
-        if props.kitchen_tabs == 'RANGES':
-            self.appliance = data_appliances.Range()
-            self.appliance.category = category
-            self.appliance.assembly = filename
-        if props.kitchen_tabs == 'REFRIGERATORS':
-            self.appliance = data_appliances.Refrigerator()
-            self.appliance.category = category
-            self.appliance.assembly = filename            
-        if props.kitchen_tabs == 'DISHWASHERS':
-            self.appliance = data_appliances.Dishwasher()
-            self.appliance.category = category
-            self.appliance.assembly = filename            
+        if self.obj_bp_name in bpy.data.objects:
+            obj_bp = bpy.data.objects[self.obj_bp_name]
+            self.appliance = pc_types.Assembly(obj_bp)
+        else:        
+            directory, file = os.path.split(self.filepath)
+            path, category = os.path.split(directory)
+            filename, ext = os.path.splitext(file)
+            props = home_builder_utils.get_scene_props(context.scene)
+            if props.kitchen_tabs == 'RANGES':
+                self.appliance = data_appliances.Range()
+                self.appliance.category = category
+                self.appliance.assembly = filename
+            if props.kitchen_tabs == 'REFRIGERATORS':
+                self.appliance = data_appliances.Refrigerator()
+                self.appliance.category = category
+                self.appliance.assembly = filename            
+            if props.kitchen_tabs == 'DISHWASHERS':
+                self.appliance = data_appliances.Dishwasher()
+                self.appliance.category = category
+                self.appliance.assembly = filename            
 
-        if hasattr(self.appliance,'pre_draw'):
-            self.appliance.pre_draw()
-        else:
-            self.appliance.draw()
+            if hasattr(self.appliance,'pre_draw'):
+                self.appliance.pre_draw()
+            else:
+                self.appliance.draw()
 
-        self.appliance.set_name(filename)
+            self.appliance.set_name(filename)
+
         self.set_child_properties(self.appliance.obj_bp)
 
         ## added base_height to handle upper cabinets in position_cabinet. Can't use += as it accumulates
