@@ -2109,8 +2109,8 @@ class home_builder_OT_place_closet_cleat(bpy.types.Operator):
             self.part.obj_x.location.x = opening.obj_x.location.x
             cleat_inset = self.part.get_prompt('Cleat Inset').get_var('cleat_inset')
 
-            depth_var = opening.obj_bp.pyclone.get_var('location.y','depth_var')
-            self.part.loc_y('-depth_var-cleat_inset',[depth_var,cleat_inset])    
+            depth_var = opening.obj_y.pyclone.get_var('location.y','depth_var')
+            self.part.loc_y('depth_var-cleat_inset',[depth_var,cleat_inset])    
 
             if placement == 'TOP':
                 z_loc_var = opening.obj_z.pyclone.get_var('location.z','z_loc_var')
@@ -2276,8 +2276,8 @@ class home_builder_OT_place_closet_back(bpy.types.Operator):
      
             back_inset = self.part.get_prompt('Back Inset').get_var('back_inset')
 
-            depth_var = opening.obj_bp.pyclone.get_var('location.y','depth_var')
-            self.part.loc_y('-depth_var-back_inset',[depth_var,back_inset])    
+            depth_var = opening.obj_y.pyclone.get_var('location.y','depth_var')
+            self.part.loc_y('depth_var-back_inset',[depth_var,back_inset])    
 
             home_builder_utils.copy_drivers(opening.obj_prompts,self.part.obj_prompts)
             home_builder_pointers.assign_cabinet_shelf_pointers(self.part)
