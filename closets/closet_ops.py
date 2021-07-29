@@ -49,10 +49,6 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_prompts"
     bl_label = "Closet Prompts"
 
-    width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
-    height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
-    depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
-
     is_base: bpy.props.BoolProperty(name="Is Base")
 
     product_tabs: bpy.props.EnumProperty(name="Product Tabs",
@@ -110,21 +106,6 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         self.calculators = []
 
     def update_product_size(self):
-        if 'IS_MIRROR' in self.closet.obj_x and self.closet.obj_x['IS_MIRROR']:
-            self.closet.obj_x.location.x = -self.width
-        else:
-            self.closet.obj_x.location.x = self.width
-
-        # if 'IS_MIRROR' in self.closet.obj_y and self.closet.obj_y['IS_MIRROR']:
-        #     self.closet.obj_y.location.y = -self.depth
-        # else:
-        #     self.closet.obj_y.location.y = self.depth
-        
-        if 'IS_MIRROR' in self.closet.obj_z and self.closet.obj_z['IS_MIRROR']:
-            self.closet.obj_z.location.z = -self.height
-        else:
-            self.closet.obj_z.location.z = self.height
-
         for i in range(1,9):
             opening_height = self.closet.get_prompt("Opening " + str(i) + " Height")
             if opening_height:
@@ -188,9 +169,6 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
     def invoke(self,context,event):
         self.reset_variables()
         self.get_assemblies(context)
-        self.depth = math.fabs(self.closet.obj_y.location.y)
-        self.height = math.fabs(self.closet.obj_z.location.z)
-        self.width = math.fabs(self.closet.obj_x.location.x)
         self.set_default_heights()
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
@@ -217,7 +195,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             row1.label(text='Width: ' + value)
         else:
             row1.label(text='Width:')
-            row1.prop(self,'width',text="")
+            row1.prop(self.closet.obj_x,'location',index=0,text="")
             row1.prop(self.closet.obj_x,'hide_viewport',text="")
             row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_x.name
 
@@ -240,7 +218,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
                 row1.label(text='Hanging Height: ' + value)
             else:
                 row1.label(text='Hanging Height:')
-                row1.prop(self,'height',text="")
+                row1.prop(self.closet.obj_z,'location',index=2,text="")
                 row1.prop(self.closet.obj_z,'hide_viewport',text="")
                 row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_z.name
         else:
