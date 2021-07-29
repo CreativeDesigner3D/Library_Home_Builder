@@ -578,7 +578,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.write("import bpy\n")
         file.write("import os\n")
         file.write("import sys\n")
-        file.write("import Library_Home_Builder\n")
+        file.write("import " + __package__ + "\n")
         file.write("bpy.ops.home_builder.reload_pointers()\n")
         
         #CREATE DIR
@@ -594,7 +594,7 @@ class home_builder_OT_render_asset_thumbnails(Operator):
         file.write("            obj.select_set(True)\n")
 
         #DRAW ASSET
-        file.write("item = eval('Library_Home_Builder." + asset.package_name + "." + asset.module_name + "." + asset.class_name + "()')" + "\n")
+        file.write("item = eval('" + __package__ + "." + asset.package_name + "." + asset.module_name + "." + asset.class_name + "()')" + "\n")
         # file.write("if hasattr(item,'pre_draw'):\n")
         # file.write("    item.pre_draw()\n")        
         # file.write("if hasattr(item,'draw'):\n")
@@ -980,7 +980,7 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
         file.write("import bpy\n")
         file.write("import os\n")
         file.write("import sys\n")
-        file.write("import Library_Home_Builder\n")
+        file.write("import " + __package__ + "\n")
 
         file.write("path = r'" + os.path.join(os.path.dirname(asset.asset_path),asset.name)  + "'\n")
 
@@ -991,7 +991,7 @@ class home_builder_OT_create_thumbnails_for_selected_assets(Operator):
 
         file.write("for obj in data_to.objects:\n")
         file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
-        file.write("    Library_Home_Builder.home_builder_pointers.assign_materials_to_object(obj)\n")
+        file.write("    " + __package__ + ".home_builder_pointers.assign_materials_to_object(obj)\n")
         file.write("    obj.select_set(True)\n")
 
         file.write("bpy.ops.view3d.camera_to_view_selected()\n")
