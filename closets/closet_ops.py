@@ -10,6 +10,41 @@ from .. import home_builder_pointers
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 from mathutils import Vector
 
+def update_closet_height(self,context):
+    ''' EVENT changes height for all closet openings
+    '''
+    self.opening_1_height = self.set_height
+    self.opening_2_height = self.set_height
+    self.opening_3_height = self.set_height
+    self.opening_4_height = self.set_height
+    self.opening_5_height = self.set_height
+    self.opening_6_height = self.set_height
+    self.opening_7_height = self.set_height
+    self.opening_8_height = self.set_height
+    
+    obj_product_bp = home_builder_utils.get_closet_bp(context.active_object)
+    product = pc_types.Assembly(obj_product_bp)
+    if self.is_base:
+        product.obj_z.location.z = pc_unit.millimeter(float(self.set_height))
+
+    for i in range(1,10):
+        opening_height = product.get_prompt("Opening " + str(i) + " Height")
+        if opening_height:
+            opening_height.set_value(pc_unit.millimeter(float(self.set_height)))
+
+def update_closet_depth(self,context):
+    ''' EVENT changes depth for all closet openings
+    '''
+    obj_product_bp = home_builder_utils.get_closet_bp(context.active_object)
+    product = pc_types.Assembly(obj_product_bp)
+    if self.is_base:
+        product.obj_y.location.y = -self.set_depth
+
+    for i in range(1,10):
+        opening_depth = product.get_prompt("Opening " + str(i) + " Depth")
+        if opening_depth:
+            opening_depth.set_value(self.set_depth)
+
 class home_builder_OT_closet_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_prompts"
     bl_label = "Closet Prompts"
@@ -18,10 +53,19 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
     height: bpy.props.FloatProperty(name="Height",unit='LENGTH',precision=4)
     depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)
 
+    is_base: bpy.props.BoolProperty(name="Is Base")
+
     product_tabs: bpy.props.EnumProperty(name="Product Tabs",
                                          items=[('MAIN',"Main","Main Options"),
                                                 ('CONSTRUCTION',"Construction","Construction Options"),
                                                 ('MACHINING',"Machining","Machining Options")])
+
+    set_height: bpy.props.EnumProperty(name="Set Height",
+                                       items=home_builder_enums.PANEL_HEIGHTS,
+                                       default = '2131',
+                                       update = update_closet_height)
+
+    set_depth: bpy.props.FloatProperty(name="Set Depth",unit='LENGTH',precision=4,update=update_closet_depth)
 
     opening_1_height: bpy.props.EnumProperty(name="Opening 1 Height",
                                     items=home_builder_enums.PANEL_HEIGHTS,
@@ -71,10 +115,10 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         else:
             self.closet.obj_x.location.x = self.width
 
-        if 'IS_MIRROR' in self.closet.obj_y and self.closet.obj_y['IS_MIRROR']:
-            self.closet.obj_y.location.y = -self.depth
-        else:
-            self.closet.obj_y.location.y = self.depth
+        # if 'IS_MIRROR' in self.closet.obj_y and self.closet.obj_y['IS_MIRROR']:
+        #     self.closet.obj_y.location.y = -self.depth
+        # else:
+        #     self.closet.obj_y.location.y = self.depth
         
         if 'IS_MIRROR' in self.closet.obj_z and self.closet.obj_z['IS_MIRROR']:
             self.closet.obj_z.location.z = -self.height
@@ -154,6 +198,9 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
     def get_assemblies(self,context):
         bp = home_builder_utils.get_closet_bp(context.object)
         self.closet = data_closets.Closet_Starter(bp)
+        self.is_base = self.closet.is_base_starter
+        if self.is_base:
+            self.set_depth = math.fabs(self.closet.obj_y.location.y)
         self.get_calculators(self.closet.obj_bp)
 
     def draw_product_size(self,layout,context):
@@ -178,24 +225,32 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         if pc_utils.object_has_driver(self.closet.obj_z):
             z = math.fabs(self.closet.obj_z.location.z)
             value = str(bpy.utils.units.to_string(unit_system,'LENGTH',z))            
-            row1.label(text='Hanging Height: ' + value)
+            row1.label(text='Set Height: ' + value)
         else:
-            row1.label(text='Hanging Height:')
-            row1.prop(self,'height',text="")
+            row1.label(text='Set Height:')
+            row1.prop(self,'set_height',text="")
             row1.prop(self.closet.obj_z,'hide_viewport',text="")
             row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_z.name
-        
+
+        if not self.closet.is_base_starter:
+            row1 = col.row(align=True)
+            if pc_utils.object_has_driver(self.closet.obj_z):
+                z = math.fabs(self.closet.obj_z.location.z)
+                value = str(bpy.utils.units.to_string(unit_system,'LENGTH',z))            
+                row1.label(text='Hanging Height: ' + value)
+            else:
+                row1.label(text='Hanging Height:')
+                row1.prop(self,'height',text="")
+                row1.prop(self.closet.obj_z,'hide_viewport',text="")
+                row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_z.name
+        else:
+            row1 = col.row(align=True)
+            row1.label(text='Set Depth:')
+            row1.prop(self,'set_depth',text="")
+            row1.prop(self.closet.obj_y,'hide_viewport',text="")
+            row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_y.name
+
         row1 = col.row(align=True)
-        # if pc_utils.object_has_driver(self.closet.obj_y):
-        #     y = math.fabs(self.closet.obj_y.location.y)
-        #     value = str(bpy.utils.units.to_string(unit_system,'LENGTH',y))                 
-        #     row1.label(text='Depth: ' + value)
-        # else:
-        #     row1.label(text='Depth:')
-        #     row1.prop(self,'depth',text="")
-        #     row1.prop(self.closet.obj_y,'hide_viewport',text="")
-        #     row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_y.name
-            
         if len(self.closet.obj_bp.constraints) > 0:
             col = row.column(align=True)
             col.label(text="Location:")
@@ -311,7 +366,10 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
                     row.prop(width,'distance_value',text="")
                 # row.prop(floor,'checkbox_value',text="",icon='TRIA_DOWN' if floor.get_value() else 'TRIA_UP')
                 row.prop(self,'opening_' + str(i) + '_height',text="")
-                row.prop(depth,'distance_value',text="")
+                if self.is_base:
+                    row.label(text=str(pc_unit.meter_to_active_unit(depth.distance_value)) + '"')
+                else:
+                    row.prop(depth,'distance_value',text="")
 
     def draw(self, context):
         layout = self.layout

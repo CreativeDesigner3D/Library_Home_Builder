@@ -134,3 +134,12 @@ def add_shelf_holes(assembly):
     part.obj_prompts.empty_display_size = .001   
     home_builder_pointers.assign_pointer_to_assembly(part,"Shelf Holes")
     return part    
+
+def add_countertop_part(assembly):
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    assembly.add_assembly(part)
+    home_builder_utils.add_bevel(part)
+    home_builder_pointers.assign_pointer_to_assembly(part,"Countertop Surface")
+    home_builder_pointers.assign_materials_to_assembly(part)
+    return part    

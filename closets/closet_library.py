@@ -2,16 +2,21 @@ import bpy
 from ..pc_lib import pc_types, pc_unit, pc_utils
 from . import data_closets, data_closet_inserts
 
-class Floor_Mounted(data_closets.Closet_Starter):
+class Tall_Starter(data_closets.Closet_Starter):
 
     def __init__(self):
         self.is_hanging = False
-        self.catalog_name = "_Sample"
 
-class Hanging(data_closets.Closet_Starter):
+class Hanging_Starter(data_closets.Closet_Starter):
 
     def __init__(self):
         self.is_hanging = True
+
+class Base_Starter(data_closets.Closet_Starter):
+
+    def __init__(self):
+        self.is_hanging = False
+        self.is_base_starter = True
 
 class Shelves(data_closet_inserts.Shelves):
 
