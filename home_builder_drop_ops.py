@@ -763,7 +763,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         ## cursor_z added to allow for multi level placement
         cursor_z = context.scene.cursor.location.z
 
-        position_cabinet(self.cabinet,selected_point,selected_obj,cursor_z,selected_normal,self.placement_obj,self.height_above_floor)
+        self.placement = position_cabinet(self.cabinet,selected_point,selected_obj,cursor_z,selected_normal,self.placement_obj,self.height_above_floor)
 
         if event_is_place_asset(event):
             self.confirm_placement(context)
@@ -2081,6 +2081,7 @@ class home_builder_OT_place_closet_cleat(bpy.types.Operator):
 
         self.part.set_name("Cleat")
         self.part.obj_bp['IS_CLEAT_BP'] = True
+        self.part.obj_bp['IS_CUTPART_BP'] = True
         self.part.obj_bp['PROMPT_ID'] = 'home_builder.closet_cleat_prompts'
         self.set_child_properties(self.part.obj_bp)
 
@@ -2246,6 +2247,7 @@ class home_builder_OT_place_closet_back(bpy.types.Operator):
 
         self.part.set_name("Back")
         self.part.obj_bp['IS_CLOSET_BACK_BP'] = True
+        self.part.obj_bp['IS_CUTPART_BP'] = True
         self.part.obj_bp['PROMPT_ID'] = 'home_builder.closet_back_prompts'
         self.set_child_properties(self.part.obj_bp)
 
