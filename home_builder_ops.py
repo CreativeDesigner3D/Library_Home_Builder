@@ -2103,7 +2103,7 @@ class home_builder_OT_assign_material_dialog(bpy.types.Operator):
                 else:
                     row.prop(mat_slot,"name",text=" ",icon='MATERIAL')
 
-            if pointer and pointer.pointer_name not in pointer_list:
+            if pointer and pointer.pointer_name not in pointer_list and pointer.pointer_name != "":
                 pointer_list.append(pointer.pointer_name)
 
             props = row.operator('home_builder.assign_material_to_slot',text="Override",icon='BACK')
