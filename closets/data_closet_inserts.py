@@ -731,6 +731,7 @@ class Doors(pc_types.Assembly):
         self.create_assembly()
         self.obj_bp["IS_CLOSET_DOORS_BP"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
+        self.obj_bp["IS_EXTERIOR_BP"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_door_prompts"
 
         self.obj_x.location.x = pc_unit.inch(20)
@@ -1091,6 +1092,7 @@ class Drawers(Doors):
         self.create_assembly()
         self.obj_bp['IS_CLOSET_DRAWERS_BP'] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
+        self.obj_bp["IS_EXTERIOR_BP"] = True
         self.obj_bp['PROMPT_ID'] = 'home_builder.closet_drawer_prompts'
 
         self.obj_x.location.x = pc_unit.inch(20)
