@@ -494,7 +494,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
     show_closet_panel_drilling: bpy.props.BoolProperty(name="Show Panel Drilling",
                                                        description="Check this option if you want drilling to show on the closet panels",
-                                                       default=False) 
+                                                       default=False)      
 
     #ENTRY DOORS
     single_door_width: bpy.props.FloatProperty(name="Single Door Width",
@@ -722,11 +722,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.prop(self,"closet_corner_spacing",text="")    
             row = box.row(align=True)
             row.label(text="Default Closet Depth")
-            row.prop(self,"default_closet_depth",text="")    
+            row.prop(self,"default_closet_depth",text="")  
             row = box.row(align=True)
             row.label(text="Show Closet Panel Drilling")
-            row.prop(self,"show_closet_panel_drilling",text="")   
-
+            row.prop(self,"show_closet_panel_drilling",text="")              
+    
         if self.default_tabs == 'DOOR_SIZES':
             box = prop_col.box()
             row = box.row(align=True)
