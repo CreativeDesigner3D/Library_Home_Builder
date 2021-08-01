@@ -387,6 +387,40 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             #         box.label(text=carcass.exterior.obj_bp.name)
             #         carcass.exterior.draw_prompts(box,context)
 
+class home_builder_OT_closet_inside_corner_prompts(bpy.types.Operator):
+    bl_idname = "home_builder.closet_inside_corner_prompts"
+    bl_label = "Closet Inside Corner Prompts"
+
+    closet = None
+    
+    def check(self, context):
+        return True
+
+    def execute(self, context):                   
+        return {'FINISHED'}
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        # self.set_default_heights()
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=500)
+
+    def get_assemblies(self,context):
+        bp = home_builder_utils.get_closet_inside_corner_bp(context.object)
+        self.closet = data_closets.Closet_Inside_Corner(bp)
+
+    def set_default_heights(self):
+        for i in range(1,9):
+            opening_height_prompt = self.closet.get_prompt("Opening " + str(i) + " Height")
+            if opening_height_prompt:
+                opening_height = round(pc_unit.meter_to_millimeter(opening_height_prompt.get_value()),0)
+                for index, height in enumerate(home_builder_enums.PANEL_HEIGHTS):
+                    if not opening_height >= int(height[0]):
+                        exec('self.opening_' + str(i) + '_height = home_builder_enums.PANEL_HEIGHTS[index - 1][0]')                                                                                                                                                                                                        
+                        break
+
+    def draw(self, context):
+        layout = self.layout
 
 class home_builder_OT_closet_door_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_door_prompts"
@@ -1032,6 +1066,7 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
 classes = (
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
+    home_builder_OT_closet_inside_corner_prompts,
     home_builder_OT_closet_shelves_prompts,
     home_builder_OT_closet_cleat_prompts,
     home_builder_OT_closet_back_prompts,

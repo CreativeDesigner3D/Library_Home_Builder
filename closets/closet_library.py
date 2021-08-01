@@ -18,6 +18,11 @@ class Base_Starter(data_closets.Closet_Starter):
         self.is_hanging = False
         self.is_base_starter = True
 
+class Corner_L_Shelves(data_closets.Closet_Inside_Corner):
+
+    def __init__(self):
+        pass
+
 class Shelves(data_closet_inserts.Shelves):
 
     def __init__(self):

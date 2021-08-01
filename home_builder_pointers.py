@@ -371,6 +371,8 @@ def assign_double_sided_pointers(assembly):
                     pointer.pointer_name = "Cabinet Exposed Edges"
                 if pointer.name == 'W2':
                     pointer.pointer_name = "Cabinet Exposed Edges"      
+                if pointer.name == 'Notch':
+                    pointer.pointer_name = "Cabinet Exposed Edges"   
 
 def assign_hanging_rods_pointers(assembly):
     for child in assembly.obj_bp.children:
