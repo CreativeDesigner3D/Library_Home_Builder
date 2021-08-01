@@ -56,52 +56,6 @@ class Asset(PropertyGroup):
     class_name: StringProperty(name="Class Name")
 
 
-class Home_Builder_AddonPreferences(AddonPreferences):
-    bl_idname = __package__
-
-    assets_filepath: StringProperty(
-        name="Assets Filepath",
-        subtype='FILE_PATH',
-    )
-
-    auto_check_update: bpy.props.BoolProperty(
-        name="Auto-check for Update",
-        description="If enabled, auto-check for updates using an interval",
-        default=False)
-
-    updater_interval_months: bpy.props.IntProperty(
-        name='Months',
-        description="Number of months between checking for updates",
-        default=0,
-        min=0)
-
-    updater_interval_days: bpy.props.IntProperty(
-        name='Days',
-        description="Number of days between checking for updates",
-        default=7,
-        min=0,
-        max=31)
-
-    updater_interval_hours: bpy.props.IntProperty(
-        name='Hours',
-        description="Number of hours between checking for updates",
-        default=0,
-        min=0,
-        max=23)
-
-    updater_interval_minutes: bpy.props.IntProperty(
-        name='Minutes',
-        description="Number of minutes between checking for updates",
-        default=0,
-        min=0,
-        max=59)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "assets_filepath")
-        addon_updater_ops.update_settings_ui(self, context)
-
-
 class Home_Builder_Window_Manager_Props(PropertyGroup):
     assets: CollectionProperty(name='Assets',type=Asset)
 
@@ -772,7 +726,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row = box.row(align=True)
             row.label(text="Show Closet Panel Drilling")
             row.prop(self,"show_closet_panel_drilling",text="")   
-                
+
         if self.default_tabs == 'DOOR_SIZES':
             box = prop_col.box()
             row = box.row(align=True)
@@ -1384,7 +1338,6 @@ classes = (
     Pointer,
     PointerGroup,
     Asset,
-    Home_Builder_AddonPreferences,
     Home_Builder_Window_Manager_Props,
     Home_Builder_Object_Props,
     Home_Builder_Scene_Props,

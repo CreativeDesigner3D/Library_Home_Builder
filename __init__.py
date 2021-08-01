@@ -48,7 +48,53 @@ def load_pointers(scene=None):
     # home_builder_pointers.write_pointer_files()
     home_builder_pointers.update_pointer_properties()
 
+class Home_Builder_AddonPreferences(bpy.types.AddonPreferences):
+    bl_idname = __package__
+
+    assets_filepath: bpy.props.StringProperty(
+        name="Assets Filepath",
+        subtype='FILE_PATH',
+    )
+
+    auto_check_update: bpy.props.BoolProperty(
+        name="Auto-check for Update",
+        description="If enabled, auto-check for updates using an interval",
+        default=False)
+
+    updater_interval_months: bpy.props.IntProperty(
+        name='Months',
+        description="Number of months between checking for updates",
+        default=0,
+        min=0)
+
+    updater_interval_days: bpy.props.IntProperty(
+        name='Days',
+        description="Number of days between checking for updates",
+        default=7,
+        min=0,
+        max=31)
+
+    updater_interval_hours: bpy.props.IntProperty(
+        name='Hours',
+        description="Number of hours between checking for updates",
+        default=0,
+        min=0,
+        max=23)
+
+    updater_interval_minutes: bpy.props.IntProperty(
+        name='Minutes',
+        description="Number of minutes between checking for updates",
+        default=0,
+        min=0,
+        max=59)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "assets_filepath")
+        addon_updater_ops.update_settings_ui(self, context)
+
 def register():
+    bpy.utils.register_class(Home_Builder_AddonPreferences)
     addon_updater_ops.register(bl_info)
     home_builder_props.register()
     home_builder_ui.register()
