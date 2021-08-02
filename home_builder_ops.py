@@ -333,7 +333,7 @@ class home_builder_OT_update_scene_materials(bpy.types.Operator):
     
     def execute(self, context):
         for obj in context.visible_objects:
-            if obj.type == 'MESH':
+            if obj.type in {'MESH','CURVE'}:
                 home_builder_pointers.assign_materials_to_object(obj)
         return {'FINISHED'}
 
