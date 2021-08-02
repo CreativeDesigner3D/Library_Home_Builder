@@ -80,6 +80,8 @@ class Range(pc_types.Assembly):
             self.range_hood_appliance.dim_x('width',[width])
 
         self.update_range_hood_location()
+        #Location must be updated twice for some reason
+        self.update_range_hood_location()
 
         home_builder_utils.update_assembly_id_props(self.range_hood_appliance,self)
 
