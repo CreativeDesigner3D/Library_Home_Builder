@@ -36,8 +36,13 @@ class Closet_Starter(pc_types.Assembly):
                 if "IS_RIGHT_BRIDGE_BP" in child:
                     self.right_bridge_parts.append(pc_types.Assembly(child))
 
+            self.is_hanging = True
             for i in range(1,9):
                 opening_height_prompt = self.get_prompt("Opening " + str(i) + " Height")
+                floor = self.get_prompt("Opening " + str(i) + " Floor Mounted")
+                if floor:
+                    if floor.get_value():
+                        self.is_hanging = False
                 if not opening_height_prompt:
                     self.opening_qty = i - 1
                     break
@@ -200,6 +205,10 @@ class Closet_Starter(pc_types.Assembly):
         ctop.dim_x('width',[width])
         ctop.dim_y('depth-ctop_overhang_front_var',[depth,ctop_overhang_front_var])
         ctop.dim_z('ctop_thickness_var',[ctop_thickness_var])
+        ctop.obj_bp.hide_viewport = True
+        ctop.obj_x.hide_viewport = True
+        ctop.obj_y.hide_viewport = True
+        ctop.obj_z.hide_viewport = True
         home_builder_utils.flip_normals(ctop)
         return ctop
 

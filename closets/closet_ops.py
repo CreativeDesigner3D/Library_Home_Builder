@@ -939,6 +939,8 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
 
         self.new_closet = data_closets.Closet_Starter()
         self.new_closet.opening_qty = self.quantity
+        self.new_closet.is_base_starter = self.closet.is_base_starter
+        self.new_closet.is_hanging = self.closet.is_hanging
         self.new_closet.pre_draw()
         self.new_closet.draw()
         self.new_closet.obj_bp.parent = parent
