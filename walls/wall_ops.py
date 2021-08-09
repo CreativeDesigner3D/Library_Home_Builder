@@ -85,7 +85,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         self.dim.obj_bp.parent = self.current_wall.obj_bp
         self.dim.obj_x.location.x = self.current_wall.obj_x.location.x
         self.dim.obj_bp.location.z = self.current_wall.obj_z.location.z + .01
-        self.dim.get_prompt("Font Size").set_value(.2)
+        self.dim.get_prompt("Font Size").set_value(0)
         self.dim.get_prompt("Arrow Height").set_value(pc_unit.inch(4))
         self.dim.get_prompt("Arrow Length").set_value(pc_unit.inch(5))
         self.dim.get_prompt("Line Thickness").set_value(pc_unit.inch(.5))
@@ -283,6 +283,21 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             else:
                 self.dim.obj_text.scale.x = 1
                 self.dim.obj_text.scale.y = 1
+            font_size = self.dim.get_prompt("Font Size")
+            if self.dim.obj_x.location.x == 0:
+                font_size.set_value(0)  
+            elif self.dim.obj_x.location.x >= pc_unit.inch(30):
+                font_size.set_value(.2) 
+            elif self.dim.obj_x.location.x >= pc_unit.inch(20):
+                font_size.set_value(.1)                 
+            elif self.dim.obj_x.location.x >= pc_unit.inch(15):
+                font_size.set_value(.05)             
+            elif self.dim.obj_x.location.x >= pc_unit.inch(10):
+                font_size.set_value(.03)             
+            elif self.dim.obj_x.location.x >= pc_unit.inch(5):
+                font_size.set_value(.02)             
+            else:
+                font_size.set_value(0)              
             self.dim.update_dim_text()
 
     def hide_empties(self,obj):
