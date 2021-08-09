@@ -45,11 +45,83 @@ def update_closet_depth(self,context):
         if opening_depth:
             opening_depth.set_value(self.set_depth)
 
+def update_corner_closet_height(self,context):
+    ''' EVENT changes height for corner closet
+    '''
+    obj_product_bp = home_builder_utils.get_closet_inside_corner_bp(context.active_object)
+    product = pc_types.Assembly(obj_product_bp)
+    is_hanging = product.get_prompt('Is Hanging')
+    if is_hanging.get_value():
+        panel_height = product.get_prompt('Panel Height')
+        panel_height.set_value(pc_unit.millimeter(float(self.set_height)))
+    else:
+        product.obj_z.location.z = pc_unit.millimeter(float(self.set_height))
+
+class home_builder_OT_duplicate_closet_insert(bpy.types.Operator):
+    bl_idname = "home_builder.duplicate_closet_insert"
+    bl_label = "Duplicate Closet Insert"
+
+    obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+
+    @classmethod
+    def poll(cls, context):
+        obj_bp = home_builder_utils.get_closet_insert_bp(context.object)
+        if obj_bp:
+            return True
+        else:
+            return False
+
+    def select_obj_and_children(self,obj):
+        obj.hide_viewport = False
+        obj.select_set(True)
+        for child in obj.children:
+            obj.hide_viewport = False
+            child.select_set(True)
+            self.select_obj_and_children(child)
+
+    def hide_empties_and_boolean_meshes(self,obj):
+        if obj.type == 'EMPTY' or obj.hide_render:
+            obj.hide_viewport = True
+        for child in obj.children:
+            self.hide_empties_and_boolean_meshes(child)
+
+    def delete_drivers(self,obj):
+        if obj.animation_data:
+            for driver in obj.animation_data.drivers:
+                obj.driver_remove(driver.data_path)
+
+    def execute(self, context):
+        obj = context.object
+        obj_bp = home_builder_utils.get_closet_insert_bp(obj)
+        cabinet = pc_types.Assembly(obj_bp)
+        bpy.ops.object.select_all(action='DESELECT')
+        self.select_obj_and_children(cabinet.obj_bp)
+        bpy.ops.object.duplicate_move()
+        self.hide_empties_and_boolean_meshes(cabinet.obj_bp)
+
+        obj = context.object
+        new_obj_bp = home_builder_utils.get_closet_insert_bp(obj)
+        new_cabinet = pc_types.Assembly(new_obj_bp)
+        new_cabinet.obj_bp.parent = None
+        self.delete_drivers(new_cabinet.obj_bp)
+        self.delete_drivers(new_cabinet.obj_x)
+        self.delete_drivers(new_cabinet.obj_y)
+        self.delete_drivers(new_cabinet.obj_z)
+
+        self.hide_empties_and_boolean_meshes(new_cabinet.obj_bp)
+
+        bpy.ops.home_builder.place_closet_insert(obj_bp_name=new_cabinet.obj_bp.name)
+
+        return {'FINISHED'}
+
+
 class home_builder_OT_closet_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_prompts"
     bl_label = "Closet Prompts"
 
     is_base: bpy.props.BoolProperty(name="Is Base")
+
+    width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
 
     product_tabs: bpy.props.EnumProperty(name="Product Tabs",
                                          items=[('MAIN',"Main","Main Options"),
@@ -106,6 +178,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         self.calculators = []
 
     def update_product_size(self):
+        self.closet.obj_x.location.x = self.width
         for i in range(1,9):
             opening_height = self.closet.get_prompt("Opening " + str(i) + " Height")
             if opening_height:
@@ -113,9 +186,6 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
                 opening_height.set_value(height)
 
     def update_materials(self,context):
-        pass
-
-    def update_fillers(self,context):
         pass
 
     def update_bridge_parts(self,context):
@@ -138,7 +208,24 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
                 pc_utils.delete_object_and_children(part.obj_bp)
             self.closet.right_bridge_parts = []
 
-    def set_default_heights(self):
+    def update_fillers(self,context):
+        left_side_wall_filler = self.closet.get_prompt("Left Side Wall Filler")
+        right_side_wall_filler = self.closet.get_prompt("Right Side Wall Filler")
+        if left_side_wall_filler.get_value() > 0 and self.closet.left_filler is None:
+            self.closet.add_left_filler()
+            home_builder_utils.update_assembly_id_props(self.closet.left_filler,self.closet)
+        if right_side_wall_filler.get_value() > 0 and self.closet.right_filler is None:
+            self.closet.add_right_filler()   
+            home_builder_utils.update_assembly_id_props(self.closet.right_filler,self.closet)          
+        if left_side_wall_filler.get_value() == 0 and self.closet.left_filler is not None:
+            pc_utils.delete_object_and_children(self.closet.left_filler.obj_bp)
+            self.closet.left_filler = None
+        if right_side_wall_filler.get_value() == 0 and self.closet.right_filler is not None:
+            pc_utils.delete_object_and_children(self.closet.right_filler.obj_bp)
+            self.closet.right_filler = None   
+
+    def set_default_size(self):
+        self.width = self.closet.obj_x.location.x
         for i in range(1,9):
             opening_height_prompt = self.closet.get_prompt("Opening " + str(i) + " Height")
             if opening_height_prompt:
@@ -154,7 +241,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         self.update_bridge_parts(context) 
         self.update_materials(context)
         for calculator in self.calculators:
-            calculator.calculate()
+            calculator.calculate() 
         return True
 
     def execute(self, context):                   
@@ -169,7 +256,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
     def invoke(self,context,event):
         self.reset_variables()
         self.get_assemblies(context)
-        self.set_default_heights()
+        self.set_default_size()
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=500)
 
@@ -195,7 +282,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             row1.label(text='Width: ' + value)
         else:
             row1.label(text='Width:')
-            row1.prop(self.closet.obj_x,'location',index=0,text="")
+            row1.prop(self,'width',index=0,text="")
             row1.prop(self.closet.obj_x,'hide_viewport',text="")
             row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_x.name
 
@@ -265,12 +352,19 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         l_bridge = self.closet.get_prompt("Bridge Left")
         r_bridge = self.closet.get_prompt("Bridge Right") 
         l_bridge_width = self.closet.get_prompt("Left Bridge Shelf Width")
-        r_bridge_width = self.closet.get_prompt("Right Bridge Shelf Width")         
-         
+        r_bridge_width = self.closet.get_prompt("Right Bridge Shelf Width")       
+        l_filler = self.closet.get_prompt("Left Side Wall Filler")
+        r_filler = self.closet.get_prompt("Right Side Wall Filler")            
+        
         row = layout.row()    
         row.label(text="Toe Kick:")
         row.prop(kick_height,'distance_value',text="Height")    
         row.prop(kick_setback,'distance_value',text="Setback")    
+
+        row = layout.row()   
+        row.label(text="Fillers:") 
+        row.prop(l_filler,'distance_value',text="Left Width")
+        row.prop(r_filler,'distance_value',text="Right Width")
 
         row = layout.row()    
         row.prop(l_bridge,'checkbox_value',text="Bridge Left")
@@ -391,9 +485,19 @@ class home_builder_OT_closet_inside_corner_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_inside_corner_prompts"
     bl_label = "Closet Inside Corner Prompts"
 
+    width: bpy.props.FloatProperty(name="Width",unit='LENGTH',precision=4)
+    depth: bpy.props.FloatProperty(name="Depth",unit='LENGTH',precision=4)  
+
+    set_height: bpy.props.EnumProperty(name="Set Height",
+                                       items=home_builder_enums.PANEL_HEIGHTS,
+                                       default = '2131',
+                                       update = update_corner_closet_height)
+
     closet = None
     
     def check(self, context):
+        self.closet.obj_x.location.x = self.width
+        self.closet.obj_y.location.y = -self.depth             
         return True
 
     def execute(self, context):                   
@@ -401,13 +505,14 @@ class home_builder_OT_closet_inside_corner_prompts(bpy.types.Operator):
 
     def invoke(self,context,event):
         self.get_assemblies(context)
-        # self.set_default_heights()
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=500)
+        return wm.invoke_props_dialog(self, width=400)
 
     def get_assemblies(self,context):
         bp = home_builder_utils.get_closet_inside_corner_bp(context.object)
         self.closet = data_closets.Closet_Inside_Corner(bp)
+        self.width = self.closet.obj_x.location.x
+        self.depth = math.fabs(self.closet.obj_y.location.y)      
 
     def set_default_heights(self):
         for i in range(1,9):
@@ -419,8 +524,81 @@ class home_builder_OT_closet_inside_corner_prompts(bpy.types.Operator):
                         exec('self.opening_' + str(i) + '_height = home_builder_enums.PANEL_HEIGHTS[index - 1][0]')                                                                                                                                                                                                        
                         break
 
+    def draw_product_size(self,layout):
+        box = layout.box()
+        row = box.row()
+        
+        col = row.column(align=True)
+        row1 = col.row(align=True)
+        row1.label(text='Width:')
+        row1.prop(self,'width',text="")
+        row1.prop(self.closet.obj_x,'hide_viewport',text="")
+        
+        row1 = col.row(align=True)
+        row1.label(text='Height:')
+        row1.prop(self,'set_height',text="")
+        row1.prop(self.closet.obj_z,'hide_viewport',text="")
+        
+        row1 = col.row(align=True)
+        row1.label(text='Depth:')
+        row1.prop(self,'depth',text="")
+        row1.prop(self.closet.obj_y,'hide_viewport',text="")
+            
+        col = row.column(align=True)
+        col.label(text="Location X:")
+        col.label(text="Location Y:")
+        col.label(text="Location Z:")
+        
+        col = row.column(align=True)
+        col.prop(self.closet.obj_bp,'location',text="")
+        
+        is_hanging = self.closet.get_prompt("Is Hanging")
+        
+        if is_hanging:
+            row = box.row()
+            # row.label(text="Is Hanging")
+            row.prop(is_hanging,'checkbox_value',text="Is Hanging")
+            # is_hanging.draw_prompt(row)
+            if is_hanging.get_value():
+                row.prop(self.closet.obj_z,'location',index=2,text="Hanging Height")
+        
+        row = box.row()
+        row.label(text='Rotation Z:')
+        row.prop(self.closet.obj_bp,'rotation_euler',index=2,text="")  
+
+    def draw_construction_prompts(self,layout):
+        left_depth = self.closet.get_prompt("Left Depth")
+        right_depth = self.closet.get_prompt("Right Depth")
+        kick_height = self.closet.get_prompt("Closet Kick Height")
+        kick_setback = self.closet.get_prompt("Closet Kick Setback")
+        shelf_qty = self.closet.get_prompt("Shelf Quantity")
+        back_width = self.closet.get_prompt("Back Width")
+
+        box = layout.box()
+        row = box.row()
+        row.label(text="Left Depth")
+        row.prop(left_depth,'distance_value',text="")
+        row.label(text="Right Depth")
+        row.prop(right_depth,'distance_value',text="")      
+
+        row = box.row()
+        row.label(text="Toe Kick")
+        row.prop(kick_height,'distance_value',text="Height")
+        row.prop(kick_setback,'distance_value',text="Setback")
+
+        row = box.row()
+        row.label(text="Shelf Quantity")
+        row.prop(shelf_qty,'quantity_value',text="")
+
+        row = box.row()
+        row.label(text="Back Width")
+        row.prop(back_width,'distance_value',text="Back Width")
+
     def draw(self, context):
         layout = self.layout
+        self.draw_product_size(layout)
+        self.draw_construction_prompts(layout)
+
 
 class home_builder_OT_closet_door_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_door_prompts"
@@ -1066,6 +1244,7 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
 
 
 classes = (
+    home_builder_OT_duplicate_closet_insert,
     home_builder_OT_closet_prompts,
     home_builder_OT_show_closet_properties,
     home_builder_OT_closet_inside_corner_prompts,

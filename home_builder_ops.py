@@ -29,6 +29,8 @@ from .cabinets import cabinet_utils
 from . import home_builder_pointers
 from . import home_builder_utils
 from . import home_builder_paths
+from bpy_extras.view3d_utils import location_3d_to_region_2d
+from mathutils import Vector
 
 try:
     import reportlab
@@ -3073,6 +3075,77 @@ class home_builder_OT_change_closet_offsets(bpy.types.Operator):
         return {'FINISHED'}    
 
 
+class home_builder_OT_collect_walls(bpy.types.Operator):
+    bl_idname = "home_builder.collect_walls"
+    bl_label = "Collect Walls"
+    bl_description = "This collects all of the walls in the current scene"
+    bl_options = {'UNDO'}
+
+    def execute(self,context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        for wall in props.walls:
+            props.walls.remove(0)
+        for obj in context.scene.objects:
+            if 'IS_WALL_BP' in obj:
+                wall = props.walls.add()
+                wall.obj_bp = obj
+                for child in wall.obj_bp.children:
+                    if child.type == 'MESH':
+                        wall.wall_mesh = child
+
+        return {'FINISHED'}    
+
+
+class home_builder_OT_show_hide_walls(bpy.types.Operator):
+    bl_idname = "home_builder.show_hide_walls"
+    bl_label = "Show Hide Walls"
+    bl_description = "This toggles the walls visibility"
+    bl_options = {'UNDO'}
+
+    wall_obj_bp: bpy.props.StringProperty(name="Wall Base Point Name")
+
+    def hide_children(self,obj):
+        if obj.type in {'MESH','CURVE'}:
+            if obj.hide_get():
+                obj.hide_set(False)
+                # obj.hide_viewport = False
+            else:
+                obj.hide_set(True)
+                # obj.hide_viewport = True
+        for child in obj.children:
+            # print(child.name)
+            self.hide_children(child)
+
+    def execute(self,context):
+        wall_bp = bpy.data.objects[self.wall_obj_bp]
+        self.hide_children(wall_bp)
+        return {'FINISHED'}    
+
+
+class home_builder_OT_free_move_object(bpy.types.Operator):
+    bl_idname = "home_builder.free_move_object"
+    bl_label = "Free Move Object"
+
+    obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+
+    def execute(self, context):
+        bpy.ops.object.select_all(action='DESELECT')
+
+        obj = bpy.data.objects[self.obj_bp_name]
+        loc = obj.matrix_world
+        obj.constraints.clear()
+        obj.hide_viewport = False
+        obj.select_set(True)
+        obj.matrix_world = loc
+        
+        region = context.region
+        co = location_3d_to_region_2d(region,context.region_data,obj.matrix_world.translation)
+        region_offset = Vector((region.x,region.y))
+        context.window.cursor_warp(*(co + region_offset))
+        bpy.ops.transform.translate('INVOKE_DEFAULT')
+        
+        return {'FINISHED'}
+
 classes = (
     home_builder_OT_activate,
     home_builder_OT_change_library_category,
@@ -3122,6 +3195,9 @@ classes = (
     home_builder_OT_reload_library,
     home_builder_OT_auto_add_molding,
     home_builder_OT_change_closet_offsets,
+    home_builder_OT_collect_walls,
+    home_builder_OT_show_hide_walls,
+    home_builder_OT_free_move_object,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

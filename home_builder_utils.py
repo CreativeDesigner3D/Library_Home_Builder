@@ -131,6 +131,14 @@ def get_single_shelf_bp(obj):
     elif obj.parent:
         return get_single_shelf_bp(obj.parent)
 
+def get_countertop_bp(obj):
+    if not obj:
+        return None    
+    if "IS_COUNTERTOP_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_countertop_bp(obj.parent)
+
 def get_cleat_bp(obj):
     if not obj:
         return None    
@@ -325,6 +333,11 @@ def replace_assembly(old_assembly,new_assembly):
     copy_drivers(old_assembly.obj_z,new_assembly.obj_z)
     copy_drivers(old_assembly.obj_prompts,new_assembly.obj_prompts)
     pc_utils.delete_object_and_children(old_assembly.obj_bp)
+
+def select_children(obj):
+    obj.select_set(True)
+    for child in obj.children:
+        select_children(child)
 
 def copy_drivers(old_obj,new_obj):
     new_obj.location = old_obj.location

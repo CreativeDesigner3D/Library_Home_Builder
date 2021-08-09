@@ -22,6 +22,8 @@ class Closet_Starter(pc_types.Assembly):
     panels = []
     left_bridge_parts = []
     right_bridge_parts = []
+    left_filler = None
+    right_filler = None
 
     def __init__(self,obj_bp=None):
         super().__init__(obj_bp=obj_bp)  
@@ -35,7 +37,10 @@ class Closet_Starter(pc_types.Assembly):
                     self.left_bridge_parts.append(pc_types.Assembly(child))
                 if "IS_RIGHT_BRIDGE_BP" in child:
                     self.right_bridge_parts.append(pc_types.Assembly(child))
-
+                if "IS_LEFT_FILLER_BP" in child:
+                    self.left_filler = pc_types.Assembly(child)
+                if "IS_RIGHT_FILLER_BP" in child:
+                    self.right_filler = pc_types.Assembly(child)
             self.is_hanging = True
             for i in range(1,9):
                 opening_height_prompt = self.get_prompt("Opening " + str(i) + " Height")
@@ -48,22 +53,23 @@ class Closet_Starter(pc_types.Assembly):
                     break
 
     def add_opening_prompts(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
         width = self.obj_x.pyclone.get_var('location.x','width')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
+        left_filler_width = self.get_prompt("Left Side Wall Filler").get_var("left_filler_width")
+        right_filler_width = self.get_prompt("Right Side Wall Filler").get_var("right_filler_width")
 
         calc_distance_obj = self.add_empty('Calc Distance Obj')
         calc_distance_obj.empty_display_size = .001
         opening_calculator = self.obj_prompts.pyclone.add_calculator("Opening Calculator",calc_distance_obj)
 
-        calc_formula = 'width-p_thickness*' + str(self.opening_qty+1)
-        calc_vars = [width,p_thickness]
+        calc_formula = 'width-left_filler_width-right_filler_width-p_thickness*' + str(self.opening_qty+1)
+        calc_vars = [width,p_thickness,left_filler_width,right_filler_width]
 
         for i in range(1,self.opening_qty+1):
             opening_calculator.add_calculator_prompt('Opening ' + str(i) + ' Width')
-            if self.is_base_starter:
-                self.add_prompt("Opening " + str(i) + " Height",'DISTANCE',pc_unit.millimeter(819))
-            else:
-                self.add_prompt("Opening " + str(i) + " Height",'DISTANCE',pc_unit.millimeter(1523) if self.is_hanging else self.obj_z.location.z)
+            default_height = pc_unit.millimeter(int(props.hanging_closet_panel_height)) if self.is_hanging else self.obj_z.location.z
+            self.add_prompt("Opening " + str(i) + " Height",'DISTANCE',default_height)
             self.add_prompt("Opening " + str(i) + " Depth",'DISTANCE',math.fabs(self.obj_y.location.y))
             self.add_prompt("Opening " + str(i) + " Floor Mounted",'CHECKBOX',False if self.is_hanging else True)
             self.add_prompt("Remove Bottom " + str(i),'CHECKBOX',True if self.is_hanging else False)
@@ -274,11 +280,18 @@ class Closet_Starter(pc_types.Assembly):
         self.create_assembly()
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.obj_x.location.x = pc_unit.inch(96)
-        self.obj_y.location.y = -props.default_closet_depth
+        
+        if self.is_hanging:
+            self.obj_y.location.y = -props.default_hanging_closet_depth
+            self.obj_z.location.z = pc_unit.millimeter(int(props.default_closet_hanging_height))
+            
         if self.is_base_starter:
-            self.obj_z.location.z = pc_unit.millimeter(819)
-        else:
-            self.obj_z.location.z = pc_unit.millimeter(2131)
+            self.obj_y.location.y = -props.default_base_closet_depth
+            self.obj_z.location.z = pc_unit.millimeter(int(props.base_closet_panel_height))
+
+        if not self.is_hanging and not self.is_base_starter:
+            self.obj_y.location.y = -props.default_tall_closet_depth
+            self.obj_z.location.z = pc_unit.millimeter(int(props.tall_closet_panel_height))
 
         width = self.obj_x.pyclone.get_var('location.x','width')
         height = self.obj_z.pyclone.get_var('location.z','height')
@@ -448,6 +461,52 @@ class Closet_Starter(pc_types.Assembly):
         dim_from_rear.set_value(pc_unit.inch(2))
         return holes
 
+    def add_left_filler(self):
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        left_filler_width = self.get_prompt("Left Side Wall Filler").get_var("left_filler_width")
+        floor_1 = self.get_prompt("Opening 1 Floor Mounted").get_var("floor_1")
+        height_1 = self.get_prompt("Opening 1 Height").get_var("height_1")
+        depth_1 = self.get_prompt("Opening 1 Depth").get_var("depth_1")
+        s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
+
+        self.left_filler = data_closet_parts.add_closet_part(self)
+        self.left_filler.obj_bp["IS_LEFT_FILLER_BP"] = True
+        self.left_filler.set_name('Left Filler')
+        self.left_filler.loc_x(value=0)
+        self.left_filler.loc_y('-depth_1',[depth_1])
+        self.left_filler.loc_z('IF(floor_1,0,height-height_1)',[floor_1,height,height_1])
+        self.left_filler.rot_x(value=0)
+        self.left_filler.rot_y(value=math.radians(-90))
+        self.left_filler.rot_z(value=math.radians(90))        
+        self.left_filler.dim_x('height_1',[height_1])
+        self.left_filler.dim_y('-left_filler_width',[left_filler_width])
+        self.left_filler.dim_z('-s_thickness',[s_thickness])
+        home_builder_pointers.assign_pointer_to_assembly(self.left_filler,"Cabinet Exposed Surfaces")
+
+    def add_right_filler(self):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        floor_last = self.get_prompt("Opening " + str(self.opening_qty) + " Floor Mounted").get_var("floor_last")
+        right_filler_width = self.get_prompt("Right Side Wall Filler").get_var("right_filler_width")
+        height_last = self.get_prompt("Opening " + str(self.opening_qty) + " Height").get_var("height_last")
+        depth_last = self.get_prompt("Opening " + str(self.opening_qty) + " Depth").get_var("depth_last")
+        s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
+
+        self.right_filler = data_closet_parts.add_closet_part(self)
+        self.right_filler.obj_bp["IS_RIGHT_FILLER_BP"] = True
+        self.right_filler.set_name('Right Filler')
+        self.right_filler.loc_x('width',[width])
+        self.right_filler.loc_y('-depth_last',[depth_last])
+        self.right_filler.loc_z('IF(floor_last,0,height-height_last)',[floor_last,height,height_last])
+        self.right_filler.rot_x(value=0)
+        self.right_filler.rot_y(value=math.radians(-90))
+        self.right_filler.rot_z(value=math.radians(90))
+        self.right_filler.dim_x('height_last',[height_last])
+        self.right_filler.dim_y('right_filler_width',[right_filler_width])
+        self.right_filler.dim_z('-s_thickness',[s_thickness])
+        home_builder_utils.flip_normals(self.right_filler)
+        home_builder_pointers.assign_pointer_to_assembly(self.right_filler,"Cabinet Exposed Surfaces")
+
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
@@ -463,15 +522,12 @@ class Closet_Starter(pc_types.Assembly):
 
         width = self.obj_x.pyclone.get_var('location.x','width')
         height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
 
         common_prompts.add_closet_thickness_prompts(self)
+        common_prompts.add_closet_toe_kick_prompts(self)
         panel_thickness_var = self.get_prompt("Panel Thickness").get_var("panel_thickness_var")
-        shelf_thickness_var = self.get_prompt("Shelf Thickness").get_var("shelf_thickness_var")        
-        closet_kick_height = self.add_prompt("Closet Kick Height",'DISTANCE',pc_unit.inch(2.5)) 
-
-        closet_kick_height_var = closet_kick_height.get_var("closet_kick_height_var")
-        closet_kick_setback = self.add_prompt("Closet Kick Setback",'DISTANCE',pc_unit.inch(1.625)) 
+        shelf_thickness_var = self.get_prompt("Shelf Thickness").get_var("shelf_thickness_var")     
+        closet_kick_height_var = self.get_prompt("Closet Kick Height").get_var("closet_kick_height_var")    
         left_end_condition = self.add_prompt("Left End Condition",'COMBOBOX',0,["EP","WP","CP","OFF"]) 
         lec = left_end_condition.get_var("lec")
         right_end_condition = self.add_prompt("Right End Condition",'COMBOBOX',0,["EP","WP","CP","OFF"]) 
@@ -484,11 +540,7 @@ class Closet_Starter(pc_types.Assembly):
         bridge_right = self.add_prompt("Bridge Right",'CHECKBOX',False) 
         left_bridge_shelf_width = self.add_prompt("Left Bridge Shelf Width",'DISTANCE',pc_unit.inch(12)) 
         right_bridge_shelf_width = self.add_prompt("Right Bridge Shelf Width",'DISTANCE',pc_unit.inch(12)) 
-        # b_left = bridge_left.get_var("b_left")
-        # b_right = bridge_right.get_var("b_right")
-        # b_left_width = left_bridge_shelf_width.get_var("b_left_width")
-        # b_right_width = right_bridge_shelf_width.get_var("b_right_width")
-        
+
         self.add_opening_prompts()
 
         depth_1 = self.get_prompt("Opening 1 Depth").get_var("depth_1")
@@ -497,7 +549,6 @@ class Closet_Starter(pc_types.Assembly):
         depth_last = self.get_prompt("Opening " + str(self.opening_qty) + " Depth").get_var("depth_last")
         height_last = self.get_prompt("Opening " + str(self.opening_qty) + " Height").get_var("height_last")
         floor_last = self.get_prompt("Opening " + str(self.opening_qty) + " Floor Mounted").get_var("floor_last")
-        s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
 
         left_side = data_closet_parts.add_closet_part(self)
         left_side.obj_bp["IS_PANEL_BP"] = True
@@ -634,7 +685,8 @@ class Closet_Inside_Corner(pc_types.Assembly):
     subcategory_name = "STARTERS"
     catalog_name = "_Sample"
 
-    style = 'PIE' # PIE, DIAGONAL, CURVED
+    style = 'PIE' # PIE, DIAGONAL, CURVED  
+    is_hanging = False
 
     def __init__(self,obj_bp=None):
         super().__init__(obj_bp=obj_bp)
@@ -665,7 +717,8 @@ class Closet_Inside_Corner(pc_types.Assembly):
         reference.dim_z('height',[height])  
 
     def draw(self):
-        self.obj_y['IS_CLOSET_INSIDE_CORNER_BP'] = True
+        self.obj_bp['IS_INSIDE_CORNER_BP'] = True
+        self.obj_bp['IS_CLOSET_INSIDE_CORNER_BP'] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_inside_corner_prompts" 
         self.obj_bp["MENU_ID"] = "HOME_BUILDER_MT_closets"
         self.obj_y['IS_MIRROR'] = True
@@ -673,13 +726,16 @@ class Closet_Inside_Corner(pc_types.Assembly):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
         common_prompts.add_closet_thickness_prompts(self)
-      
-        closet_kick_height = self.add_prompt("Closet Kick Height",'DISTANCE',pc_unit.inch(2.5)) 
-        closet_kick_setback = self.add_prompt("Closet Kick Setback",'DISTANCE',pc_unit.inch(2)) 
+        common_prompts.add_closet_toe_kick_prompts(self)
+
+        closet_kick_height = self.get_prompt("Closet Kick Height") 
+        closet_kick_setback = self.get_prompt("Closet Kick Setback") 
         back_width = self.add_prompt("Back Width",'DISTANCE',pc_unit.inch(6))
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',props.default_closet_depth)
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',props.default_closet_depth)
+        left_depth = self.add_prompt("Left Depth",'DISTANCE',props.default_tall_closet_depth)
+        right_depth = self.add_prompt("Right Depth",'DISTANCE',props.default_tall_closet_depth)
         shelf_qty = self.add_prompt("Shelf Quantity",'QUANTITY',3) 
+        is_hanging = self.add_prompt("Is Hanging",'CHECKBOX',self.is_hanging) 
+        panel_height = self.add_prompt("Panel Height",'DISTANCE',pc_unit.millimeter(int(props.hanging_closet_panel_height)))
 
         width = self.obj_x.pyclone.get_var('location.x','width')
         height = self.obj_z.pyclone.get_var('location.z','height')
@@ -689,6 +745,8 @@ class Closet_Inside_Corner(pc_types.Assembly):
         kick_height = closet_kick_height.get_var('kick_height')
         kick_setback = closet_kick_setback.get_var('kick_setback')
         back_width_var = back_width.get_var('back_width_var')
+        p_height = panel_height.get_var('p_height')
+        is_hang = is_hanging.get_var('is_hang')
 
         panel_thickness_var = self.get_prompt("Panel Thickness").get_var("panel_thickness_var")
         st = self.get_prompt("Shelf Thickness").get_var("st") 
@@ -699,10 +757,10 @@ class Closet_Inside_Corner(pc_types.Assembly):
         left_side.set_name('Closet Partition')
         left_side.loc_x(value = 0)
         left_side.loc_y('depth',[depth])
-        left_side.loc_z(value = 0)
+        left_side.loc_z('IF(is_hang,height-p_height,0)',[is_hang,height,p_height])
         left_side.rot_y(value=math.radians(-90))
         left_side.rot_z(value=math.radians(-90))
-        left_side.dim_x('height',[height])
+        left_side.dim_x('IF(is_hang,p_height,height)',[is_hang,height,p_height])
         left_side.dim_y('left_depth_var',[left_depth_var])
         left_side.dim_z('panel_thickness_var',[panel_thickness_var])
 
@@ -711,10 +769,10 @@ class Closet_Inside_Corner(pc_types.Assembly):
         back.set_name('Closet Partition')
         back.loc_x(value = 0)
         back.loc_y(value = 0)
-        back.loc_z(value = 0)
+        back.loc_z('IF(is_hang,height-p_height,0)',[is_hang,height,p_height])
         back.rot_y(value=math.radians(-90))
         back.rot_z(value=math.radians(-90))
-        back.dim_x('height',[height])
+        back.dim_x('IF(is_hang,p_height,height)',[is_hang,height,p_height])
         back.dim_y('back_width_var',[back_width_var])
         back.dim_z('-panel_thickness_var',[panel_thickness_var])
         home_builder_utils.flip_normals(back)
@@ -724,10 +782,10 @@ class Closet_Inside_Corner(pc_types.Assembly):
         right_side.set_name('Closet Partition')
         right_side.loc_x('width',[width])
         right_side.loc_y(value = 0)
-        right_side.loc_z(value = 0)
+        right_side.loc_z('IF(is_hang,height-p_height,0)',[is_hang,height,p_height])
         right_side.rot_y(value=math.radians(-90))
         right_side.rot_z(value=math.radians(180))
-        right_side.dim_x('height',[height])
+        right_side.dim_x('IF(is_hang,p_height,height)',[is_hang,height,p_height])
         right_side.dim_y('right_depth_var',[right_depth_var])
         right_side.dim_z('-panel_thickness_var',[panel_thickness_var])
         home_builder_utils.flip_normals(right_side)
@@ -737,7 +795,7 @@ class Closet_Inside_Corner(pc_types.Assembly):
         bottom.set_name('Closet L Shelf')
         bottom.loc_x(value = 0)
         bottom.loc_y(value = 0)
-        bottom.loc_z('kick_height',[kick_height])
+        bottom.loc_z('IF(is_hang,height-p_height,kick_height)',[is_hang,height,p_height,kick_height])
         bottom.rot_x(value = 0)
         bottom.rot_y(value = 0)
         bottom.rot_z(value = math.radians(-90))
@@ -779,6 +837,8 @@ class Closet_Inside_Corner(pc_types.Assembly):
         left_kick.dim_x('fabs(depth)-(panel_thickness_var*2)',[depth,panel_thickness_var])
         left_kick.dim_y('kick_height',[kick_height])
         left_kick.dim_z('panel_thickness_var',[panel_thickness_var])
+        hide = left_kick.get_prompt('Hide')
+        hide.set_formula('is_hang',[is_hang])
 
         right_kick = data_closet_parts.add_closet_part(self)
         right_kick.obj_bp["IS_TOE_KICK_BP"] = True
@@ -792,13 +852,19 @@ class Closet_Inside_Corner(pc_types.Assembly):
         right_kick.dim_x('width-left_depth_var-(panel_thickness_var*2)+kick_setback',[width,left_depth_var,kick_setback,panel_thickness_var])
         right_kick.dim_y('kick_height',[kick_height])
         right_kick.dim_z('panel_thickness_var',[panel_thickness_var])
+        hide = right_kick.get_prompt('Hide')
+        hide.set_formula('is_hang',[is_hang])
+
+        b_loc = bottom.obj_bp.pyclone.get_var('location.z','b_loc')
+        t_loc = top.obj_bp.pyclone.get_var('location.z','t_loc')
 
         shelf = data_closet_parts.add_corner_notch_part(self)
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Closet L Shelf')
         shelf.loc_x(value = 0)
         shelf.loc_y(value = 0)
-        shelf.loc_z('kick_height+st+(((height-kick_height-(st*2)-(st*qty)))/(qty+1))',[kick_height,st,height,qty])
+        shelf.loc_z('b_loc+st+(((t_loc-b_loc-(st*2)-(st*qty)))/(qty+1))',[b_loc,t_loc,kick_height,st,height,qty])
+        # shelf.loc_z('kick_height+st+(((height-kick_height-(st*2)-(st*qty)))/(qty+1))',[kick_height,st,height,qty])
         shelf.rot_x(value = 0)
         shelf.rot_y(value = 0)
         shelf.rot_z(value = math.radians(-90))
@@ -812,7 +878,8 @@ class Closet_Inside_Corner(pc_types.Assembly):
         quantity = shelf.get_prompt('Z Quantity')
         quantity.set_formula('qty',[qty])
         offset = shelf.get_prompt('Z Offset')
-        offset.set_formula('((height-kick_height-(st*2)-(st*qty))/(qty+1))+st',[height,kick_height,st,qty])
+        offset.set_formula('((t_loc-b_loc-(st*2)-(st*qty))/(qty+1))+st',[t_loc,b_loc,st,qty])
+        # offset.set_formula('((height-kick_height-(st*2)-(st*qty))/(qty+1))+st',[height,kick_height,st,qty])
 
     def render(self):
         self.create_assembly()

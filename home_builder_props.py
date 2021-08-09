@@ -43,6 +43,16 @@ class PointerGroup(PropertyGroup):
     pointers: bpy.props.CollectionProperty(name="Pointers",type=Pointer)
 
 
+class Wall(PropertyGroup):
+    wall_mesh: bpy.props.PointerProperty(name="Wall Mesh",
+                                      type=bpy.types.Object,
+                                      description="This is the wall mesh.")
+
+    obj_bp: bpy.props.PointerProperty(name="Wall Base Point",
+                                      type=bpy.types.Object,
+                                      description="This is the wall base point.")
+
+
 class Asset(PropertyGroup):
     is_selected: BoolProperty(name="Is Selected",default=False)
     preview_found: BoolProperty(name="Preivew Found",default=False)
@@ -122,6 +132,11 @@ def update_library_path(self,context):
         final_path = os.path.join(root_path,self.closet_tabs,catalog_name)     
     if os.path.exists(final_path):
         pc_utils.update_file_browser_path(context,final_path)       
+
+def update_wall_index(self,context):
+    bpy.ops.object.select_all(action='DESELECT')
+    wall = self.walls[self.wall_index]
+    wall.wall_mesh.select_set(True)
 
 class Home_Builder_Scene_Props(PropertyGroup):    
     ui_tabs: EnumProperty(name="UI Tabs",
@@ -268,11 +283,6 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
     wall_height: FloatProperty(name="Wall Height",default=pc_unit.inch(96),subtype='DISTANCE')
     wall_thickness: FloatProperty(name="Wall Thickness",default=pc_unit.inch(6),subtype='DISTANCE')
-
-    default_closet_depth: bpy.props.FloatProperty(name="Default Closet Depth",
-                                                 description="Default depth for closets",
-                                                 default=pc_unit.inch(14.0),
-                                                 unit='LENGTH')
 
     base_cabinet_depth: bpy.props.FloatProperty(name="Base Cabinet Depth",
                                                  description="Default depth for base cabinets",
@@ -487,6 +497,37 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                        unit='LENGTH')   
 
     #CLOSET OPTIONS
+    default_closet_hanging_height: bpy.props.EnumProperty(name="Default Closet Hanging Height",
+                                                     items=home_builder_enums.PANEL_HEIGHTS,
+                                                     default = '2131')
+
+    tall_closet_panel_height: bpy.props.EnumProperty(name="Tall Closet Panel Height",
+                                                     items=home_builder_enums.PANEL_HEIGHTS,
+                                                     default = '2131')
+
+    hanging_closet_panel_height: bpy.props.EnumProperty(name="Hanging Closet Panel Height",
+                                                     items=home_builder_enums.PANEL_HEIGHTS,
+                                                     default = '1523')
+
+    base_closet_panel_height: bpy.props.EnumProperty(name="Base Closet Panel Height",
+                                                     items=home_builder_enums.PANEL_HEIGHTS,
+                                                     default = '819')
+
+    default_base_closet_depth: bpy.props.FloatProperty(name="Default Base Closet Depth",
+                                                 description="Default depth for base closets",
+                                                 default=pc_unit.inch(14.0),
+                                                 unit='LENGTH')
+
+    default_hanging_closet_depth: bpy.props.FloatProperty(name="Default hanging Closet Depth",
+                                                 description="Default depth for Hanging closets",
+                                                 default=pc_unit.inch(14.0),
+                                                 unit='LENGTH')
+
+    default_tall_closet_depth: bpy.props.FloatProperty(name="Default Tall Closet Depth",
+                                                 description="Default depth for tall closets",
+                                                 default=pc_unit.inch(14.0),
+                                                 unit='LENGTH')
+
     closet_corner_spacing: bpy.props.FloatProperty(name="Closet Corner Spacing",
                                                  description="Offset for closets when meeting in corner",
                                                  default=pc_unit.inch(12.0),
@@ -562,6 +603,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
         update=home_builder_enums.update_molding_category)
     molding_name: bpy.props.EnumProperty(name="Molding Name",
         items=home_builder_enums.enum_molding_names)
+
+    walls: bpy.props.CollectionProperty(name="Walls",type=Wall)
+    wall_index: bpy.props.IntProperty(name="Wall Index",update=update_wall_index)  
 
     def draw_sizes(self,layout):
         # box = layout.box()
@@ -716,13 +760,33 @@ class Home_Builder_Scene_Props(PropertyGroup):
         if self.default_tabs == 'CLOSET_CONSTRUCTION':
             box = prop_col.box()
             row = box.row(align=True)
+            row.label(text="Default Hanging Height:")
+            row.prop(self,"default_closet_hanging_height",text="")   
+
+            box = prop_col.box()
+            row = box.row(align=True)
+            row.label(text="Default Closet Panel Sizes:")
+            row = box.row(align=True)
+            row.label(text="Base Panel Height")
+            row.prop(self,"base_closet_panel_height",text="")    
+            row = box.row(align=True)
+            row.label(text="Hanging Panel Height")            
+            row.prop(self,"hanging_closet_panel_height",text="")  
+            row = box.row(align=True)
+            row.label(text="Tall Panel Height")            
+            row.prop(self,"tall_closet_panel_height",text="")  
+            row = box.row(align=True)
+            row.label(text="Panel Depths")
+            row.prop(self,"default_base_closet_depth",text="Base")  
+            row.prop(self,"default_hanging_closet_depth",text="Hanging")  
+            row.prop(self,"default_tall_closet_depth",text="Tall")  
+
+            box = prop_col.box()
+            row = box.row(align=True)
             row.label(text="General Construction Options:")
             row = box.row(align=True)
             row.label(text="Closet Corner Spacing")
             row.prop(self,"closet_corner_spacing",text="")    
-            row = box.row(align=True)
-            row.label(text="Default Closet Depth")
-            row.prop(self,"default_closet_depth",text="")  
             row = box.row(align=True)
             row.label(text="Show Closet Panel Drilling")
             row.prop(self,"show_closet_panel_drilling",text="")              
@@ -1337,6 +1401,7 @@ class Home_Builder_Object_Props(PropertyGroup):
 classes = (
     Pointer,
     PointerGroup,
+    Wall,
     Asset,
     Home_Builder_Window_Manager_Props,
     Home_Builder_Object_Props,

@@ -46,7 +46,8 @@ class HOME_BUILDER_MT_closets(bpy.types.Menu):
         layout.operator('home_builder.closet_prompts',icon='WINDOW')
         layout.operator('home_builder.change_closet_openings',icon='WINDOW')
         layout.operator('home_builder.change_closet_offsets',text="Change Closet Offsets",icon='ARROW_LEFTRIGHT')
-        layout.operator('home_builder.free_move_cabinet',text="Grab Closet",icon='VIEW_PAN').obj_bp_name = bp.name                
+        layout.operator('home_builder.free_move_object',text="Grab Closet",icon='VIEW_PAN').obj_bp_name = bp.name  
+        layout.operator('home_builder.duplicate_closet_insert',text="Duplicate Insert",icon='DUPLICATE')
         layout.operator('home_builder.add_drawer',text="Add Drawer",icon='UGLYPACKAGE')
         layout.operator('home_builder.edit_part',text="Edit Part Shape",icon='EDITMODE_HLT')
         layout.separator()
@@ -71,7 +72,7 @@ class HOME_BUILDER_MT_cabinets(bpy.types.Menu):
         props.snap_cursor_to_cabinet = True
         if wall_bp:
             layout.operator('home_builder.place_wall_cabinet',text="Place Cabinet on Wall",icon='EMPTY_ARROWS')
-        layout.operator('home_builder.free_move_cabinet',text="Grab",icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
+        layout.operator('home_builder.free_move_object',text="Grab Cabinet",icon='VIEW_PAN').obj_bp_name = cabinet_bp.name
         layout.operator('home_builder.duplicate_cabinet',text="Duplicate",icon='DUPLICATE').obj_bp_name = cabinet_bp.name  
         layout.separator()
         layout.operator('home_builder.part_prompts',text="Part Prompts - " + obj_bp.name,icon='WINDOW')
@@ -95,6 +96,7 @@ class HOME_BUILDER_MT_appliances(bpy.types.Menu):
         props = layout.operator('home_builder.place_appliance',text="Place Appliance",icon='OBJECT_ORIGIN')
         props.obj_bp_name = appliance_bp.name
         props.snap_cursor_to_cabinet = True        
+        layout.operator('home_builder.free_move_object',text="Grab Appliance",icon='VIEW_PAN').obj_bp_name = appliance_bp.name
         layout.operator('home_builder.edit_part',text="Edit Appliance Shape",icon='EDITMODE_HLT')
         layout.operator('home_builder.delete_assembly',text="Delete Appliance",icon='X').obj_name = appliance_bp.name      
 
@@ -106,6 +108,7 @@ class HOME_BUILDER_MT_walls(bpy.types.Menu):
         wall_bp = home_builder_utils.get_wall_bp(context.object)
         layout = self.layout
         layout.operator('home_builder.wall_prompts',text="Wall Prompts",icon='WINDOW') 
+        layout.operator('home_builder.free_move_object',text="Grab Wall",icon='VIEW_PAN').obj_bp_name = wall_bp.name
         layout.operator('home_builder.edit_part',text="Edit Wall Shape",icon='EDITMODE_HLT')       
 
 
@@ -116,9 +119,10 @@ class HOME_BUILDER_MT_windows(bpy.types.Menu):
         window_bp = home_builder_utils.get_window_bp(context.object)
         layout = self.layout
         layout.operator('home_builder.window_prompts',text="Wall Prompts",icon='WINDOW') 
-        props = layout.operator('home_builder.place_door_window',text="Move Window")
+        props = layout.operator('home_builder.place_door_window',text="Place Window",icon='OBJECT_ORIGIN')
         props.obj_bp_name = window_bp.name
         props.filepath = ""
+        layout.operator('home_builder.free_move_object',text="Grab Window",icon='VIEW_PAN').obj_bp_name = window_bp.name  
         layout.separator()
         layout.operator('home_builder.delete_assembly',text="Delete Window",icon='X').obj_name = window_bp.name       
   
@@ -130,9 +134,10 @@ class HOME_BUILDER_MT_doors(bpy.types.Menu):
         door_bp = home_builder_utils.get_door_bp(context.object)
         layout = self.layout
         layout.operator('home_builder.door_prompts',text="Door Prompts",icon='WINDOW')  
-        props = layout.operator('home_builder.place_door_window',text="Move Door")
+        props = layout.operator('home_builder.place_door_window',text="Place Door",icon='OBJECT_ORIGIN')
         props.obj_bp_name = door_bp.name
         props.filepath = ""
+        layout.operator('home_builder.free_move_object',text="Grab Door",icon='VIEW_PAN').obj_bp_name = door_bp.name  
         layout.separator()
         layout.operator('home_builder.delete_assembly',text="Delete Door",icon='X').obj_name = door_bp.name  
 

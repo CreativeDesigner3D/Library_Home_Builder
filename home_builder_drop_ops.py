@@ -32,6 +32,8 @@ from .closets import data_closet_inserts
 from .walls import data_walls
 from . import home_builder_paths
 from . import home_builder_pointers
+from . import home_builder_enums
+from . import home_builder_placement_utils as placement_utils
 from importlib import import_module
 
 # from .cabinets import data_cabinet_carcass
@@ -41,271 +43,6 @@ from importlib import import_module
 # from . import home_builder_pointers
 from . import home_builder_utils
 # from . import home_builder_paths
-
-def event_is_place_asset(event):
-    if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
-        return True
-    elif event.type == 'NUMPAD_ENTER' and event.value == 'PRESS':
-        return True
-    elif event.type == 'RET' and event.value == 'PRESS':
-        return True
-    else:
-        return False
-
-def event_is_cancel_command(event):
-    if event.type in {'RIGHTMOUSE', 'ESC'}:
-        return True
-    else:
-        return False
-
-def event_is_pass_through(event):
-    if event.type in {'MIDDLEMOUSE', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE'}:
-        return True
-    else:
-        return False
-
-def create_placement_obj(context):
-    placement_obj = bpy.data.objects.new('PLACEMENT OBJECT',None)
-    placement_obj.location = (0,0,0)
-    placement_obj.empty_display_type = 'ARROWS'
-    placement_obj.empty_display_size = .1           
-    context.view_layer.active_layer_collection.collection.objects.link(placement_obj)
-    return placement_obj
-
-def accumulate_z_rotation(selected_obj,start = 0,total = True):
-    ##recursive parent traverser accumulating all rotations ie. total heirarchy rotation
-    rotations = [start]
-    if selected_obj.parent:
-        if total:
-            rotations.append(selected_obj.parent.rotation_euler.z)
-            return accumulate_z_rotation(selected_obj.parent,sum(rotations))
-        else:
-            ## breaks after one parent
-            return selected_obj.parent.rotation_euler.z
-    else:
-        return start
-
-def rotate_to_normal(obj_bp,selected_normal):
-    ## cabinet vector
-    base_vect = Vector((0, -1, 0))
-
-    if selected_normal.y == 1:
-        ## if Vector(0,1,0) it is a negative vector relationship with cabinet Vector(0,-1,0)
-        ## quaternion calcs fail with these, 180 rotation is all thats required
-        obj_bp.rotation_euler.z =+ math.radians(180)
-
-    else:
-        ## Vector.rotation_difference() returns quaternion rotation so change mode
-        obj_bp.rotation_mode = 'QUATERNION'
-        ## quaternion calc - required rotation to align cab to face
-        rot_quat = base_vect.rotation_difference(selected_normal)
-
-        obj_bp.rotation_quaternion = rot_quat
-        obj_bp.rotation_mode = 'XYZ'
-
-def position_cabinet_on_wall(cabinet,wall,placement_obj,mouse_location,selected_normal):
-    placement = 'WALL'
-    
-    cabinet.obj_bp.parent = wall.obj_bp
-    cabinet.obj_bp.matrix_world[0][3] = mouse_location[0]
-    cabinet.obj_bp.matrix_world[1][3] = mouse_location[1]
-    placement_obj.parent = wall.obj_bp
-    placement_obj.matrix_world[0][3] = mouse_location[0]
-    placement_obj.matrix_world[1][3] = mouse_location[1] 
-    cabinet.obj_bp.location.y = 0   
-
-    wall_length = wall.obj_x.location.x
-    cabinet_width = cabinet.obj_x.location.x
-    x_loc = cabinet.obj_bp.location.x
-
-    #SNAP TO LEFT
-    if x_loc < .25:
-        placement = "WALL_LEFT"
-        cabinet.obj_bp.location.x = 0
-
-    #SNAP TO RIGHT
-    if x_loc > wall_length - cabinet_width:
-        placement = "WALL_RIGHT"
-        cabinet.obj_bp.location.x = wall_length - cabinet_width
-
-    #TODO: GET NEXT PRODUCT AND UPDATE LOCATION AND SIZE
-
-    if selected_normal.y == 1:
-        #BACK SIDE OF WALL
-        cabinet.obj_bp.rotation_euler.z = math.radians(180)
-    else:
-        cabinet.obj_bp.rotation_euler.z = 0
-
-    return placement
-
-def position_cabinet_next_to_door_window(cabinet,mouse_location,assembly):
-    placement = home_builder_utils.get_cabinet_placement_location(cabinet,assembly,mouse_location)
-
-    cabinet_width = cabinet.obj_x.location.x
-    sel_assembly_width = assembly.obj_x.location.x
-    sel_assembly_world_x = assembly.obj_bp.matrix_world[0][3]
-    sel_assembly_world_y = assembly.obj_bp.matrix_world[1][3]
-    sel_assembly_width_world_x = assembly.obj_x.matrix_world[0][3]
-    sel_assembly_width_world_y = assembly.obj_x.matrix_world[1][3]
-
-    cabinet.obj_bp.rotation_euler.z = 0
-
-    if placement == 'LEFT':
-        cabinet.obj_bp.matrix_world[0][3] = sel_assembly_world_x
-        cabinet.obj_bp.matrix_world[1][3] = sel_assembly_world_y
-        cabinet.obj_bp.location.x -= cabinet_width
-    elif placement == 'RIGHT':
-        cabinet.obj_bp.matrix_world[0][3] = sel_assembly_width_world_x
-        cabinet.obj_bp.matrix_world[1][3] = sel_assembly_width_world_y                                  
-    else:
-        cabinet.obj_bp.matrix_world[0][3] = sel_assembly_world_x
-        cabinet.obj_bp.matrix_world[1][3] = sel_assembly_world_y  
-        cabinet.obj_bp.location.x += (sel_assembly_width/2)  - (cabinet_width/2)  
-
-    return placement      
-
-def position_cabinet_next_to_cabinet(cabinet,selected_cabinet,mouse_location,placement_obj):
-    wall_bp = home_builder_utils.get_wall_bp(selected_cabinet.obj_bp)
-
-    placement = home_builder_utils.get_cabinet_placement_location(cabinet,selected_cabinet,mouse_location)
-
-    sel_cabinet_z_rot = selected_cabinet.obj_bp.rotation_euler.z
-    cabinet_width = cabinet.obj_x.location.x
-    sel_cabinet_width = selected_cabinet.obj_x.location.x
-    sel_cabinet_world_x = selected_cabinet.obj_bp.matrix_world[0][3]
-    sel_cabinet_world_y = selected_cabinet.obj_bp.matrix_world[1][3]
-    sel_cabinet_width_world_x = selected_cabinet.obj_x.matrix_world[0][3]
-    sel_cabinet_width_world_y = selected_cabinet.obj_x.matrix_world[1][3]
-
-    if not wall_bp:
-        #CABINET NOT ON WALL
-        if placement == 'LEFT':
-            x_loc = sel_cabinet_world_x - math.cos(sel_cabinet_z_rot) * cabinet_width
-            y_loc = sel_cabinet_world_y - math.sin(sel_cabinet_z_rot) * cabinet_width
-            cabinet.obj_bp.matrix_world[0][3] = x_loc
-            cabinet.obj_bp.matrix_world[1][3] = y_loc
-            cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  
-            if selected_cabinet.corner_type == 'Blind':
-                blind_location = selected_cabinet.carcasses[0].get_prompt("Blind Panel Location")
-                if blind_location.get_value() == 0:
-                    sel_cabinet_depth = selected_cabinet.obj_y.location.y
-                    cabinet.obj_bp.location.x += cabinet_width
-                    cabinet.obj_bp.location.y += sel_cabinet_depth - cabinet_width
-                    cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  + math.radians(90)
-                    placement = 'BLIND_LEFT'
-        elif placement == 'RIGHT':
-            cabinet.obj_bp.matrix_world[0][3] = sel_cabinet_width_world_x
-            cabinet.obj_bp.matrix_world[1][3] = sel_cabinet_width_world_y
-            cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  
-            if selected_cabinet.corner_type == 'Blind':
-                blind_location = selected_cabinet.carcasses[0].get_prompt("Blind Panel Location")
-                if blind_location.get_value() == 1:   
-                    sel_cabinet_depth = selected_cabinet.obj_y.location.y
-                    cabinet.obj_bp.location.y += sel_cabinet_depth
-                    cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  + math.radians(-90)
-                    placement = 'BLIND_RIGHT' 
-        else:
-            x_loc = sel_cabinet_world_x - math.cos(sel_cabinet_z_rot) * ((cabinet_width/2) - (sel_cabinet_width/2))
-            y_loc = sel_cabinet_world_y - math.sin(sel_cabinet_z_rot) * ((cabinet_width/2) - (sel_cabinet_width/2))
-            cabinet.obj_bp.matrix_world[0][3] = x_loc
-            cabinet.obj_bp.matrix_world[1][3] = y_loc
-            cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  
-    else:
-        #CABINET ON WALL
-        current_wall = pc_types.Assembly(wall_bp)
-        cabinet.obj_bp.parent = wall_bp
-        placement_obj.parent = current_wall.obj_bp
-        placement_obj.matrix_world[0][3] = mouse_location[0]
-        placement_obj.matrix_world[1][3] = mouse_location[1]  
-
-        if placement == 'LEFT':
-            cabinet.obj_bp.matrix_world[0][3] = sel_cabinet_world_x
-            cabinet.obj_bp.matrix_world[1][3] = sel_cabinet_world_y
-            cabinet.obj_bp.location.x -= cabinet_width
-            cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  
-            if selected_cabinet.corner_type == 'Blind':
-                blind_location = selected_cabinet.carcasses[0].get_prompt("Blind Panel Location")
-                if blind_location.get_value() == 0:
-                    sel_cabinet_depth = selected_cabinet.obj_y.location.y
-                    cabinet.obj_bp.location.x += cabinet_width
-                    cabinet.obj_bp.location.y += sel_cabinet_depth - cabinet_width
-                    cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  + math.radians(90)
-                    placement = 'BLIND_LEFT'    
-                    if selected_cabinet.obj_bp.location.x == 0:
-                        l_wall = home_builder_utils.get_connected_left_wall(current_wall)  
-                        if l_wall is None:
-                            return
-                        cabinet.obj_bp.parent = l_wall.obj_bp
-                        cabinet.obj_bp.rotation_euler.z = 0
-                        cabinet.obj_bp.location.y = 0
-                        cabinet.obj_bp.location.x = l_wall.obj_x.location.x - math.fabs(sel_cabinet_depth) - cabinet_width
-        elif placement == 'RIGHT':
-            cabinet.obj_bp.matrix_world[0][3] = sel_cabinet_width_world_x
-            cabinet.obj_bp.matrix_world[1][3] = sel_cabinet_width_world_y
-            cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  
-            if selected_cabinet.corner_type == 'Blind':
-                blind_location = selected_cabinet.carcasses[0].get_prompt("Blind Panel Location")
-                if blind_location.get_value() == 1:   
-                    sel_cabinet_depth = selected_cabinet.obj_y.location.y
-                    cabinet.obj_bp.location.y += sel_cabinet_depth
-                    cabinet.obj_bp.rotation_euler.z = sel_cabinet_z_rot  + math.radians(-90)
-                    placement = 'BLIND_RIGHT'   
-                    if selected_cabinet.obj_bp.location.x >= current_wall.obj_x.location.x - sel_cabinet_width - .01:
-                        r_wall = home_builder_utils.get_connected_right_wall(current_wall)  
-                        if r_wall is None:
-                            return
-                        cabinet.obj_bp.parent = r_wall.obj_bp
-                        cabinet.obj_bp.rotation_euler.z = 0
-                        cabinet.obj_bp.location.y = 0                            
-                        cabinet.obj_bp.location.x = math.fabs(sel_cabinet_depth)                                   
-        else:
-            cabinet.obj_bp.matrix_world[0][3] = sel_cabinet_world_x
-            cabinet.obj_bp.matrix_world[1][3] = sel_cabinet_world_y
-            cabinet.obj_bp.location.x += (sel_cabinet_width/2)  - (cabinet_width/2)
-
-    return placement
-
-def position_cabinet_on_object(mouse_location,cabinet,selected_obj,cursor_z,selected_normal,height_above_floor):
-    cabinet.obj_bp.parent = None
-    cabinet.obj_bp.location.x = mouse_location[0]
-    cabinet.obj_bp.location.y = mouse_location[1]
-    
-    if selected_normal.z == 0:
-        rotate_to_normal(cabinet.obj_bp,selected_normal)
-        parented_rotation_sum = accumulate_z_rotation(selected_obj)
-        cabinet.obj_bp.rotation_euler.z += selected_obj.rotation_euler.z + parented_rotation_sum
-
-    cabinet.obj_bp.location.z = height_above_floor + cursor_z
-
-    return "OBJECT"
-
-def position_cabinet(cabinet,mouse_location,selected_obj,cursor_z,selected_normal,placement_obj,height_above_floor):
-    cabinet_bp = home_builder_utils.get_cabinet_bp(selected_obj)
-    window_bp = home_builder_utils.get_window_bp(selected_obj)
-    door_bp = home_builder_utils.get_door_bp(selected_obj)
-
-    if not cabinet_bp:
-        cabinet_bp = home_builder_utils.get_appliance_bp(selected_obj)
-
-    wall_bp = home_builder_utils.get_wall_bp(selected_obj)
-
-    if window_bp:
-        assembly = pc_types.Assembly(window_bp)
-        placement = position_cabinet_next_to_door_window(cabinet,mouse_location,assembly)
-    elif door_bp:
-        assembly = pc_types.Assembly(door_bp)
-        placement = position_cabinet_next_to_door_window(cabinet,mouse_location,assembly)
-    elif cabinet_bp:
-        sel_cabinet = data_cabinets.Cabinet(cabinet_bp)
-        placement = position_cabinet_next_to_cabinet(cabinet,sel_cabinet,mouse_location,placement_obj)
-    elif wall_bp:
-        wall = pc_types.Assembly(wall_bp)
-        placement = position_cabinet_on_wall(cabinet,wall,placement_obj,mouse_location,selected_normal)
-    else:
-        placement = position_cabinet_on_object(mouse_location,cabinet,selected_obj,cursor_z,selected_normal,height_above_floor)
-
-    return placement
-
 
 class home_builder_OT_drop(Operator):
     bl_idname = "home_builder.drop"
@@ -373,7 +110,7 @@ class home_builder_OT_drop(Operator):
                 pass
             if props.kitchen_tabs == 'CUSTOM_CABINETS':
                 obj_bp = self.get_custom_cabinet(context,filepath=os.path.join(directory,filename + ".blend"))
-                bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name,snap_cursor_to_cabinet=False)
+                bpy.ops.home_builder.place_cabinet(obj_bp_name=obj_bp.name,snap_cursor_to_cabinet=False)
             if props.kitchen_tabs == 'DECORATIONS':
                 bpy.ops.home_builder.place_decoration(filepath=self.filepath)  
 
@@ -384,7 +121,7 @@ class home_builder_OT_drop(Operator):
                 bpy.ops.home_builder.place_bathroom_fixture(filepath=self.filepath)                  
             if props.bath_tabs == 'VANITIES':
                 obj_bp = self.get_custom_cabinet(context,os.path.join(directory,filename + ".blend"))
-                bpy.ops.home_builder.move_cabinet(obj_bp_name=obj_bp.name,snap_cursor_to_cabinet=False)
+                bpy.ops.home_builder.place_cabinet(obj_bp_name=obj_bp.name,snap_cursor_to_cabinet=False)
             if props.bath_tabs == 'DECORATIONS':
                 bpy.ops.home_builder.place_decoration(filepath=self.filepath)                    
 
@@ -486,13 +223,13 @@ class home_builder_OT_place_room(bpy.types.Operator):
 
         self.position_object(selected_point,selected_obj)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             return self.finish(context)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -539,6 +276,9 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
     snap_cursor_to_cabinet: bpy.props.BoolProperty(name="Snap Cursor to Cabinet",default=False)
+
+    mouse_x = 0
+    mouse_y = 0
 
     cabinet = None
     selected_cabinet = None
@@ -594,22 +334,11 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             region_offset = Vector((region.x,region.y))
             context.window.cursor_warp(*(co + region_offset))  
 
-        self.placement_obj = create_placement_obj(context)
+        self.placement_obj = placement_utils.create_placement_obj(context)
 
         context.window_manager.modal_handler_add(self)
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
-
-    def get_next_wall(self):
-        if not self.current_wall:
-            return None
-
-        props = home_builder_utils.get_object_props(self.current_wall.obj_x)
-        if props.connected_object:
-            wall_bp = home_builder_utils.get_wall_bp(props.connected_object)
-            return pc_types.Assembly(wall_bp)
-
-        return None
 
     def get_cabinet(self,context):
         if self.obj_bp_name in bpy.data.objects:
@@ -739,7 +468,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
             props = home_builder_utils.get_scene_props(context.scene)
             cabinet_type = self.cabinet.get_prompt("Cabinet Type")
             self.cabinet.obj_bp.location.z = 0
-            if cabinet_type.get_value() == 'Upper':
+            if cabinet_type and cabinet_type.get_value() == 'Upper':
                 self.cabinet.obj_bp.location.z += props.height_above_floor - self.cabinet.obj_z.location.z
 
     def modal(self, context, event):
@@ -763,16 +492,27 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
         ## cursor_z added to allow for multi level placement
         cursor_z = context.scene.cursor.location.z
 
-        self.placement = position_cabinet(self.cabinet,selected_point,selected_obj,cursor_z,selected_normal,self.placement_obj,self.height_above_floor)
+        self.placement, self.selected_cabinet, self.current_wall = placement_utils.position_cabinet(self.cabinet,
+                                                                                                    selected_point,
+                                                                                                    selected_obj,
+                                                                                                    cursor_z,
+                                                                                                    selected_normal,
+                                                                                                    self.placement_obj,
+                                                                                                    self.height_above_floor)
 
-        if event_is_place_asset(event):
+        if event.type == 'LEFT_ARROW' and event.value == 'PRESS':
+            self.cabinet.obj_bp.rotation_euler.z -= math.radians(90)
+        if event.type == 'RIGHT_ARROW' and event.value == 'PRESS':
+            self.cabinet.obj_bp.rotation_euler.z += math.radians(90)   
+
+        if placement_utils.event_is_place_asset(event):
             self.confirm_placement(context)
             return self.finish(context,event.shift)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -922,7 +662,7 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
 
         self.position_object(selected_point,selected_obj)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             self.add_boolean_modifier(selected_obj)
             self.confirm_placement()
             if hasattr(self.assembly,'add_doors'):
@@ -930,10 +670,10 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
             self.set_placed_properties(self.assembly.obj_bp)
             return self.finish(context,event.shift)
 
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'} 
 
         return {'RUNNING_MODAL'} 
@@ -1041,7 +781,7 @@ class home_builder_OT_place_appliance(bpy.types.Operator):
             region_offset = Vector((region.x,region.y))
             context.window.cursor_warp(*(co + region_offset))  
 
-        self.placement_obj = create_placement_obj(context)
+        self.placement_obj = placement_utils.create_placement_obj(context)
 
         context.window_manager.modal_handler_add(self)
         context.area.tag_redraw()
@@ -1148,10 +888,8 @@ class home_builder_OT_place_appliance(bpy.types.Operator):
         self.refresh_data(False)
 
     def modal(self, context, event):
-        
         bpy.ops.object.select_all(action='DESELECT')
 
-        context.view_layer.update()
         #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
         self.appliance.obj_z.empty_display_size = .001
         self.appliance.obj_z.hide_viewport = False
@@ -1163,23 +901,24 @@ class home_builder_OT_place_appliance(bpy.types.Operator):
         self.mouse_y = event.mouse_y
         self.reset_selection()
 
+        context.view_layer.update()
         ## selected_normal added in to pass this info on from ray cast to position_cabinet
         selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
 
         ## cursor_z added to allow for multi level placement
         cursor_z = context.scene.cursor.location.z
 
-        position_cabinet(self.appliance,selected_point,selected_obj,cursor_z,selected_normal,self.placement_obj,self.height_above_floor)
+        placement_utils.position_cabinet(self.appliance,selected_point,selected_obj,cursor_z,selected_normal,self.placement_obj,self.height_above_floor)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             self.confirm_placement(context)
 
             return self.finish(context)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -1222,9 +961,10 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
 
-    closet_corner_spacing = 0
+    mouse_x = 0
+    mouse_y = 0
 
-    cabinet = None
+    closet = None
     selected_cabinet = None
 
     calculators = []
@@ -1271,172 +1011,25 @@ class home_builder_OT_place_closet(bpy.types.Operator):
     def execute(self, context):
         self.reset_properties()
         self.create_drawing_plane(context)
-        self.get_cabinet(context)
-        props = home_builder_utils.get_scene_props(context.scene)
-        self.closet_corner_spacing = props.closet_corner_spacing
-        self.placement_obj = create_placement_obj(context)
+        self.get_closet(context)
+        self.placement_obj = placement_utils.create_placement_obj(context)
         context.window_manager.modal_handler_add(self)
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
 
-    def get_wall_products(self,wall,loc_sort='X'):
-        """ This returns a sorted list of all of the assemblies base points
-            parented to the wall
-        """
-        list_obj_bp = []
-        list_obj_bp.append(self.placement_obj)
-        for child in wall.obj_bp.children:
-            if 'IS_ASSEMBLY_BP' in child and child.name != self.cabinet.obj_bp.name:
-                list_obj_bp.append(child)
-        if loc_sort == 'X':
-            list_obj_bp.sort(key=lambda obj: obj.location.x, reverse=False)
-        if loc_sort == 'Y':
-            list_obj_bp.sort(key=lambda obj: obj.location.y, reverse=False)            
-        if loc_sort == 'Z':
-            list_obj_bp.sort(key=lambda obj: obj.location.z, reverse=False)
-        return list_obj_bp
-
-    def get_collision_location(self,mouse_location,direction='LEFT'):
-        if self.current_wall:
-            self.placement_obj.parent = self.current_wall.obj_bp
-            self.placement_obj.matrix_world[0][3] = mouse_location[0]
-            self.placement_obj.matrix_world[1][3] = mouse_location[1]   
-
-            list_obj_bp = self.get_wall_products(self.current_wall)
-            list_obj_left_bp = []
-            list_obj_right_bp = []
-            for index, obj_bp in enumerate(list_obj_bp):
-                if obj_bp.name == self.placement_obj.name:
-                    list_obj_left_bp = list_obj_bp[:index]
-                    list_obj_right_bp = list_obj_bp[index + 1:]
-                    break
-
-            if direction == 'LEFT':
-                list_obj_left_bp.reverse()
-                for obj_bp in list_obj_left_bp:
-                    prev_ass = pc_types.Assembly(obj_bp)
-                    if self.has_height_collision(prev_ass):
-                        return obj_bp.location.x + prev_ass.obj_x.location.x
-                
-                # CHECK NEXT WALL
-                left_wall =  home_builder_utils.get_connected_left_wall(self.current_wall)
-                if left_wall:
-                    rotation_difference = math.degrees(self.current_wall.obj_bp.rotation_euler.z) - math.degrees(left_wall.obj_bp.rotation_euler.z)
-                    if rotation_difference < 0 or rotation_difference > 180:
-                        list_obj_bp = self.get_wall_products(left_wall)
-                        for obj in list_obj_bp:
-                            if obj == self.placement_obj:
-                                continue                            
-                            prev_ass = pc_types.Assembly(obj)
-                            product_x = obj.location.x
-                            product_width = prev_ass.obj_x.location.x
-                            x_dist = left_wall.obj_x.location.x  - (product_x + product_width)
-                            product_depth = math.fabs(self.cabinet.obj_y.location.y)
-                            if x_dist <= product_depth:
-                                if self.has_height_collision(prev_ass): 
-                                    return math.fabs(prev_ass.obj_y.location.y) + self.closet_corner_spacing
-                return 0
-            
-            if direction == 'RIGHT':
-                for obj_bp in list_obj_right_bp:
-                    next_assembly = pc_types.Assembly(obj_bp)
-                    if self.has_height_collision(next_assembly):
-                        wall_length = self.current_wall.obj_x.location.x
-                        return wall_length - obj_bp.location.x
-        
-                # CHECK NEXT WALL
-                right_wall =  home_builder_utils.get_connected_right_wall(self.current_wall)
-                if right_wall:
-                    rotation_difference = math.degrees(self.current_wall.obj_bp.rotation_euler.z) - math.degrees(right_wall.obj_bp.rotation_euler.z)
-                    if rotation_difference > 0 or rotation_difference < -180:
-                        list_obj_bp = self.get_wall_products(right_wall)
-                        for obj in list_obj_bp:
-                            if obj == self.placement_obj:
-                                continue
-                            next_group = pc_types.Assembly(obj)
-                            product_x = obj.location.x
-                            product_width = next_group.obj_x.location.x
-                            product_depth = math.fabs(self.cabinet.obj_y.location.y)
-                            if product_x <= product_depth:
-                                if self.has_height_collision(next_group):
-                                    product_depth = math.fabs(next_group.obj_y.location.y)
-                                    return product_depth +  + self.closet_corner_spacing
-        
-                return 0
-
-        return 0
-
-    def select_children(self,obj):
-        obj.select_set(True)
-        for child in obj.children:
-            self.select_children(child)
-
-    def position_cabinet(self,mouse_location,selected_obj,event,cursor_z,selected_normal):
-        self.cabinet.obj_bp.parent = None
-        #GET SELECTION INFO
-        wall_bp = home_builder_utils.get_wall_bp(selected_obj)
-        cabinet_bp = home_builder_utils.get_cabinet_bp(selected_obj)
-        if not cabinet_bp:
-            cabinet_bp = home_builder_utils.get_appliance_bp(selected_obj)
-        if cabinet_bp:
-            self.selected_cabinet = pc_types.Assembly(cabinet_bp)
-        if wall_bp:
-            self.current_wall = pc_types.Assembly(wall_bp)
-        
-        if cabinet_bp:
-            pass
-        elif wall_bp:
-            self.placement = 'WALL'
-            self.current_wall = pc_types.Assembly(wall_bp)
-            self.cabinet.obj_bp.parent = self.current_wall.obj_bp
-            self.cabinet.obj_bp.location = (0,0,0)        
-            self.cabinet.obj_x.location.x = self.current_wall.obj_x.location.x
-            self.select_children(self.cabinet.obj_bp)                
-            left_x_loc = self.get_collision_location(mouse_location,direction='LEFT')
-            right_x_loc = self.get_collision_location(mouse_location,direction='RIGHT')
-            self.cabinet.obj_bp.location.x = left_x_loc
-            self.cabinet.obj_x.location.x -= left_x_loc + right_x_loc
-        else:
-            self.cabinet.obj_bp.location.x = mouse_location[0]
-            self.cabinet.obj_bp.location.y = mouse_location[1]
-
-    def get_cabinet(self,context):
+    def get_closet(self,context):
         directory, file = os.path.split(self.filepath)
         filename, ext = os.path.splitext(file)
 
-        self.cabinet = eval("closet_library." + filename.replace(" ","_") + "()")
+        self.closet = eval("closet_library." + filename.replace(" ","_") + "()")
 
-        if hasattr(self.cabinet,'pre_draw'):
-            self.cabinet.pre_draw()
-            print('PREDRAW')
+        if hasattr(self.closet,'pre_draw'):
+            self.closet.pre_draw()
         else:
-            self.cabinet.draw()
+            self.closet.draw()
 
-        self.cabinet.set_name(filename)
-        self.set_child_properties(self.cabinet.obj_bp)
-
-        ## added base_height to handle upper cabinets in position_cabinet. Can't use += as it accumulates
-        ## with each mouseMove event, maintains difference between lower and upper cabinets
-        self.base_height = self.cabinet.obj_bp.location.z
-        self.base_cabinet = self.cabinet
-
-    def has_height_collision(self,assembly):
-        cab1_z_1 = self.cabinet.obj_bp.matrix_world[2][3]
-        cab1_z_2 = self.cabinet.obj_z.matrix_world[2][3]
-        cab2_z_1 = assembly.obj_bp.matrix_world[2][3]
-        cab2_z_2 = assembly.obj_z.matrix_world[2][3]
-        
-        if cab1_z_1 >= cab2_z_1 and cab1_z_1 <= cab2_z_2:
-            return True
-            
-        if cab1_z_2 >= cab2_z_1 and cab1_z_2 <= cab2_z_2:
-            return True
-    
-        if cab2_z_1 >= cab1_z_1 and cab2_z_1 <= cab1_z_2:
-            return True
-            
-        if cab2_z_2 >= cab1_z_1 and cab2_z_2 <= cab1_z_2:
-            return True
+        self.closet.set_name(filename)
+        self.set_child_properties(self.closet.obj_bp)
 
     def set_child_properties(self,obj):
         if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
@@ -1453,7 +1046,248 @@ class home_builder_OT_place_closet(bpy.types.Operator):
                 calculator.calculate()
                 self.calculators.append(calculator)
 
-        home_builder_utils.update_id_props(obj,self.cabinet.obj_bp)
+        home_builder_utils.update_id_props(obj,self.closet.obj_bp)
+        home_builder_utils.assign_current_material_index(obj)
+        if obj.type == 'EMPTY':
+            obj.hide_viewport = True    
+        if obj.type == 'MESH':
+            obj.display_type = 'WIRE'            
+        if obj.name != self.drawing_plane.name:
+            self.exclude_objects.append(obj)    
+        for child in obj.children:
+            self.set_child_properties(child)
+
+    def set_placed_properties(self,obj):
+        if obj.type == 'MESH' and 'IS_OPENING_MESH' not in obj:
+            obj.display_type = 'TEXTURED'          
+        for child in obj.children:
+            self.set_placed_properties(child) 
+
+    def create_drawing_plane(self,context):
+        bpy.ops.mesh.primitive_plane_add()
+        plane = context.active_object
+        plane.location = (0,0,0)
+        self.drawing_plane = context.active_object
+        self.drawing_plane.display_type = 'WIRE'
+        self.drawing_plane.dimensions = (100,100,1)
+
+    def confirm_placement(self,context, override_height):
+        if self.current_wall:
+            self.closet.opening_qty = max(int(round(self.closet.obj_x.location.x / pc_unit.inch(38),0)),1)
+
+        if self.placement == 'LEFT':
+            self.closet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
+            constraint_obj = self.closet.obj_x
+            constraint = self.selected_cabinet.obj_bp.constraints.new('COPY_LOCATION')
+            constraint.target = constraint_obj
+            constraint.use_x = True
+            constraint.use_y = True
+            constraint.use_z = False
+
+        if self.placement == 'RIGHT':
+            self.closet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
+            constraint_obj = self.selected_cabinet.obj_x
+            constraint = self.closet.obj_bp.constraints.new('COPY_LOCATION')
+            constraint.target = constraint_obj
+            constraint.use_x = True
+            constraint.use_y = True
+            constraint.use_z = False
+
+        self.delete_reference_object()
+
+        if hasattr(self.closet,'pre_draw'):
+            self.closet.draw()
+
+        if override_height != 0:
+            for i in range(1,9):
+                opening_height_prompt = self.closet.get_prompt("Opening " + str(i) + " Height")
+                if opening_height_prompt:
+                    for index, height in enumerate(home_builder_enums.PANEL_HEIGHTS):
+                        if not override_height >= float(height[0])/1000:
+                            opening_height_prompt.set_value(float(home_builder_enums.PANEL_HEIGHTS[index - 1][0])/1000)
+                            break
+
+        self.set_child_properties(self.closet.obj_bp)
+        for cal in self.calculators:
+            cal.calculate()
+        self.refresh_data(False)
+
+    def modal(self, context, event):
+        
+        bpy.ops.object.select_all(action='DESELECT')
+
+        context.view_layer.update()
+        #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
+        self.closet.obj_z.empty_display_size = .001
+        self.closet.obj_z.hide_viewport = False
+
+        for calculator in self.calculators:
+            calculator.calculate()
+
+        self.mouse_x = event.mouse_x
+        self.mouse_y = event.mouse_y
+        self.reset_selection()
+
+        ## selected_normal added in to pass this info on from ray cast to position_cabinet
+        selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
+
+        ## cursor_z added to allow for multi level placement
+        cursor_z = context.scene.cursor.location.z
+
+        self.placement, self.selected_cabinet, self.current_wall, override_height = placement_utils.position_closet(self.closet,
+                                                                                                    selected_point,
+                                                                                                    selected_obj,
+                                                                                                    cursor_z,
+                                                                                                    selected_normal,
+                                                                                                    self.placement_obj,
+                                                                                                    0)
+
+        if placement_utils.event_is_place_asset(event):
+            self.confirm_placement(context,override_height)
+
+            return self.finish(context,event.shift)
+            
+        if placement_utils.event_is_cancel_command(event):
+            return self.cancel_drop(context)
+
+        if placement_utils.event_is_pass_through(event):
+            return {'PASS_THROUGH'}
+
+        return {'RUNNING_MODAL'}
+
+    def cancel_drop(self,context):
+        pc_utils.delete_object_and_children(self.closet.obj_bp)
+        pc_utils.delete_object_and_children(self.drawing_plane)
+        if self.placement_obj:
+            pc_utils.delete_object_and_children(self.placement_obj)        
+        return {'CANCELLED'}
+
+    def refresh_data(self,hide=True):
+        ''' For some reason matrix world doesn't evaluate correctly
+            when placing cabinets next to this if object is hidden
+            For now set x, y, z object to not be hidden.
+        '''
+        self.closet.obj_x.hide_viewport = hide
+        self.closet.obj_y.hide_viewport = hide
+        self.closet.obj_z.hide_viewport = hide
+        self.closet.obj_x.empty_display_size = .001
+        self.closet.obj_y.empty_display_size = .001
+        self.closet.obj_z.empty_display_size = .001
+ 
+    def delete_reference_object(self):
+        for obj in self.closet.obj_bp.children:
+            if "IS_REFERENCE" in obj:
+                pc_utils.delete_object_and_children(obj)
+        if self.placement_obj:
+            pc_utils.delete_object_and_children(self.placement_obj)
+
+    def finish(self,context,is_recursive):
+        context.window.cursor_set('DEFAULT')
+        if self.drawing_plane:
+            pc_utils.delete_obj_list([self.drawing_plane])
+        self.set_placed_properties(self.closet.obj_bp) 
+        bpy.ops.object.select_all(action='DESELECT')
+        context.area.tag_redraw()
+        ## keep placing until event_is_cancel_command
+        if is_recursive:
+            bpy.ops.home_builder.place_closet(filepath=self.filepath)
+        return {'FINISHED'}
+
+
+class home_builder_OT_place_corner_closet(bpy.types.Operator):
+    bl_idname = "home_builder.place_corner_closet"
+    bl_label = "Place Corner Closet"
+    
+    filepath: bpy.props.StringProperty(name="Filepath",default="Error")
+
+    obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+
+    mouse_x = 0
+    mouse_y = 0
+
+    closet = None
+    selected_cabinet = None
+
+    calculators = []
+
+    drawing_plane = None
+    placement_obj = None
+
+    next_wall = None
+    current_wall = None
+    previous_wall = None
+
+    starting_point = ()
+    placement = ''
+
+    assembly = None
+    obj = None
+    exclude_objects = []
+
+    class_name = ""
+
+    def reset_selection(self):
+        self.current_wall = None
+        self.selected_cabinet = None    
+        self.next_wall = None
+        self.previous_wall = None  
+        self.placement = ''
+        # self.placement_obj = None
+
+    def reset_properties(self):
+        self.cabinet = None
+        self.selected_cabinet = None
+        self.calculators = []
+        self.drawing_plane = None
+        self.next_wall = None
+        self.current_wall = None
+        self.previous_wall = None
+        self.starting_point = ()
+        self.placement = ''
+        self.assembly = None
+        self.obj = None
+        self.exclude_objects = []
+        self.class_name = ""
+
+    def execute(self, context):
+        self.reset_properties()
+        self.create_drawing_plane(context)
+        self.get_closet(context)
+        self.placement_obj = placement_utils.create_placement_obj(context)
+        context.window_manager.modal_handler_add(self)
+        context.area.tag_redraw()
+        return {'RUNNING_MODAL'}
+
+    def get_closet(self,context):
+        directory, file = os.path.split(self.filepath)
+        filename, ext = os.path.splitext(file)
+
+        self.closet = eval("closet_library." + filename.replace(" ","_") + "()")
+
+        if hasattr(self.closet,'pre_draw'):
+            self.closet.pre_draw()
+        else:
+            self.closet.draw()
+
+        self.closet.set_name(filename)
+        self.set_child_properties(self.closet.obj_bp)
+
+    def set_child_properties(self,obj):
+        if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
+            assembly = pc_types.Assembly(obj)
+            calculator = assembly.get_calculator('Front Height Calculator')
+            if calculator:
+                calculator.calculate()
+                self.calculators.append(calculator)
+
+        if "IS_VERTICAL_SPLITTER_BP" in obj and obj["IS_VERTICAL_SPLITTER_BP"]:
+            assembly = pc_types.Assembly(obj)
+            calculator = assembly.get_calculator('Opening Height Calculator')
+            if calculator:
+                calculator.calculate()
+                self.calculators.append(calculator)
+
+        home_builder_utils.update_id_props(obj,self.closet.obj_bp)
         home_builder_utils.assign_current_material_index(obj)
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
@@ -1480,11 +1314,11 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 
     def confirm_placement(self,context):
         if self.current_wall:
-            self.cabinet.opening_qty = max(int(round(self.cabinet.obj_x.location.x / pc_unit.inch(38),0)),1)
+            self.closet.opening_qty = max(int(round(self.closet.obj_x.location.x / pc_unit.inch(38),0)),1)
 
         if self.placement == 'LEFT':
-            self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
-            constraint_obj = self.cabinet.obj_x
+            self.closet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
+            constraint_obj = self.closet.obj_x
             constraint = self.selected_cabinet.obj_bp.constraints.new('COPY_LOCATION')
             constraint.target = constraint_obj
             constraint.use_x = True
@@ -1492,9 +1326,9 @@ class home_builder_OT_place_closet(bpy.types.Operator):
             constraint.use_z = False
 
         if self.placement == 'RIGHT':
-            self.cabinet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
+            self.closet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
             constraint_obj = self.selected_cabinet.obj_x
-            constraint = self.cabinet.obj_bp.constraints.new('COPY_LOCATION')
+            constraint = self.closet.obj_bp.constraints.new('COPY_LOCATION')
             constraint.target = constraint_obj
             constraint.use_x = True
             constraint.use_y = True
@@ -1502,9 +1336,9 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 
         self.delete_reference_object()
 
-        if hasattr(self.cabinet,'pre_draw'):
-            self.cabinet.draw()
-        self.set_child_properties(self.cabinet.obj_bp)
+        if hasattr(self.closet,'pre_draw'):
+            self.closet.draw()
+        self.set_child_properties(self.closet.obj_bp)
         for cal in self.calculators:
             cal.calculate()
         self.refresh_data(False)
@@ -1515,8 +1349,8 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 
         context.view_layer.update()
         #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
-        self.cabinet.obj_z.empty_display_size = .001
-        self.cabinet.obj_z.hide_viewport = False
+        self.closet.obj_z.empty_display_size = .001
+        self.closet.obj_z.hide_viewport = False
 
         for calculator in self.calculators:
             calculator.calculate()
@@ -1531,23 +1365,29 @@ class home_builder_OT_place_closet(bpy.types.Operator):
         ## cursor_z added to allow for multi level placement
         cursor_z = context.scene.cursor.location.z
 
-        self.position_cabinet(selected_point,selected_obj,event,cursor_z,selected_normal)
+        self.placement, self.selected_cabinet, self.selected_wall = placement_utils.position_corner_unit(self.closet,
+                                                                                                         selected_point,
+                                                                                                         selected_obj,
+                                                                                                         cursor_z,
+                                                                                                         selected_normal,
+                                                                                                         self.placement_obj,
+                                                                                                         0)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             self.confirm_placement(context)
 
             return self.finish(context,event.shift)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
 
     def cancel_drop(self,context):
-        pc_utils.delete_object_and_children(self.cabinet.obj_bp)
+        pc_utils.delete_object_and_children(self.closet.obj_bp)
         pc_utils.delete_object_and_children(self.drawing_plane)
         if self.placement_obj:
             pc_utils.delete_object_and_children(self.placement_obj)        
@@ -1558,15 +1398,15 @@ class home_builder_OT_place_closet(bpy.types.Operator):
             when placing cabinets next to this if object is hidden
             For now set x, y, z object to not be hidden.
         '''
-        self.cabinet.obj_x.hide_viewport = hide
-        self.cabinet.obj_y.hide_viewport = hide
-        self.cabinet.obj_z.hide_viewport = hide
-        self.cabinet.obj_x.empty_display_size = .001
-        self.cabinet.obj_y.empty_display_size = .001
-        self.cabinet.obj_z.empty_display_size = .001
+        self.closet.obj_x.hide_viewport = hide
+        self.closet.obj_y.hide_viewport = hide
+        self.closet.obj_z.hide_viewport = hide
+        self.closet.obj_x.empty_display_size = .001
+        self.closet.obj_y.empty_display_size = .001
+        self.closet.obj_z.empty_display_size = .001
  
     def delete_reference_object(self):
-        for obj in self.cabinet.obj_bp.children:
+        for obj in self.closet.obj_bp.children:
             if "IS_REFERENCE" in obj:
                 pc_utils.delete_object_and_children(obj)
         if self.placement_obj:
@@ -1576,7 +1416,7 @@ class home_builder_OT_place_closet(bpy.types.Operator):
         context.window.cursor_set('DEFAULT')
         if self.drawing_plane:
             pc_utils.delete_obj_list([self.drawing_plane])
-        self.set_placed_properties(self.cabinet.obj_bp) 
+        self.set_placed_properties(self.closet.obj_bp) 
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
         ## keep placing until event_is_cancel_command
@@ -1592,6 +1432,7 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
+    snap_cursor_to_cabinet: bpy.props.BoolProperty(name="Snap Cursor to Base Point",default=False)
 
     cabinet = None
     selected_cabinet = None
@@ -1635,6 +1476,17 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
     def execute(self, context):
         self.reset_properties()
         self.get_cabinet(context)
+
+        if self.snap_cursor_to_cabinet:
+            if self.obj_bp_name != "":
+                obj_bp = bpy.data.objects[self.obj_bp_name]
+            else:
+                obj_bp = self.cabinet.obj_bp            
+            region = context.region
+            co = location_3d_to_region_2d(region,context.region_data,obj_bp.matrix_world.translation)
+            region_offset = Vector((region.x,region.y))
+            context.window.cursor_warp(*(co + region_offset))  
+
         context.window_manager.modal_handler_add(self)
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
@@ -1663,19 +1515,21 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
                 return opening
 
     def get_cabinet(self,context):
+        if self.obj_bp_name in bpy.data.objects:
+            obj_bp = bpy.data.objects[self.obj_bp_name]
+            self.cabinet = pc_types.Assembly(obj_bp)
+        else:        
+            directory, file = os.path.split(self.filepath)
+            filename, ext = os.path.splitext(file)
 
-        directory, file = os.path.split(self.filepath)
-        filename, ext = os.path.splitext(file)
+            self.cabinet = eval("closet_library." + filename.replace(" ","_") + "()")
 
-        self.cabinet = eval("closet_library." + filename.replace(" ","_") + "()")
+            if hasattr(self.cabinet,'pre_draw'):
+                self.cabinet.pre_draw()
+            else:
+                self.cabinet.draw()
 
-        if hasattr(self.cabinet,'pre_draw'):
-            self.cabinet.pre_draw()
-            print('PREDRAW')
-        else:
-            self.cabinet.draw()
-
-        self.cabinet.set_name(filename)
+            self.cabinet.set_name(filename)
         self.set_child_properties(self.cabinet.obj_bp)
 
     def set_child_properties(self,obj):
@@ -1692,8 +1546,9 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
             if calculator:
                 calculator.calculate()
                 self.calculators.append(calculator)
-
-        home_builder_utils.update_id_props(obj,self.cabinet.obj_bp)
+        #Dont Update Id Props when duplicating
+        if self.obj_bp_name == "":
+            home_builder_utils.update_id_props(obj,self.cabinet.obj_bp)
         home_builder_utils.assign_current_material_index(obj)
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
@@ -1740,7 +1595,6 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         
         bpy.ops.object.select_all(action='DESELECT')
 
-        context.view_layer.update()
         #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
         self.cabinet.obj_z.empty_display_size = .001
         self.cabinet.obj_z.hide_viewport = False
@@ -1751,6 +1605,7 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         self.mouse_x = event.mouse_x
         self.mouse_y = event.mouse_y
         self.reset_selection()
+        context.view_layer.update()
 
         ## selected_normal added in to pass this info on from ray cast to position_cabinet
         selected_point, selected_obj, selected_normal = pc_utils.get_selection_point(context,event,exclude_objects=self.exclude_objects)
@@ -1960,15 +1815,15 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
 
         opening = self.position_part(selected_point,selected_obj,event,cursor_z,selected_normal)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             self.confirm_placement(context,opening)
 
             return self.finish(context,event.shift)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -2143,15 +1998,15 @@ class home_builder_OT_place_closet_cleat(bpy.types.Operator):
 
         opening, placement = self.position_part(selected_point,selected_obj,event,cursor_z,selected_normal)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             self.confirm_placement(context,opening,placement)
 
             return self.finish(context,event.shift)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -2306,15 +2161,15 @@ class home_builder_OT_place_closet_back(bpy.types.Operator):
 
         opening = self.position_part(selected_point,selected_obj,event,cursor_z,selected_normal)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             self.confirm_placement(context,opening)
 
             return self.finish(context,event.shift)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -2520,15 +2375,15 @@ class home_builder_OT_place_slanted_shoe_shelf(bpy.types.Operator):
 
         opening = self.position_cabinet(selected_point,selected_obj,event,cursor_z,selected_normal)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             self.confirm_placement(context,opening)
 
             return self.finish(context)
             
-        if event_is_cancel_command(event):
-            return event_is_cancel_command(context)
+        if placement_utils.event_is_cancel_command(event):
+            return placement_utils.event_is_cancel_command(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -2625,13 +2480,13 @@ class home_builder_OT_place_wall_obstacle(bpy.types.Operator):
 
         self.position_object(selected_point,selected_obj)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             return self.finish(context,event.shift)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -2723,13 +2578,13 @@ class home_builder_OT_place_bathroom_fixture(bpy.types.Operator):
 
         self.position_object(selected_point,selected_obj)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             return self.finish(context,event.shift)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -2841,13 +2696,13 @@ class home_builder_OT_place_decoration(bpy.types.Operator):
 
         self.position_object(selected_point,selected_obj)
 
-        if event_is_place_asset(event):
+        if placement_utils.event_is_place_asset(event):
             return self.finish(context,event.shift)
             
-        if event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
@@ -2898,6 +2753,7 @@ classes = (
     home_builder_OT_place_cabinet,
     home_builder_OT_place_appliance,
     home_builder_OT_place_closet,
+    home_builder_OT_place_corner_closet,
     home_builder_OT_place_closet_insert,
     home_builder_OT_place_closet_part,
     home_builder_OT_place_closet_cleat,

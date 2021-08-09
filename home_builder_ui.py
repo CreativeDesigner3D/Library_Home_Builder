@@ -218,6 +218,31 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
                 box.operator('home_builder.add_part',text="Add Part",icon='BRUSH_DATA').object_name = obj_bp.name
 
 
+class HOME_BUILDER_PT_home_builder_wall_properties(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Walls"
+    bl_category = "Home Builder"    
+    # bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        return True
+
+    def draw(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+        layout = self.layout
+        box = layout.box()
+        row = box.row()
+        row.scale_y = 1.3
+        row.operator('home_builder.collect_walls')
+        if len(props.walls) > 0:
+            box.template_list("HOME_BUILDER_UL_walls"," ", props, "walls", props, "wall_index",rows=5,type='DEFAULT')
+        if props.wall_index + 1 <= len(props.walls):
+            wall = props.walls[props.wall_index]
+            box.prop(wall.obj_bp,'name')
+
+
 class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
     bl_label = "Asset Commands"
 
@@ -280,6 +305,17 @@ class HOME_BUILDER_UL_assets(bpy.types.UIList):
         layout.prop(item,'is_selected',text="")
 
 
+class HOME_BUILDER_UL_walls(bpy.types.UIList):
+    
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if item.obj_bp:
+            layout.label(text=item.obj_bp.name)
+            if item.wall_mesh.hide_get():
+                layout.operator('home_builder.show_hide_walls',text="",icon='HIDE_ON').wall_obj_bp = item.obj_bp.name
+            else:
+                layout.operator('home_builder.show_hide_walls',text="",icon='HIDE_OFF').wall_obj_bp = item.obj_bp.name
+
+
 classes = (
     HOME_BUILDER_MT_change_catalog_selection,
     HOME_BUILDER_MT_category_menu,
@@ -288,10 +324,12 @@ classes = (
     HOME_BUILDER_PT_library_settings,
     HOME_BUILDER_MT_asset_commands_menu,
     HOME_BUILDER_PT_home_builder_properties,
+    HOME_BUILDER_PT_home_builder_wall_properties,
     HOME_BUILDER_UL_assets,
     HOME_BUILDER_MT_change_global_material_group,
     HOME_BUILDER_MT_change_product_material_group,
     HOME_BUILDER_MT_pointer_menu,
+    HOME_BUILDER_UL_walls,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)        
