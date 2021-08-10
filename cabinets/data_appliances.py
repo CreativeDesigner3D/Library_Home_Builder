@@ -361,7 +361,7 @@ class Dishwasher(pc_types.Assembly):
             depth = self.obj_y.pyclone.get_var('location.y','depth')
             self.dishwasher.dim_y('depth',[depth])
 
-        if self.dishwasher.obj_x.lock_location[2]:
+        if self.dishwasher.obj_z.lock_location[2]:
             self.obj_z.location.z = self.dishwasher.obj_z.location.z
         else:
             height = self.obj_z.pyclone.get_var('location.z','height')
