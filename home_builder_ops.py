@@ -324,7 +324,7 @@ class home_builder_OT_add_room_light(bpy.types.Operator):
         obj_lamp.data.shape = 'RECTANGLE'
         obj_lamp.data.size = length + pc_unit.inch(20)
         obj_lamp.data.size_y = math.fabs(width) + pc_unit.inch(20)
-        obj_lamp.data.energy = max(pc_unit.meter_to_active_unit(largest_x),pc_unit.meter_to_active_unit(largest_y))/4
+        obj_lamp.data.energy = 120
         obj_lamp["PROMPT_ID"] = "home_builder.light_prompts"
         return {'FINISHED'}
 
