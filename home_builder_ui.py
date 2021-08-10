@@ -209,13 +209,14 @@ class HOME_BUILDER_PT_home_builder_properties(bpy.types.Panel):
 
         if props.sidebar_tabs == 'BUILD':
             box.operator('pc_assembly.create_new_assembly',text="Create New Assembly",icon='FILE_3D')
-            obj_bp = pc_utils.get_assembly_bp(context.object)
-            if obj_bp:
-                row = box.row()
-                row.label(text="Selected Assembly: " + obj_bp.name)
-                row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
-                box.prop(props,'selected_part',text="",icon='SNAP_FACE') 
-                box.operator('home_builder.add_part',text="Add Part",icon='BRUSH_DATA').object_name = obj_bp.name
+            if context.object:
+                obj_bp = pc_utils.get_assembly_bp(context.object)
+                if obj_bp:
+                    row = box.row()
+                    row.label(text="Selected Assembly: " + obj_bp.name)
+                    row.operator('pc_assembly.select_parent',text="",icon='SORT_DESC')
+                    box.prop(props,'selected_part',text="",icon='SNAP_FACE') 
+                    box.operator('home_builder.add_part',text="Add Part",icon='BRUSH_DATA').object_name = obj_bp.name
 
 
 class HOME_BUILDER_PT_home_builder_wall_properties(bpy.types.Panel):
