@@ -170,7 +170,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         self.set_end_angles()            
 
         if self.event_is_place_first_point(event):
-            self.starting_point = (selected_point[0],selected_point[1],selected_point[2])
+            self.starting_point = (selected_point[0],selected_point[1],0)
             return {'RUNNING_MODAL'}
             
         if self.event_is_place_next_point(event):
@@ -179,7 +179,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             self.create_wall()
             self.connect_walls()
             self.typed_value = ""
-            self.starting_point = (selected_point[0],selected_point[1],selected_point[2])
+            self.starting_point = (selected_point[0],selected_point[1],0)
             return {'RUNNING_MODAL'}
 
         if self.event_is_cancel_command(event):
@@ -256,7 +256,9 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
 
     def position_object(self,selected_point,selected_obj):
         if self.starting_point == ():
-            self.current_wall.obj_bp.location = selected_point
+            self.current_wall.obj_bp.location.x = selected_point[0]
+            self.current_wall.obj_bp.location.y = selected_point[1]
+            self.current_wall.obj_bp.location.z = 0
         else:
             x = selected_point[0] - self.starting_point[0]
             y = selected_point[1] - self.starting_point[1]
