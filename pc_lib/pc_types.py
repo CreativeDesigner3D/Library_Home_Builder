@@ -552,13 +552,11 @@ class Title_Block(Assembly):
             self.obj_x.location.x = pc_unit.inch(14)
             self.obj_y.location.y = pc_unit.inch(8.5)
 
-    def draw_ui(self,context,layout):
-        arrow_height = self.get_prompt("Arrow Height")
-        arrow_length = self.get_prompt("Arrow Length")
-        extend_first_line_amount = self.get_prompt("Extend First Line Amount")
-        extend_second_line_amount = self.get_prompt("Extend Second Line Amount")
-        line_thickness = self.get_prompt("Line Thickness")
+        for child in self.obj_bp.children:
+            if child.type == 'EMPTY':
+                child.hide_viewport = True
 
+    def draw_ui(self,context,layout):
         row = layout.row()
         row.label(text="Drawing Title:")
         row.prop(self.obj_drawing_title.data,'body',text="")
