@@ -3120,6 +3120,26 @@ class home_builder_OT_show_hide_walls(bpy.types.Operator):
         return {'FINISHED'}    
 
 
+class home_builder_OT_show_hide_closet_opening(bpy.types.Operator):
+    bl_idname = "home_builder.show_hide_closet_opening"
+    bl_label = "Show Hide Closet Opening"
+    bl_description = "This toggles the closet opening visibility"
+    bl_options = {'UNDO'}
+
+    insert_obj_bp: bpy.props.StringProperty(name="Insert Base Point Name")
+    hide: bpy.props.BoolProperty(name="Hide")
+
+    def execute(self,context):
+        insert_bp = bpy.data.objects[self.insert_obj_bp]
+
+        props = home_builder_utils.get_object_props(insert_bp)
+        if props.insert_opening:
+            for child in props.insert_opening.children:
+                if child.type == 'MESH':
+                    child.hide_viewport = self.hide
+        return {'FINISHED'}   
+
+
 class home_builder_OT_free_move_object(bpy.types.Operator):
     bl_idname = "home_builder.free_move_object"
     bl_label = "Free Move Object"
@@ -3195,6 +3215,7 @@ classes = (
     home_builder_OT_change_closet_offsets,
     home_builder_OT_collect_walls,
     home_builder_OT_show_hide_walls,
+    home_builder_OT_show_hide_closet_opening,
     home_builder_OT_free_move_object,
 )
 

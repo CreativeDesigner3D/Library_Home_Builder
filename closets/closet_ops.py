@@ -728,6 +728,13 @@ class home_builder_OT_closet_shelves_prompts(bpy.types.Operator):
         layout = self.layout
         shelf_qty = self.insert.get_prompt("Shelf Quantity")
         layout.prop(shelf_qty,'quantity_value',text="Shelf Quantity")
+        row = layout.row()
+        props = row.operator('home_builder.show_hide_closet_opening',text="Show Opening")
+        props.insert_obj_bp = self.insert.obj_bp.name
+        props.hide = False
+        props = row.operator('home_builder.show_hide_closet_opening',text="Hide Opening")
+        props.insert_obj_bp = self.insert.obj_bp.name
+        props.hide = True
 
 
 class home_builder_OT_closet_single_shelf_prompts(bpy.types.Operator):
