@@ -2018,7 +2018,7 @@ class home_builder_OT_assign_material(bpy.types.Operator):
             context.view_layer.objects.active = selected_obj
         
             if event_is_place_asset(event):
-                if len(selected_obj.data.uv_layers) == 0:
+                if hasattr(selected_obj.data,'uv_layers') and len(selected_obj.data.uv_layers) == 0:
                     bpy.ops.object.editmode_toggle()
                     bpy.ops.mesh.select_all(action='SELECT') 
                     bpy.ops.uv.smart_project(angle_limit=66, island_margin=0)  

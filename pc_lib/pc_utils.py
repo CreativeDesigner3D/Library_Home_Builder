@@ -310,7 +310,7 @@ def get_selection_point(context, event, ray_max=10000.0, objects=None, floor=Non
                     if floor is not None and obj == floor:
                         yield (obj, obj.matrix_world.copy())
 
-                    if obj.type == 'MESH' and obj.hide_select == False:
+                    if obj.type in {'MESH','CURVE'} and obj.hide_select == False:
                         yield (obj, obj.matrix_world.copy())
 
     def obj_ray_cast(obj, matrix):
@@ -338,7 +338,7 @@ def get_selection_point(context, event, ray_max=10000.0, objects=None, floor=Non
     best_norm = Vector((0, 0, 0))
 
     for obj, matrix in visible_objects_and_duplis():
-        if obj.type == 'MESH':
+        if obj.type in {'MESH','CURVE'}:
             if obj.data:
 
                 hit, normal, face_index = obj_ray_cast(obj, matrix)
