@@ -1434,54 +1434,29 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
     obj_bp_name: bpy.props.StringProperty(name="Obj Base Point Name")
     snap_cursor_to_cabinet: bpy.props.BoolProperty(name="Snap Cursor to Base Point",default=False)
 
-    cabinet = None
-    selected_cabinet = None
+    insert = None
 
     calculators = []
 
-    next_wall = None
-    current_wall = None
-    previous_wall = None
-
-    starting_point = ()
-    placement = ''
-
-    assembly = None
-    obj = None
     exclude_objects = []
 
-    class_name = ""
-
     def reset_selection(self):
-        self.current_wall = None
-        self.selected_cabinet = None    
-        self.next_wall = None
-        self.previous_wall = None  
-        self.placement = ''
+        pass
 
     def reset_properties(self):
-        self.cabinet = None
-        self.selected_cabinet = None
+        self.insert = None
         self.calculators = []
-        self.next_wall = None
-        self.current_wall = None
-        self.previous_wall = None
-        self.starting_point = ()
-        self.placement = ''
-        self.assembly = None
-        self.obj = None
         self.exclude_objects = []
-        self.class_name = ""
 
     def execute(self, context):
         self.reset_properties()
-        self.get_cabinet(context)
+        self.get_insert(context)
 
         if self.snap_cursor_to_cabinet:
             if self.obj_bp_name != "":
                 obj_bp = bpy.data.objects[self.obj_bp_name]
             else:
-                obj_bp = self.cabinet.obj_bp            
+                obj_bp = self.insert.obj_bp            
             region = context.region
             co = location_3d_to_region_2d(region,context.region_data,obj_bp.matrix_world.translation)
             region_offset = Vector((region.x,region.y))
@@ -1491,13 +1466,7 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         context.area.tag_redraw()
         return {'RUNNING_MODAL'}
 
-    def position_cabinet(self,mouse_location,selected_obj,event,cursor_z,selected_normal):
-
-        if selected_obj is not None:
-            self.drop = True
-        else:
-            self.drop = False
-
+    def position_insert(self,mouse_location,selected_obj,event,cursor_z,selected_normal):
         opening_bp = home_builder_utils.get_opening_bp(selected_obj)
 
         if opening_bp:
@@ -1506,31 +1475,31 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
                 for child in opening.obj_bp.children:
                     if child.type == 'MESH':
                         child.select_set(True)
-                self.cabinet.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
-                self.cabinet.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
-                self.cabinet.obj_bp.location.z = opening.obj_bp.matrix_world[2][3]
-                self.cabinet.obj_x.location.x = opening.obj_x.location.x
-                self.cabinet.obj_y.location.y = opening.obj_x.location.y
-                self.cabinet.obj_z.location.z = opening.obj_x.location.z
+                self.insert.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
+                self.insert.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
+                self.insert.obj_bp.location.z = opening.obj_bp.matrix_world[2][3]
+                self.insert.obj_x.location.x = opening.obj_x.location.x
+                self.insert.obj_y.location.y = opening.obj_x.location.y
+                self.insert.obj_z.location.z = opening.obj_x.location.z
                 return opening
 
-    def get_cabinet(self,context):
+    def get_insert(self,context):
         if self.obj_bp_name in bpy.data.objects:
             obj_bp = bpy.data.objects[self.obj_bp_name]
-            self.cabinet = pc_types.Assembly(obj_bp)
+            self.insert = pc_types.Assembly(obj_bp)
         else:        
             directory, file = os.path.split(self.filepath)
             filename, ext = os.path.splitext(file)
 
-            self.cabinet = eval("closet_library." + filename.replace(" ","_") + "()")
+            self.insert = eval("closet_library." + filename.replace(" ","_") + "()")
 
-            if hasattr(self.cabinet,'pre_draw'):
-                self.cabinet.pre_draw()
+            if hasattr(self.insert,'pre_draw'):
+                self.insert.pre_draw()
             else:
-                self.cabinet.draw()
+                self.insert.draw()
 
-            self.cabinet.set_name(filename)
-        self.set_child_properties(self.cabinet.obj_bp)
+            self.insert.set_name(filename)
+        self.set_child_properties(self.insert.obj_bp)
 
     def set_child_properties(self,obj):
         if "IS_DRAWERS_BP" in obj and obj["IS_DRAWERS_BP"]:
@@ -1548,7 +1517,7 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
                 self.calculators.append(calculator)
         #Dont Update Id Props when duplicating
         if self.obj_bp_name == "":
-            home_builder_utils.update_id_props(obj,self.cabinet.obj_bp)
+            home_builder_utils.update_id_props(obj,self.insert.obj_bp)
         home_builder_utils.assign_current_material_index(obj)
         if obj.type == 'EMPTY':
             obj.hide_viewport = True    
@@ -1565,28 +1534,28 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
 
     def confirm_placement(self,context,opening):
         if opening:
-            self.cabinet.obj_bp.parent = opening.obj_bp.parent
-            self.cabinet.obj_bp.location = opening.obj_bp.location
-            self.cabinet.obj_x.location.x = opening.obj_x.location.x
-            self.cabinet.obj_y.location.y = opening.obj_y.location.y
-            self.cabinet.obj_z.location.z = opening.obj_z.location.z
-            props = home_builder_utils.get_object_props(self.cabinet.obj_bp)
+            self.insert.obj_bp.parent = opening.obj_bp.parent
+            self.insert.obj_bp.location = opening.obj_bp.location
+            self.insert.obj_x.location.x = opening.obj_x.location.x
+            self.insert.obj_y.location.y = opening.obj_y.location.y
+            self.insert.obj_z.location.z = opening.obj_z.location.z
+            props = home_builder_utils.get_object_props(self.insert.obj_bp)
             props.insert_opening = opening.obj_bp
 
             opening.obj_bp["IS_FILLED"] = True
-            home_builder_utils.copy_drivers(opening.obj_bp,self.cabinet.obj_bp)
-            home_builder_utils.copy_drivers(opening.obj_x,self.cabinet.obj_x)
-            home_builder_utils.copy_drivers(opening.obj_y,self.cabinet.obj_y)
-            home_builder_utils.copy_drivers(opening.obj_z,self.cabinet.obj_z)
-            home_builder_utils.copy_drivers(opening.obj_prompts,self.cabinet.obj_prompts)
+            home_builder_utils.copy_drivers(opening.obj_bp,self.insert.obj_bp)
+            home_builder_utils.copy_drivers(opening.obj_x,self.insert.obj_x)
+            home_builder_utils.copy_drivers(opening.obj_y,self.insert.obj_y)
+            home_builder_utils.copy_drivers(opening.obj_z,self.insert.obj_z)
+            home_builder_utils.copy_drivers(opening.obj_prompts,self.insert.obj_prompts)
             for child in opening.obj_bp.children:
                 child.hide_viewport = True
 
         self.delete_reference_object()
 
-        if hasattr(self.cabinet,'pre_draw'):
-            self.cabinet.draw()
-        self.set_child_properties(self.cabinet.obj_bp)
+        if hasattr(self.insert,'pre_draw'):
+            self.insert.draw()
+        self.set_child_properties(self.insert.obj_bp)
         for cal in self.calculators:
             cal.calculate()
         self.refresh_data(False)
@@ -1596,8 +1565,8 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
 
         #EMPTY MUST BE VISIBLE TO CALCULATE CORRECT SIZE FOR HEIGHT COLLISION
-        self.cabinet.obj_z.empty_display_size = .001
-        self.cabinet.obj_z.hide_viewport = False
+        self.insert.obj_z.empty_display_size = .001
+        self.insert.obj_z.hide_viewport = False
 
         for calculator in self.calculators:
             calculator.calculate()
@@ -1613,62 +1582,26 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         ## cursor_z added to allow for multi level placement
         cursor_z = context.scene.cursor.location.z
 
-        opening = self.position_cabinet(selected_point,selected_obj,event,cursor_z,selected_normal)
+        opening = self.position_insert(selected_point,selected_obj,event,cursor_z,selected_normal)
 
-        if self.event_is_place_first_point(event):
+        if placement_utils.event_is_place_asset(event):
             self.confirm_placement(context,opening)
 
             return self.finish(context,event.shift)
             
-        if self.event_is_cancel_command(event):
+        if placement_utils.event_is_cancel_command(event):
             return self.cancel_drop(context)
 
-        if self.event_is_pass_through(event):
+        if placement_utils.event_is_pass_through(event):
             return {'PASS_THROUGH'}
 
         return {'RUNNING_MODAL'}
 
-    def event_is_place_next_point(self,event):
-        if self.starting_point == ():
-            return False
-        if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
-            return True
-        elif event.type == 'NUMPAD_ENTER' and event.value == 'PRESS':
-            return True
-        elif event.type == 'RET' and event.value == 'PRESS':
-            return True
-        else:
-            return False
-
-    def event_is_place_first_point(self,event):
-        if self.starting_point != ():
-            return False
-        if event.type == 'LEFTMOUSE' and event.value == 'PRESS' and self.drop:
-            return True
-        elif event.type == 'NUMPAD_ENTER' and event.value == 'PRESS' and self.drop:
-            return True
-        elif event.type == 'RET' and event.value == 'PRESS' and self.drop:
-            return True
-        else:
-            return False
-
-    def event_is_cancel_command(self,event):
-        if event.type in {'RIGHTMOUSE', 'ESC'}:
-            return True
-        else:
-            return False
-    
-    def event_is_pass_through(self,event):
-        if event.type in {'MIDDLEMOUSE', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE'}:
-            return True
-        else:
-            return False
-
     def position_object(self,selected_point,selected_obj):
-        self.cabinet.obj_bp.location = selected_point
+        self.insert.obj_bp.location = selected_point
 
     def cancel_drop(self,context):
-        pc_utils.delete_object_and_children(self.cabinet.obj_bp)
+        pc_utils.delete_object_and_children(self.insert.obj_bp)
         return {'CANCELLED'}
 
     def refresh_data(self,hide=True):
@@ -1676,21 +1609,21 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
             when placing cabinets next to this if object is hidden
             For now set x, y, z object to not be hidden.
         '''
-        self.cabinet.obj_x.hide_viewport = hide
-        self.cabinet.obj_y.hide_viewport = hide
-        self.cabinet.obj_z.hide_viewport = hide
-        self.cabinet.obj_x.empty_display_size = .001
-        self.cabinet.obj_y.empty_display_size = .001
-        self.cabinet.obj_z.empty_display_size = .001
+        self.insert.obj_x.hide_viewport = hide
+        self.insert.obj_y.hide_viewport = hide
+        self.insert.obj_z.hide_viewport = hide
+        self.insert.obj_x.empty_display_size = .001
+        self.insert.obj_y.empty_display_size = .001
+        self.insert.obj_z.empty_display_size = .001
  
     def delete_reference_object(self):
-        for obj in self.cabinet.obj_bp.children:
+        for obj in self.insert.obj_bp.children:
             if "IS_REFERENCE" in obj:
                 pc_utils.delete_object_and_children(obj)
 
     def finish(self,context,is_recursive):
         context.window.cursor_set('DEFAULT')
-        self.set_placed_properties(self.cabinet.obj_bp) 
+        self.set_placed_properties(self.insert.obj_bp) 
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
         if is_recursive:
