@@ -3104,21 +3104,19 @@ class home_builder_OT_show_hide_walls(bpy.types.Operator):
 
     wall_obj_bp: bpy.props.StringProperty(name="Wall Base Point Name")
 
-    def hide_children(self,obj):
-        if obj.type in {'MESH','CURVE'}:
-            if obj.hide_get():
-                obj.hide_set(False)
-                # obj.hide_viewport = False
-            else:
-                obj.hide_set(True)
-                # obj.hide_viewport = True
+    def hide_children(self,obj,context):
+        if obj.name in context.view_layer.objects:
+            if obj.type in {'MESH','CURVE'}:
+                if obj.hide_get():
+                    obj.hide_set(False)
+                else:
+                    obj.hide_set(True)
         for child in obj.children:
-            # print(child.name)
-            self.hide_children(child)
+            self.hide_children(child,context)
 
     def execute(self,context):
         wall_bp = bpy.data.objects[self.wall_obj_bp]
-        self.hide_children(wall_bp)
+        self.hide_children(wall_bp,context)
         return {'FINISHED'}    
 
 
