@@ -79,11 +79,11 @@ class home_builder_OT_duplicate_closet_insert(bpy.types.Operator):
             child.select_set(True)
             self.select_obj_and_children(child)
 
-    def hide_empties_and_boolean_meshes(self,obj):
-        if obj.type == 'EMPTY' or obj.hide_render:
+    def hide_empties(self,obj):
+        if obj.type == 'EMPTY':
             obj.hide_viewport = True
         for child in obj.children:
-            self.hide_empties_and_boolean_meshes(child)
+            self.hide_empties(child)
 
     def delete_drivers(self,obj):
         if obj.animation_data:
@@ -97,7 +97,7 @@ class home_builder_OT_duplicate_closet_insert(bpy.types.Operator):
         bpy.ops.object.select_all(action='DESELECT')
         self.select_obj_and_children(cabinet.obj_bp)
         bpy.ops.object.duplicate_move()
-        self.hide_empties_and_boolean_meshes(cabinet.obj_bp)
+        self.hide_empties(cabinet.obj_bp)
 
         obj = context.object
         new_obj_bp = home_builder_utils.get_closet_insert_bp(obj)
@@ -108,7 +108,7 @@ class home_builder_OT_duplicate_closet_insert(bpy.types.Operator):
         self.delete_drivers(new_cabinet.obj_y)
         self.delete_drivers(new_cabinet.obj_z)
 
-        self.hide_empties_and_boolean_meshes(new_cabinet.obj_bp)
+        self.hide_empties(new_cabinet.obj_bp)
 
         bpy.ops.home_builder.place_closet_insert(obj_bp_name=new_cabinet.obj_bp.name)
 
@@ -263,7 +263,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
     def get_assemblies(self,context):
         bp = home_builder_utils.get_closet_bp(context.object)
         self.closet = data_closets.Closet_Starter(bp)
-        self.is_base = self.closet.is_base_starter
+        self.is_base = self.closet.is_base
         if self.is_base:
             self.set_depth = math.fabs(self.closet.obj_y.location.y)
         self.get_calculators(self.closet.obj_bp)
@@ -297,7 +297,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             row1.prop(self.closet.obj_z,'hide_viewport',text="")
             row1.operator('pc_object.select_object',text="",icon='RESTRICT_SELECT_OFF').obj_name = self.closet.obj_z.name
 
-        if not self.closet.is_base_starter:
+        if not self.closet.is_base:
             row1 = col.row(align=True)
             if pc_utils.object_has_driver(self.closet.obj_z):
                 z = math.fabs(self.closet.obj_z.location.z)
@@ -354,7 +354,10 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         l_bridge_width = self.closet.get_prompt("Left Bridge Shelf Width")
         r_bridge_width = self.closet.get_prompt("Right Bridge Shelf Width")       
         l_filler = self.closet.get_prompt("Left Side Wall Filler")
-        r_filler = self.closet.get_prompt("Right Side Wall Filler")            
+        r_filler = self.closet.get_prompt("Right Side Wall Filler")      
+        ctop_oh_front = self.closet.get_prompt("Countertop Overhang Front")       
+        ctop_oh_left = self.closet.get_prompt("Countertop Overhang Left")   
+        ctop_oh_right = self.closet.get_prompt("Countertop Overhang Right")   
         
         row = layout.row()    
         row.label(text="Toe Kick:")
@@ -365,6 +368,13 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         row.label(text="Fillers:") 
         row.prop(l_filler,'distance_value',text="Left Width")
         row.prop(r_filler,'distance_value',text="Right Width")
+
+        if ctop_oh_front and ctop_oh_left and ctop_oh_right:
+            row = layout.row()   
+            row.label(text="Countertop Overhang:") 
+            row.prop(ctop_oh_front,'distance_value',text="Front")
+            row.prop(ctop_oh_left,'distance_value',text="Left")
+            row.prop(ctop_oh_right,'distance_value',text="Right")
 
         row = layout.row()    
         row.prop(l_bridge,'checkbox_value',text="Bridge Left")
@@ -940,6 +950,8 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
         box = layout.box()
         drawer_qty = self.insert.get_prompt("Drawer Quantity")
         drawer_height = self.insert.get_prompt("Drawer Height")
+        remove_top_shelf = self.insert.get_prompt("Remove Top Shelf")
+        
         total_drawer_height = 0
         if drawer_height:
             row = box.row()
@@ -972,31 +984,15 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
         row.prop(hor,'checkbox_value',text="Right") 
 
         box = layout.box()
+        row = box.row()
+        row.label(text="Remove Top Shelf")
+        row.prop(remove_top_shelf,'checkbox_value',text="")
+        
+        box = layout.box()
         height = round(pc_unit.meter_to_inch(total_drawer_height),2)
         row = box.row()
         row.label(text="Total Drawer Height: ")
         row.label(text=str(height) + '"')
-
-class home_builder_OT_show_closet_properties(bpy.types.Operator):
-    bl_idname = "home_builder.show_closet_properties"
-    bl_label = "Show Closet Properties"
-
-    def execute(self, context):
-        obj = context.object
-        closet_bp = home_builder_utils.get_closet_bp(obj)
-        closet = data_closets.Closet_Starter(closet_bp)
-        wm_props = home_builder_utils.get_wm_props(context.window_manager)
-        for i in range(1,9):
-            width = closet.get_prompt("Opening " + str(i) + " Width")
-            if width:
-                wm_width = eval("wm_props.closet_" + str(i) + "_width")
-                print('WM1',wm_width)
-                wm_width = width.distance_value
-                print('WM2',wm_width)
-                print(width.distance_value)
-                # eval("wm_props.closet_" + str(i) + "_width = width.get_value()")
-
-        return {'FINISHED'}
 
 
 class home_builder_OT_closet_cubby_prompts(bpy.types.Operator):
@@ -1124,7 +1120,7 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
 
         self.new_closet = data_closets.Closet_Starter()
         self.new_closet.opening_qty = self.quantity
-        self.new_closet.is_base_starter = self.closet.is_base_starter
+        self.new_closet.is_base = self.closet.is_base
         self.new_closet.is_hanging = self.closet.is_hanging
         self.new_closet.pre_draw()
         self.new_closet.draw()
@@ -1253,7 +1249,6 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
 classes = (
     home_builder_OT_duplicate_closet_insert,
     home_builder_OT_closet_prompts,
-    home_builder_OT_show_closet_properties,
     home_builder_OT_closet_inside_corner_prompts,
     home_builder_OT_closet_shelves_prompts,
     home_builder_OT_closet_cleat_prompts,

@@ -1118,6 +1118,7 @@ class Drawers(Doors):
     def draw(self):
         self.add_prompts()
 
+        remove_top_shelf = self.add_prompt("Remove Top Shelf",'CHECKBOX',False)
         drawer_quantity = self.add_prompt("Drawer Quantity",'QUANTITY',3)
         drawer_1_height = self.add_prompt("Drawer 1 Height",'DISTANCE',pc_unit.millimeter(157))
         dh1 = drawer_1_height.get_var('dh1')
@@ -1143,7 +1144,8 @@ class Drawers(Doors):
 
         x = self.obj_x.pyclone.get_var('location.x','x')
         y = self.obj_y.pyclone.get_var('location.y','y')
-        z = self.obj_z.pyclone.get_var('location.z','z')      
+        z = self.obj_z.pyclone.get_var('location.z','z') 
+        remove_shelf = remove_top_shelf.get_var('remove_shelf')      
         dq = drawer_quantity.get_var('dq') 
         h_gap = self.get_prompt("Horizontal Gap").get_var('h_gap') 
         door_to_cabinet_gap = self.get_prompt("Door to Cabinet Gap").get_var('door_to_cabinet_gap')
@@ -1172,6 +1174,8 @@ class Drawers(Doors):
         shelf.dim_x('x',[x])
         shelf.dim_y('y',[y])
         shelf.dim_z('s_thickness',[s_thickness])
+        hide = shelf.get_prompt('Hide')
+        hide.set_formula('remove_shelf',[remove_shelf])
 
         shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
 
