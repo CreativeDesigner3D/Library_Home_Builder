@@ -1073,7 +1073,7 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 
     def confirm_placement(self,context, override_height):
         if self.current_wall:
-            self.closet.opening_qty = max(int(round(self.closet.obj_x.location.x / pc_unit.inch(38),0)),1)
+            self.closet.opening_qty = max(int(math.ceil(self.closet.obj_x.location.x / pc_unit.inch(38))),1)
 
         if self.placement == 'LEFT':
             self.closet.obj_bp.parent = self.selected_cabinet.obj_bp.parent
@@ -1468,20 +1468,26 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
 
     def position_insert(self,mouse_location,selected_obj,event,cursor_z,selected_normal):
         opening_bp = home_builder_utils.get_opening_bp(selected_obj)
-
         if opening_bp:
             if "IS_FILLED" not in opening_bp:
                 opening = pc_types.Assembly(opening_bp)
                 for child in opening.obj_bp.children:
                     if child.type == 'MESH':
                         child.select_set(True)
+                loc_pos = opening.obj_bp.matrix_world
                 self.insert.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
                 self.insert.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
                 self.insert.obj_bp.location.z = opening.obj_bp.matrix_world[2][3]
+                self.insert.obj_bp.rotation_euler.z = loc_pos.to_euler()[2]
                 self.insert.obj_x.location.x = opening.obj_x.location.x
-                self.insert.obj_y.location.y = opening.obj_x.location.y
-                self.insert.obj_z.location.z = opening.obj_x.location.z
+                self.insert.obj_y.location.y = opening.obj_y.location.y
+                self.insert.obj_z.location.z = opening.obj_z.location.z
                 return opening
+
+    def add_exclude_objects(self,obj):
+        self.exclude_objects.append(obj)
+        for child in obj.children:
+            self.add_exclude_objects(child)
 
     def get_insert(self,context):
         if self.obj_bp_name in bpy.data.objects:
@@ -1499,6 +1505,8 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
                 self.insert.draw()
 
             self.insert.set_name(filename)
+
+        self.add_exclude_objects(self.insert.obj_bp)
         self.set_child_properties(self.insert.obj_bp)
 
     def set_child_properties(self,obj):
@@ -1536,6 +1544,7 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         if opening:
             self.insert.obj_bp.parent = opening.obj_bp.parent
             self.insert.obj_bp.location = opening.obj_bp.location
+            self.insert.obj_bp.rotation_euler = (0,0,0)
             self.insert.obj_x.location.x = opening.obj_x.location.x
             self.insert.obj_y.location.y = opening.obj_y.location.y
             self.insert.obj_z.location.z = opening.obj_z.location.z
@@ -1626,7 +1635,7 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         self.set_placed_properties(self.insert.obj_bp) 
         bpy.ops.object.select_all(action='DESELECT')
         context.area.tag_redraw()
-        if is_recursive:
+        if is_recursive and self.obj_bp_name == "":
             bpy.ops.home_builder.place_closet_insert(filepath=self.filepath)
         return {'FINISHED'}
 
