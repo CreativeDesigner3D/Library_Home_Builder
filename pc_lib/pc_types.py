@@ -404,7 +404,6 @@ class Assembly_Layout():
         view_settings = self.scene.view_settings
         view_settings.view_transform = 'Standard'
         view_settings.look = 'High Contrast'
-        view_settings.exposure = 4
 
         self.create_linesets()
 
@@ -443,8 +442,8 @@ class Assembly_Layout():
                     override = {'window': window, 'screen': screen, 'area': area}
                     bpy.ops.view3d.view_camera(override)
                     bpy.ops.view3d.view_center_camera(override)   
-                    break                
-     
+                    break          
+
     def add_3d_layout_camera(self):
         spd = bpy.context.space_data
         bpy.ops.object.camera_add(align='VIEW')
@@ -497,10 +496,10 @@ class Title_Block(Assembly):
                 if child.type == 'FONT':
                     self.obj_text = child   
 
-    def create_title_block(self,layout_view):
+    def create_title_block(self,layout_view,title_block_name="Title Block"):
         collection = layout_view.dimension_collection
 
-        PATH = os.path.join(os.path.dirname(__file__),'assets',"Title_Block.blend")
+        PATH = os.path.join(os.path.dirname(__file__),'assets','Title Blocks',title_block_name + ".blend")
 
         with bpy.data.libraries.load(PATH, False, False) as (data_from, data_to):
             data_to.objects = data_from.objects
