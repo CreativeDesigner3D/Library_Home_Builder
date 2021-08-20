@@ -1139,6 +1139,10 @@ class home_builder_OT_change_closet_openings(bpy.types.Operator):
         self.new_closet.obj_y.hide_viewport = True
         self.new_closet.obj_z.hide_viewport = True
         self.set_child_properties(self.new_closet.obj_bp)
+
+        self.new_closet.obj_bp.hide_viewport = False
+        context.view_layer.objects.active = self.new_closet.obj_bp
+        self.new_closet.obj_bp.select_set(True)
             
         return {'FINISHED'}
 
