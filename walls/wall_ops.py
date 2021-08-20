@@ -326,6 +326,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
         for child in self.current_wall.obj_bp.children:
             obj_list.append(child)
         pc_utils.delete_obj_list(obj_list)
+        bpy.ops.view3d.view_all(center=False)
         return {'CANCELLED'}
 
 
