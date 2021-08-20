@@ -55,6 +55,19 @@ class HOME_BUILDER_MT_closets(bpy.types.Menu):
         layout.operator('home_builder.delete_assembly',text="Delete Closet",icon='X').obj_name = bp.name
 
 
+class HOME_BUILDER_MT_closets_corner(bpy.types.Menu):
+    bl_label = "Closet Corner Commands"
+
+    def draw(self, context):
+        bp = home_builder_utils.get_closet_inside_corner_bp(context.object)
+        layout = self.layout
+        layout.operator('home_builder.closet_inside_corner_prompts',icon='WINDOW')
+        layout.operator('home_builder.free_move_object',text="Grab Closet",icon='VIEW_PAN').obj_bp_name = bp.name
+        layout.operator('home_builder.edit_part',text="Edit Part Shape",icon='EDITMODE_HLT')
+        layout.separator()
+        layout.operator('home_builder.delete_assembly',text="Delete Closet",icon='X').obj_name = bp.name
+
+
 class HOME_BUILDER_MT_cabinets(bpy.types.Menu):
     bl_label = "Cabinet Commands"
 
@@ -151,6 +164,7 @@ def draw_view3d_menu(self,context):
     if context.object:
         wall_bp = home_builder_utils.get_wall_bp(context.object)
         closet_bp = home_builder_utils.get_closet_bp(context.object)
+        corner_closet_bp = home_builder_utils.get_closet_inside_corner_bp(context.object)
         cabinet_bp = home_builder_utils.get_cabinet_bp(context.object)
         window_bp = home_builder_utils.get_window_bp(context.object)
         door_bp = home_builder_utils.get_door_bp(context.object)
@@ -159,6 +173,8 @@ def draw_view3d_menu(self,context):
             layout.menu('HOME_BUILDER_MT_walls',text="Walls")        
         if closet_bp:
             layout.menu('HOME_BUILDER_MT_closets',text="Closets")
+        if corner_closet_bp:
+            layout.menu('HOME_BUILDER_MT_closets_corner',text="Corner Closets")
         if cabinet_bp:
             layout.menu('HOME_BUILDER_MT_cabinets',text="Cabinets")
         if window_bp:
@@ -179,6 +195,7 @@ def register():
     bpy.utils.register_class(HOME_BUILDER_MT_windows)
     bpy.utils.register_class(HOME_BUILDER_MT_doors)
     bpy.utils.register_class(HOME_BUILDER_MT_appliances)
+    bpy.utils.register_class(HOME_BUILDER_MT_closets_corner)
     bpy.types.TOPBAR_MT_editor_menus.append(draw_home_builder)
     bpy.types.VIEW3D_MT_editor_menus.append(draw_view3d_menu)
     
@@ -194,5 +211,6 @@ def unregister():
     bpy.utils.unregister_class(HOME_BUILDER_MT_windows)
     bpy.utils.unregister_class(HOME_BUILDER_MT_doors)
     bpy.utils.unregister_class(HOME_BUILDER_MT_appliances)
+    bpy.utils.unregister_class(HOME_BUILDER_MT_closets_corner)
     bpy.types.VIEW3D_MT_edit_mesh.remove(draw_home_builder)
     bpy.types.VIEW3D_MT_editor_menus.remove(draw_view3d_menu)
