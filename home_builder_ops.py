@@ -1736,12 +1736,32 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
                 walls.append(wall_bp)
         return walls
 
+    def link_children_with_collection(self,obj,collection):
+        collection.objects.link(obj)
+        for child in obj.children:
+            self.link_children_with_collection(child,collection)
+
     def create_elevation_layout(self,context,wall):
         for scene in bpy.data.scenes:
             if not scene.pyclone.is_view_scene:
                 context.window.scene = scene
                 break
         collection = wall.create_assembly_collection(wall.obj_bp.name)
+        left_wall =  home_builder_utils.get_connected_left_wall(wall)
+        right_wall =  home_builder_utils.get_connected_right_wall(wall)
+
+        if left_wall:
+            for child in left_wall.obj_bp.children:
+                if 'IS_ASSEMBLY_BP' in child:
+                    assembly = pc_types.Assembly(child)
+                    if child.location.x >= (left_wall.obj_x.location.x - assembly.obj_x.location.x - pc_unit.inch(10)):
+                        self.link_children_with_collection(child,collection)
+
+        if right_wall:
+            for child in right_wall.obj_bp.children:
+                if 'IS_ASSEMBLY_BP' in child:
+                    if child.location.x <= pc_unit.inch(10):
+                        self.link_children_with_collection(child,collection)
 
         bpy.ops.scene.new(type='EMPTY')
         layout = pc_types.Assembly_Layout(context.scene)
@@ -1767,7 +1787,7 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
 
         context.scene.pyclone.fit_to_paper = False
         context.scene.pyclone.page_scale_unit_type = 'METRIC'
-        context.scene.pyclone.metric_page_scale = '1:30'    
+        context.scene.pyclone.metric_page_scale = '1:20'    
 
         bpy.ops.object.select_all(action='DESELECT')
         wall_view.select_set(True)
@@ -1775,7 +1795,7 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         bpy.ops.view3d.camera_to_view_selected()
 
         #NEEDED TO REFRESH CAMERA ORTHO SCALE AFTER VIEW SELECTED
-        context.scene.pyclone.metric_page_scale = '1:30'   
+        context.scene.pyclone.metric_page_scale = '1:20'   
 
         self.add_title_block(layout,"Wall","1")    
 
@@ -3029,17 +3049,34 @@ class home_builder_OT_change_closet_offsets(bpy.types.Operator):
     bl_description = "This allows you to easily adjust the closets left and right offset"
     bl_options = {'UNDO'}
     
+    anchor_type: EnumProperty(name="Anchor Type",
+                             items=[('SET_OFFSETS',"Set Offsets","Set Offsets"),
+                                    ('LEFT',"Left","Left"),
+                                    ('RIGHT',"Right","Right"),
+                                    ('CENTER','Center','Center')],
+                             default='SET_OFFSETS')
+
     left_offset: FloatProperty(name="Left Offset",subtype='DISTANCE')
     right_offset: FloatProperty(name="Right Offset",subtype='DISTANCE')
     start_x: FloatProperty(name="Start X",subtype='DISTANCE')
     start_width: FloatProperty(name="Start Width",subtype='DISTANCE')
+    change_width: FloatProperty(name="Change Width",subtype='DISTANCE')
 
     closet = None
     calculators = []
 
     def check(self, context):
-        self.closet.obj_bp.location.x = self.start_x + self.left_offset
-        self.closet.obj_x.location.x = self.start_width - self.left_offset - self.right_offset
+        if self.anchor_type == 'SET_OFFSETS':
+            self.closet.obj_bp.location.x = self.start_x + self.left_offset
+            self.closet.obj_x.location.x = self.start_width - self.left_offset - self.right_offset
+        if self.anchor_type == 'LEFT':
+            self.closet.obj_x.location.x = self.change_width
+        if self.anchor_type == 'RIGHT':
+            self.closet.obj_bp.location.x = self.start_x + (self.start_width - self.change_width)
+            self.closet.obj_x.location.x = self.change_width
+        if self.anchor_type == 'CENTER':
+            self.closet.obj_bp.location.x = self.start_x + (self.start_width - self.change_width)/2
+            self.closet.obj_x.location.x = self.change_width     
         for calculator in self.calculators:
             calculator.calculate()
         return True
@@ -3054,6 +3091,7 @@ class home_builder_OT_change_closet_offsets(bpy.types.Operator):
             self.closet = pc_types.Assembly(closet_bp)
             self.start_x = self.closet.obj_bp.location.x
             self.start_width = self.closet.obj_x.location.x
+            self.change_width = self.closet.obj_x.location.x
             self.get_calculators(self.closet.obj_bp)
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=300)
@@ -3067,9 +3105,19 @@ class home_builder_OT_change_closet_offsets(bpy.types.Operator):
     def draw(self,context):
         layout = self.layout
         row = layout.row()
-        row.label(text="Offset")
-        row.prop(self,'left_offset',text="Left")
-        row.prop(self,'right_offset',text="Right")
+        row.prop(self,'anchor_type',expand=True)
+        if self.anchor_type == 'SET_OFFSETS':
+            row = layout.row()
+            row.label(text="Offsets:")
+            row.prop(self,'left_offset',text="Left")
+            row.prop(self,'right_offset',text="Right")
+            row = layout.row()
+            row.label(text="Closet Width")
+            row.label(text=str(round(pc_unit.meter_to_inch(self.closet.obj_x.location.x),3)) + '"')
+        else:
+            row = layout.row()
+            row.label(text="Closet Width:")
+            row.prop(self,'change_width',text="")
 
     def execute(self,context):
         return {'FINISHED'}    
