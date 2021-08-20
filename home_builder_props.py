@@ -507,7 +507,7 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
     hanging_closet_panel_height: bpy.props.EnumProperty(name="Hanging Closet Panel Height",
                                                      items=home_builder_enums.PANEL_HEIGHTS,
-                                                     default = '1523')
+                                                     default = '1267')
 
     base_closet_panel_height: bpy.props.EnumProperty(name="Base Closet Panel Height",
                                                      items=home_builder_enums.PANEL_HEIGHTS,
