@@ -747,11 +747,12 @@ class Closet_Inside_Corner(Closet):
         common_prompts.add_closet_thickness_prompts(self)
         common_prompts.add_closet_toe_kick_prompts(self)
 
+        depth = props.default_hanging_closet_depth if self.is_hanging else props.default_tall_closet_depth
         closet_kick_height = self.get_prompt("Closet Kick Height") 
         closet_kick_setback = self.get_prompt("Closet Kick Setback") 
         back_width = self.add_prompt("Back Width",'DISTANCE',pc_unit.inch(6))
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',props.default_tall_closet_depth)
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',props.default_tall_closet_depth)
+        left_depth = self.add_prompt("Left Depth",'DISTANCE',depth)
+        right_depth = self.add_prompt("Right Depth",'DISTANCE',depth)
         shelf_qty = self.add_prompt("Shelf Quantity",'QUANTITY',3) 
         is_hanging = self.add_prompt("Is Hanging",'CHECKBOX',self.is_hanging) 
         panel_height = self.add_prompt("Panel Height",'DISTANCE',pc_unit.millimeter(int(props.hanging_closet_panel_height)))
