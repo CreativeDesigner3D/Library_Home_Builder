@@ -1773,6 +1773,9 @@ class home_builder_OT_create_2d_views(bpy.types.Operator):
         layout.scene.world = self.model_scene.world
         layout.camera.parent = wall.obj_bp
 
+        layout.scene.world.node_tree.nodes['Background'].inputs[1].default_value = 15
+        layout.scene.render.film_transparent = True
+
         dim = pc_types.Dimension()
         dim.create_dimension(layout)
         dim.obj_bp.rotation_euler.x = math.radians(-90)
