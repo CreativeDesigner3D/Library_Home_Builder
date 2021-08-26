@@ -330,14 +330,14 @@ def position_cabinet_on_wall(cabinet,wall,placement_obj,mouse_location,selected_
         placement = "WALL_RIGHT"
         cabinet.obj_bp.location.x = wall_length - cabinet_width
 
-    #TODO: GET NEXT PRODUCT AND UPDATE LOCATION AND SIZE
-
-    if selected_normal.y == 1:
-        #BACK SIDE OF WALL
-        cabinet.obj_bp.rotation_euler.z = math.radians(180)
-    else:
-        cabinet.obj_bp.rotation_euler.z = 0
-
+    #TODO: FIX PLACING CABINET ON BACKSIDE OF WALL
+    # print('NORMAL',selected_normal.y)
+    # if selected_normal.y == 1:
+    #     #BACK SIDE OF WALL
+    #     cabinet.obj_bp.rotation_euler.z = math.radians(180)
+    # else:
+    #     cabinet.obj_bp.rotation_euler.z = 0
+    cabinet.obj_bp.rotation_euler.z = 0
     return placement
 
 def position_corner_unit_on_wall(cabinet,wall,placement_obj,mouse_location,selected_normal):
