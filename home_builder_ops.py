@@ -2976,6 +2976,10 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
         self.base_profile = home_builder_utils.get_object(base_path)
         self.crown_profile = home_builder_utils.get_object(crown_path)
         self.wall_crown_profile = home_builder_utils.get_object(wall_crown_path)
+        self.light_profile.use_fake_user = True
+        self.base_profile.use_fake_user = True
+        self.crown_profile.use_fake_user = True
+        self.wall_crown_profile.use_fake_user = True
 
         #COLLECT DATA
         cabinet_base_molding = []
