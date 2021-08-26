@@ -31,13 +31,19 @@ class Shelves(pc_types.Assembly):
         shelf_thickness = self.get_prompt("Shelf Thickness").get_var("shelf_thickness")
         
         adj_shelf = data_closet_parts.add_closet_array_part(self)
+        adj_shelf.set_name("Adj Shelf")
+        props = home_builder_utils.get_object_props(adj_shelf.obj_bp)
+        props.ebl1 = True          
+        props.ebl2 = True  
+        props.ebw1 = True  
+        props.ebw2 = True        
         is_locked_shelf = adj_shelf.add_prompt("Is Locked Shelf",'CHECKBOX',True)
         is_lock_shelf_var = is_locked_shelf.get_var("is_lock_shelf_var")
         adj_shelf_setback = adj_shelf.add_prompt("Adj Shelf Setback",'DISTANCE',pc_unit.inch(.25))
         adj_shelf_setback_var = adj_shelf_setback.get_var("adj_shelf_setback_var")
         fixed_shelf_setback = adj_shelf.add_prompt("Fixed Shelf Setback",'DISTANCE',pc_unit.inch(.25))
         fixed_shelf_setback_var = fixed_shelf_setback.get_var("fixed_shelf_setback_var")
-        
+  
         adj_shelf.loc_x('IF(is_lock_shelf_var,0,shelf_clip_gap)',[shelf_clip_gap,is_lock_shelf_var])
         adj_shelf.loc_y('depth',[depth])
         adj_shelf.loc_z('((height-(shelf_thickness*shelf_qty))/(shelf_qty+1))',[height,shelf_thickness,shelf_qty])
@@ -116,6 +122,11 @@ class Single_Shelf(pc_types.Assembly):
         shelf_thickness = self.get_prompt("Shelf Thickness").get_var("shelf_thickness")
         
         adj_shelf = data_closet_parts.add_closet_array_part(self)
+        props = home_builder_utils.get_object_props(adj_shelf.obj_bp)
+        props.ebl1 = True          
+        props.ebl2 = True  
+        props.ebw1 = True  
+        props.ebw2 = True        
         is_locked_shelf = adj_shelf.add_prompt("Is Locked Shelf",'CHECKBOX',True)
         is_lock_shelf_var = is_locked_shelf.get_var("is_lock_shelf_var")
         adj_shelf_setback = adj_shelf.add_prompt("Adj Shelf Setback",'DISTANCE',pc_unit.inch(.25))
@@ -199,6 +210,8 @@ class Vertical_Splitter(pc_types.Assembly):
         for i in range(1,self.splitter_qty+1):
             opening_height = self.get_prompt('Opening ' + str(i) + ' Height').get_var('Opening Calculator','opening_height')
             splitter = data_closet_parts.add_closet_part(self)
+            props = home_builder_utils.get_object_props(splitter.obj_bp)
+            props.ebl1 = True             
             splitter.loc_x(value = 0)
             splitter.loc_y(value = 0)
             if previous_splitter:
@@ -329,6 +342,8 @@ class Horizontal_Splitter(pc_types.Assembly):
             opening.dim_z('height',[height])
 
             splitter = data_closet_parts.add_closet_part(self)
+            props = home_builder_utils.get_object_props(splitter.obj_bp)
+            props.ebl1 = True                
             splitter.set_name("Division " + str(i))
             if previous_splitter:
                 loc_x = previous_splitter.obj_bp.pyclone.get_var('location.x','loc_x')
@@ -469,6 +484,8 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
         
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
+        props = home_builder_utils.get_object_props(shelf.obj_bp)
+        props.ebl1 = True        
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Top Shelf')
         shelf.loc_x(value = 0)
@@ -496,6 +513,8 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
 
         for i in range(1,11):
             slanted_shelf = data_closet_parts.add_closet_array_part(self)
+            props = home_builder_utils.get_object_props(slanted_shelf.obj_bp)
+            props.ebl1 = True            
             slanted_shelf.set_name("Slanted Shelf")
             slanted_shelf.loc_x(value = 0)
             slanted_shelf.loc_y('depth',[depth])
@@ -517,6 +536,11 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
             z_loc = slanted_shelf.obj_bp.pyclone.get_var('location.z','z_loc')
 
             shelf_lip = data_closet_parts.add_closet_part(self)
+            props = home_builder_utils.get_object_props(shelf_lip.obj_bp)
+            props.ebl1 = True            
+            props.ebl2 = True     
+            props.ebw1 = True     
+            props.ebw2 = True      
             shelf_lip.set_name("Shelf Lip")
             shelf_lip.loc_x(value = 0)
             shelf_lip.loc_y('fabs(depth)-(fabs(shelf_depth)*cos(angle))',[depth,shelf_depth,angle])
@@ -634,7 +658,10 @@ class Hanging_Rod(pc_types.Assembly):
 
             #MID SHELF
             shelf = data_closet_parts.add_closet_part(self)
+            props = home_builder_utils.get_object_props(shelf.obj_bp)
+            props.ebl1 = True                           
             shelf.obj_bp["IS_SHELF_BP"] = True
+            shelf.obj_bp['ADD_DIMENSION'] = True
             shelf.set_name('Shelf')
             shelf.loc_x(value = 0)
             shelf.loc_y(value = 0)
@@ -878,6 +905,8 @@ class Base_Doors(Doors):
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
+        props = home_builder_utils.get_object_props(shelf.obj_bp)
+        props.ebl1 = True            
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Door Shelf')
         shelf.loc_x(value = 0)
@@ -891,6 +920,11 @@ class Base_Doors(Doors):
 
         #LEFT DOOR
         l_door = data_closet_parts.add_door_part(self,front_pointer)
+        props = home_builder_utils.get_object_props(l_door.obj_bp)
+        props.ebl1 = True   
+        props.ebl2 = True   
+        props.ebw1 = True   
+        props.ebw2 = True          
         l_door.loc_x('-lo_var',[lo_var])
         l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         l_door.loc_z('-bo_var',[bo_var])
@@ -906,6 +940,11 @@ class Base_Doors(Doors):
 
         #RIGHT DOOR
         r_door = data_closet_parts.add_door_part(self,front_pointer)
+        props = home_builder_utils.get_object_props(r_door.obj_bp)
+        props.ebl1 = True   
+        props.ebl2 = True   
+        props.ebw1 = True   
+        props.ebw2 = True               
         r_door.loc_x('x+ro_var',[x,ro_var])
         r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         r_door.loc_z('-bo_var',[bo_var])
@@ -957,6 +996,11 @@ class Tall_Doors(Doors):
 
         #LEFT DOOR
         l_door = data_closet_parts.add_door_part(self,front_pointer)
+        props = home_builder_utils.get_object_props(l_door.obj_bp)
+        props.ebl1 = True   
+        props.ebl2 = True   
+        props.ebw1 = True   
+        props.ebw2 = True          
         l_door.loc_x('-lo_var',[lo_var])
         l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         l_door.loc_z('-bo_var',[bo_var])
@@ -972,6 +1016,11 @@ class Tall_Doors(Doors):
 
         #RIGHT DOOR
         r_door = data_closet_parts.add_door_part(self,front_pointer)
+        props = home_builder_utils.get_object_props(r_door.obj_bp)
+        props.ebl1 = True   
+        props.ebl2 = True   
+        props.ebw1 = True   
+        props.ebw2 = True            
         r_door.loc_x('x+ro_var',[x,ro_var])
         r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         r_door.loc_z('-bo_var',[bo_var])
@@ -1040,6 +1089,8 @@ class Upper_Doors(Doors):
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
+        props = home_builder_utils.get_object_props(shelf.obj_bp)
+        props.ebl1 = True         
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Door Shelf')
         shelf.loc_x(value = 0)
@@ -1053,6 +1104,11 @@ class Upper_Doors(Doors):
 
         #LEFT DOOR
         l_door = data_closet_parts.add_door_part(self,front_pointer)
+        props = home_builder_utils.get_object_props(l_door.obj_bp)
+        props.ebl1 = True          
+        props.ebl2 = True    
+        props.ebw1 = True    
+        props.ebw2 = True    
         l_door.loc_x('-lo_var',[lo_var])
         l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         l_door.loc_z('z-door_height_var-bo_var',[z,door_height_var,bo_var])
@@ -1068,6 +1124,11 @@ class Upper_Doors(Doors):
 
         #RIGHT DOOR
         r_door = data_closet_parts.add_door_part(self,front_pointer)
+        props = home_builder_utils.get_object_props(r_door.obj_bp)
+        props.ebl1 = True          
+        props.ebl2 = True    
+        props.ebw1 = True    
+        props.ebw2 = True        
         r_door.loc_x('x+ro_var',[x,ro_var])
         r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         r_door.loc_z('z-door_height_var-bo_var',[z,door_height_var,bo_var])
@@ -1163,6 +1224,8 @@ class Drawers(Doors):
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
+        props = home_builder_utils.get_object_props(shelf.obj_bp)
+        props.ebl1 = True             
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Door Shelf')
         shelf.loc_x(value = 0)
@@ -1209,6 +1272,11 @@ class Drawers(Doors):
             z_loc = front_empty.pyclone.get_var('location.z','z_loc')
 
             drawer = data_closet_parts.add_door_part(self,front_pointer)
+            props = home_builder_utils.get_object_props(drawer.obj_bp)
+            props.ebl1 = True          
+            props.ebl2 = True    
+            props.ebw1 = True    
+            props.ebw2 = True               
             drawer.obj_bp['IS_DRAWER_FRONT'] = True
             drawer.loc_x('-lo_var',[lo_var])
             drawer.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -1289,6 +1357,8 @@ class Single_Drawer(Doors):
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
+        props = home_builder_utils.get_object_props(shelf.obj_bp)
+        props.ebl1 = True        
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Door Shelf')
         shelf.loc_x(value = 0)
@@ -1318,6 +1388,11 @@ class Single_Drawer(Doors):
                       [z,shelf_z_loc,s_thickness])
 
         drawer = data_closet_parts.add_door_part(self,front_pointer)
+        props = home_builder_utils.get_object_props(drawer.obj_bp)
+        props.ebl1 = True          
+        props.ebl2 = True    
+        props.ebw1 = True    
+        props.ebw2 = True           
         drawer.obj_bp['IS_DRAWER_FRONT'] = True
         drawer.loc_x('-lo_var',[lo_var])
         drawer.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -1397,6 +1472,8 @@ class Wire_Baskets(pc_types.Assembly):
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
+        props = home_builder_utils.get_object_props(shelf.obj_bp)
+        props.ebl1 = True            
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Wire Basket Shelf')
         shelf.loc_x(value = 0)
@@ -1516,6 +1593,8 @@ class Cubbies(pc_types.Assembly):
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_part(self)
+        props = home_builder_utils.get_object_props(shelf.obj_bp)
+        props.ebl1 = True                   
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Cubby Shelf')
         shelf.loc_x(value = 0)
@@ -1542,6 +1621,8 @@ class Cubbies(pc_types.Assembly):
         opening.dim_z('IF(placement==2,0,height-c_height-s_thickness)',[placement,height,c_height,s_thickness])
 
         v_cubby = data_closet_parts.add_closet_array_part(self)
+        props = home_builder_utils.get_object_props(v_cubby.obj_bp)
+        props.ebl1 = True          
         v_cubby.loc_x('((width-(d_thickness*v_qty))/(v_qty+1))',[width,d_thickness,v_qty])
         v_cubby.loc_y('setback',[setback])
         v_cubby.loc_z('IF(placement==1,height-c_height,0)',[placement,height,c_height,s_thickness])
@@ -1561,6 +1642,8 @@ class Cubbies(pc_types.Assembly):
         v_spacing = '((IF(placement==2,height,c_height)-(s_thickness*h_qty))/(h_qty+1))'
 
         h_cubby = data_closet_parts.add_closet_array_part(self)
+        props = home_builder_utils.get_object_props(h_cubby.obj_bp)
+        props.ebl1 = True          
         h_cubby.loc_x(value = 0)
         h_cubby.loc_y('setback',[setback])
         h_cubby.loc_z(start_placement + '+(' + v_spacing + ')',[placement,height,c_height,h_qty,s_thickness])

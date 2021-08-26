@@ -1298,9 +1298,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row = col.row(align=True)             
             row.scale_y = 1.3
             row.prop_enum(self, "kitchen_tabs", 'CABINETS') 
-            row.prop_enum(self, "kitchen_tabs", 'PARTS')  
-            row = col.row(align=True)
-            row.scale_y = 1.3                
+            # row.prop_enum(self, "kitchen_tabs", 'PARTS')  
+            # row = col.row(align=True)
+            # row.scale_y = 1.3                
             row.prop_enum(self, "kitchen_tabs", 'CUSTOM_CABINETS')  
             row.prop_enum(self, "kitchen_tabs", 'DECORATIONS')  
 
@@ -1385,6 +1385,11 @@ class Home_Builder_Object_Props(PropertyGroup):
     material_group_index: bpy.props.IntProperty(name="Material Group Index",update=update_material_group_index)                
     pull_group_index: bpy.props.IntProperty(name="Pull Group Index")
     cabinet_door_group_index: bpy.props.IntProperty(name="Cabinet Door Group Index")
+
+    ebw1: bpy.props.BoolProperty(name="Edgeband Width 1",default=False)
+    ebw2: bpy.props.BoolProperty(name="Edgeband Width 2",default=False)
+    ebl1: bpy.props.BoolProperty(name="Edgeband Length 1",default=False)
+    ebl2: bpy.props.BoolProperty(name="Edgeband Length 2",default=False)
 
     @classmethod
     def register(cls):
