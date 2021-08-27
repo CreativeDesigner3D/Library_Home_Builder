@@ -835,9 +835,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
         molding_box.prop(self,'molding_category',text="",icon='FILE_FOLDER')  
         molding_box.template_icon_view(self,"molding_name",show_labels=True)  
 
-        right_row = right_col.row()
+        right_row = right_col.row(align=True)
         right_row.scale_y = 1.3
         right_row.operator('home_builder.auto_add_molding',text="Add Molding to Room",icon='FILE_REFRESH')
+        right_row.operator('home_builder.delete_room_molding',text="Remove Molding",icon='X')
+        right_row.separator()
         right_row.menu('HOME_BUILDER_MT_pointer_menu',text="",icon='TRIA_DOWN')
 
         box = right_col.box()

@@ -2594,6 +2594,53 @@ class home_builder_OT_add_part(bpy.types.Operator):
         return {'FINISHED'}    
 
 
+class home_builder_OT_delete_room_molding(bpy.types.Operator):
+    bl_idname = "home_builder.delete_room_molding"
+    bl_label = "Delete Room Molding"
+    bl_description = "This removes the molding in the room"
+    bl_options = {'UNDO'}
+
+    def check(self, context):
+        return True
+    
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=300)    
+
+    def execute(self,context):
+        #COLLECT DATA
+        cabinet_base_molding = []
+        cabinet_crown_molding = []
+        cabinet_light_rail_molding = []
+        wall_crown_molding = []
+        wall_base_molding = []
+
+        for obj in bpy.data.objects:
+            if "IS_CABINET_BASE_MOLDING" in obj and obj not in cabinet_base_molding:
+                cabinet_base_molding.append(obj)
+            if "IS_CABINET_CROWN_MOLDING" in obj and obj not in cabinet_crown_molding:
+                cabinet_crown_molding.append(obj)  
+            if "IS_CABINET_LIGHT_MOLDING" in obj and obj not in cabinet_light_rail_molding:
+                cabinet_light_rail_molding.append(obj)                  
+            if "IS_WALL_CROWN_MOLDING" in obj and obj not in wall_crown_molding:
+                wall_crown_molding.append(obj)
+            if "IS_WALL_BASE_MOLDING" in obj and obj not in wall_base_molding:
+                wall_base_molding.append(obj)
+
+        #DELETE CURVES
+        pc_utils.delete_obj_list(cabinet_base_molding)
+        pc_utils.delete_obj_list(cabinet_crown_molding)
+        pc_utils.delete_obj_list(cabinet_light_rail_molding)
+        pc_utils.delete_obj_list(wall_crown_molding)
+        pc_utils.delete_obj_list(wall_base_molding)    
+
+        return {'FINISHED'}   
+
+    def draw(self,context):
+        layout = self.layout
+        layout.label(text="Are you sure you want to delete the room molding?")
+
+
 class home_builder_OT_auto_add_molding(bpy.types.Operator):
     bl_idname = "home_builder.auto_add_molding"
     bl_label = "Auto Add Molding"
@@ -3266,6 +3313,7 @@ classes = (
     home_builder_OT_create_cabinet_list_report,
     home_builder_OT_add_part,
     home_builder_OT_reload_library,
+    home_builder_OT_delete_room_molding,
     home_builder_OT_auto_add_molding,
     home_builder_OT_change_closet_offsets,
     home_builder_OT_collect_walls,
