@@ -1710,13 +1710,20 @@ class home_builder_OT_create_library_pdf(bpy.types.Operator):
         
         for library_folder in os.listdir(file_path):
             library_path = os.path.join(file_path,library_folder)
-            if os.path.isdir(library_path) and ".git" not in library_folder:
+            if os.path.isdir(library_path) and ".git" not in library_folder and "ASSEMBLIES" not in library_folder:
                 self.create_header(library_folder, font_size=20)
                 for category_folder in os.listdir(library_path):
                     category_path = os.path.join(file_path,library_folder,category_folder)
                     if os.path.isdir(category_path):
+                        
                         self.create_header(category_folder, font_size=10)
                         self.create_img_table(category_path)
+
+                        for nested_folder in os.listdir(category_path):
+                            nested_path = os.path.join(file_path,library_folder,category_folder,nested_folder)
+                            if os.path.isdir(nested_path):
+                                self.create_header(nested_folder, font_size=8)
+                                self.create_img_table(nested_path)
 
         doc.build(self.elements)
         return {'FINISHED'}
