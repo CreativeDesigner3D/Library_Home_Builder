@@ -65,15 +65,17 @@ def add_front_overlay_prompts(assembly):
     assembly.add_prompt("Horizontal Gap",'DISTANCE',pc_unit.inch(.125))
 
 def add_pull_prompts(assembly):
-    assembly.add_prompt("Base Pull Vertical Location",'DISTANCE',pc_unit.inch(1.5))
-    assembly.add_prompt("Tall Pull Vertical Location",'DISTANCE',pc_unit.inch(45))
-    assembly.add_prompt("Upper Pull Vertical Location",'DISTANCE',pc_unit.inch(1.5))
-    assembly.add_prompt("Pull Horizontal Location",'DISTANCE',pc_unit.inch(2))
+    props = home_builder_utils.get_scene_props(bpy.context.scene)
+    assembly.add_prompt("Base Pull Vertical Location",'DISTANCE',props.pull_vertical_location_base)
+    assembly.add_prompt("Tall Pull Vertical Location",'DISTANCE',props.pull_vertical_location_tall)
+    assembly.add_prompt("Upper Pull Vertical Location",'DISTANCE',props.pull_vertical_location_upper)
+    assembly.add_prompt("Pull Horizontal Location",'DISTANCE',props.pull_dim_from_edge)
     assembly.add_prompt("Pull Length",'DISTANCE',pc_unit.inch(0))
 
 def add_drawer_pull_prompts(assembly):
-    assembly.add_prompt("Center Pull On Front",'CHECKBOX',False)
-    assembly.add_prompt("Drawer Pull Vertical Location",'DISTANCE',pc_unit.inch(2))
+    props = home_builder_utils.get_scene_props(bpy.context.scene)
+    assembly.add_prompt("Center Pull On Front",'CHECKBOX',props.center_pulls_on_drawer_front)
+    assembly.add_prompt("Drawer Pull Vertical Location",'DISTANCE',props.pull_vertical_location_drawers)
 
 def add_countertop_prompts(assembly):
     assembly.add_prompt("Add Backsplash",'CHECKBOX',True)

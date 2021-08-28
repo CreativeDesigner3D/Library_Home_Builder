@@ -3266,6 +3266,39 @@ class home_builder_OT_free_move_object(bpy.types.Operator):
         
         return {'FINISHED'}
 
+
+class home_builder_OT_update_distance_prompt_in_scene(bpy.types.Operator):
+    bl_idname = "home_builder.update_distance_prompt_in_scene"
+    bl_label = "Update Distance Prompt in Scene"
+
+    prompt_name: bpy.props.StringProperty(name="Prompt Name")
+    prompt_value: bpy.props.FloatProperty(name="Prompt Value",subtype='DISTANCE')
+
+    def execute(self, context):
+        for obj in bpy.data.objects:
+            if 'IS_ASSEMBLY_BP' in obj:
+                assembly = pc_types.Assembly(obj)
+                prompt = assembly.get_prompt(self.prompt_name)
+                if prompt:
+                    prompt.set_value(self.prompt_value)
+        return {'FINISHED'}
+
+class home_builder_OT_update_checkbox_prompt_in_scene(bpy.types.Operator):
+    bl_idname = "home_builder.update_checkbox_prompt_in_scene"
+    bl_label = "Update Distance Prompt in Scene"
+
+    prompt_name: bpy.props.StringProperty(name="Prompt Name")
+    prompt_value: bpy.props.BoolProperty(name="Prompt Value")
+
+    def execute(self, context):
+        for obj in bpy.data.objects:
+            if 'IS_ASSEMBLY_BP' in obj:
+                assembly = pc_types.Assembly(obj)
+                prompt = assembly.get_prompt(self.prompt_name)
+                if prompt:
+                    prompt.set_value(self.prompt_value)
+        return {'FINISHED'}
+
 classes = (
     home_builder_OT_activate,
     home_builder_OT_change_library_category,
@@ -3320,6 +3353,8 @@ classes = (
     home_builder_OT_show_hide_walls,
     home_builder_OT_show_hide_closet_opening,
     home_builder_OT_free_move_object,
+    home_builder_OT_update_distance_prompt_in_scene,
+    home_builder_OT_update_checkbox_prompt_in_scene,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

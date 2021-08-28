@@ -403,6 +403,35 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                  default=pc_unit.inch(84.0),
                                                  unit='LENGTH')
     
+    pull_dim_from_edge: bpy.props.FloatProperty(name="Pull Distance From Edge",
+                                                 description="Distance from Edge of Door to center of pull",
+                                                 default=pc_unit.inch(2.0),
+                                                 unit='LENGTH')
+
+    pull_vertical_location_base: bpy.props.FloatProperty(name="Pull Vertical Location Base",
+                                                 description="Distance from Top of Base Door to Top of Pull",
+                                                 default=pc_unit.inch(1.5),
+                                                 unit='LENGTH')
+
+    pull_vertical_location_tall: bpy.props.FloatProperty(name="Pull Vertical Location Base",
+                                                 description="Distance from Bottom of Tall Door to Center of Pull",
+                                                 default=pc_unit.inch(45),
+                                                 unit='LENGTH')
+
+    pull_vertical_location_upper: bpy.props.FloatProperty(name="Pull Vertical Location Base",
+                                                 description="Distance from Bottom of Upper Door to Bottom of Pull",
+                                                 default=pc_unit.inch(1.5),
+                                                 unit='LENGTH')
+
+    pull_vertical_location_drawers: bpy.props.FloatProperty(name="Pull Vertical Location Drawers",
+                                                 description="Distance from Top of Drawer Front to Center of Pull",
+                                                 default=pc_unit.inch(1.5),
+                                                 unit='LENGTH')
+
+    center_pulls_on_drawer_front: bpy.props.BoolProperty(name="Center Pulls on Drawer Front", 
+                                                        description="Check this center pulls on drawer fronts. Otherwise vertical location will be used.", 
+                                                        default=True)
+
     equal_drawer_stack_heights: bpy.props.BoolProperty(name="Equal Drawer Stack Heights", 
                                                         description="Check this make all drawer stack heights equal. Otherwise the Top Drawer Height will be set.", 
                                                         default=True)
@@ -756,6 +785,43 @@ class Home_Builder_Scene_Props(PropertyGroup):
             # row = box.row(align=True)
             # row.label(text="Cabinet Lighting Size:")              
             # row.prop(self,"cabinet_lighting_width",text="Width")
+
+            box = prop_col.box()
+            box.label(text="Cabinet Hardware:")
+            row = box.row(align=True)
+            row.label(text="Horizontal Location")  
+            row.prop(self,"pull_dim_from_edge",text="")    
+            props = row.operator('home_builder.update_distance_prompt_in_scene',text="",icon='FILE_REFRESH')
+            props.prompt_name = "Pull Horizontal Location"      
+            props.prompt_value = self.pull_dim_from_edge
+            
+            row = box.row(align=True)
+            row.label(text="Vertical Location")  
+            row.prop(self,"pull_vertical_location_base",text="Base")    
+            props = row.operator('home_builder.update_distance_prompt_in_scene',text="",icon='FILE_REFRESH')
+            props.prompt_name = "Base Pull Vertical Location"      
+            props.prompt_value = self.pull_vertical_location_base            
+            row.prop(self,"pull_vertical_location_tall",text="Tall")    
+            props = row.operator('home_builder.update_distance_prompt_in_scene',text="",icon='FILE_REFRESH')
+            props.prompt_name = "Tall Pull Vertical Location"      
+            props.prompt_value = self.pull_vertical_location_tall            
+            row.prop(self,"pull_vertical_location_upper",text="Upper")    
+            props = row.operator('home_builder.update_distance_prompt_in_scene',text="",icon='FILE_REFRESH')
+            props.prompt_name = "Upper Pull Vertical Location"      
+            props.prompt_value = self.pull_vertical_location_upper            
+
+            row = box.row(align=True)
+            row.label(text="Drawers") 
+            row.prop(self,"center_pulls_on_drawer_front",text="Center on Front") 
+            props = row.operator('home_builder.update_checkbox_prompt_in_scene',text="",icon='FILE_REFRESH')
+            props.prompt_name = "Center Pull On Front"      
+            props.prompt_value = self.center_pulls_on_drawer_front                 
+            if not self.center_pulls_on_drawer_front:
+                row.separator()
+                row.prop(self,"pull_vertical_location_drawers",text="Location") 
+                props = row.operator('home_builder.update_distance_prompt_in_scene',text="",icon='FILE_REFRESH')
+                props.prompt_name = "Drawer Pull Vertical Location"      
+                props.prompt_value = self.pull_vertical_location_drawers                  
 
         if self.default_tabs == 'CLOSET_CONSTRUCTION':
             box = prop_col.box()
