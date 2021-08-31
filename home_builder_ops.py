@@ -1694,6 +1694,15 @@ class home_builder_OT_create_library_pdf(bpy.types.Operator):
                 self.elements.append(item_tbl)
                 # self.elements.append(Spacer(1, inch * 0.5))
           
+    def get_number_of_assets_in_category(self,path):
+        qty = 0
+        for file in os.listdir(path):
+            filepath = os.path.join(path,file)
+            filename, ext = os.path.splitext(file)
+            if os.path.isfile(filepath) and ext in {".png",".jpg"}:
+                qty += 1
+        return qty
+
     def execute(self, context):
         file_path = home_builder_paths.get_asset_folder_path()
         file_name = "Library.pdf"
@@ -1715,14 +1724,21 @@ class home_builder_OT_create_library_pdf(bpy.types.Operator):
                 for category_folder in os.listdir(library_path):
                     category_path = os.path.join(file_path,library_folder,category_folder)
                     if os.path.isdir(category_path):
-                        
-                        self.create_header(category_folder, font_size=10)
+                        qty = self.get_number_of_assets_in_category(category_path)
+                        header_name = category_folder
+                        if qty != 0:
+                            header_name += " (" + str(qty) + ")"
+                        self.create_header(header_name, font_size=10)
                         self.create_img_table(category_path)
 
                         for nested_folder in os.listdir(category_path):
                             nested_path = os.path.join(file_path,library_folder,category_folder,nested_folder)
                             if os.path.isdir(nested_path):
-                                self.create_header(nested_folder, font_size=8)
+                                qty = self.get_number_of_assets_in_category(nested_path)
+                                header_name = category_folder
+                                if qty != 0:
+                                    header_name += " (" + str(qty) + ")"                                
+                                self.create_header(header_name, font_size=8)
                                 self.create_img_table(nested_path)
 
         doc.build(self.elements)
