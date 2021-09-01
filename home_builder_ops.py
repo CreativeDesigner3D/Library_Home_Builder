@@ -2752,12 +2752,21 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
 
     def add_base_molding_to_cabinet(self,sel_assembly):
         for carcass in sel_assembly.carcasses:
-            carcass_type = carcass.get_prompt("Carcass Type").get_value()
-            if carcass_type not in ("Base","Tall"):
-                return None            
-            toe_kick_setback = carcass.get_prompt("Toe Kick Setback").get_value()
-            lfe = carcass.get_prompt("Left Finished End").get_value()
-            rfe = carcass.get_prompt("Right Finished End").get_value()
+            c_type = sel_assembly.get_prompt("Cabinet Type")
+            cabinet_type = "Base"
+            if c_type:
+                cabinet_type = c_type.get_value()
+            if cabinet_type not in ("Base","Tall"):
+                return None    
+             
+            toe_kick_setback_p = carcass.get_prompt("Toe Kick Setback")
+            lfe_p = carcass.get_prompt("Left Finished End")
+            rfe_p = carcass.get_prompt("Right Finished End")
+            if not toe_kick_setback_p or not lfe_p or not rfe_p:
+                return None
+            toe_kick_setback = toe_kick_setback_p.get_value()
+            lfe = lfe_p.get_value()
+            rfe = rfe_p.get_value()
 
             obj_curve = self.create_curve()
             obj_curve["IS_CABINET_BASE_MOLDING"] = True
@@ -2792,7 +2801,10 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
         width = sel_assembly.obj_x.location.x
         height = sel_assembly.obj_z.location.z
         depth = sel_assembly.obj_y.location.y
-        cabinet_type = sel_assembly.get_prompt("Cabinet Type").get_value()
+        c_type = sel_assembly.get_prompt("Cabinet Type")
+        cabinet_type = "Base"
+        if c_type:
+            cabinet_type = c_type.get_value()
         lfe = None
         rfe = None
         for carcass in sel_assembly.carcasses:
@@ -2834,7 +2846,10 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
         width = sel_assembly.obj_x.location.x
         height = sel_assembly.obj_z.location.z
         depth = sel_assembly.obj_y.location.y
-        cabinet_type = sel_assembly.get_prompt("Cabinet Type").get_value()
+        c_type = sel_assembly.get_prompt("Cabinet Type")
+        cabinet_type = "Base"
+        if c_type:
+            cabinet_type = c_type.get_value()
         lfe = None
         rfe = None
 
