@@ -34,7 +34,7 @@ class HOME_BUILDER_MT_home_builder_training(bpy.types.Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.label(text="COMMING SOON") 
+        layout.label(text="COMING SOON") 
 
 
 class HOME_BUILDER_MT_closets(bpy.types.Menu):
