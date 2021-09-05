@@ -34,7 +34,12 @@ class HOME_BUILDER_MT_home_builder_training(bpy.types.Menu):
 
     def draw(self, _context):
         layout = self.layout
-        layout.label(text="COMING SOON") 
+        layout.operator(
+            "wm.url_open", text="Kitchen Design Tutorial", icon='URL',
+        ).url = "https://youtu.be/LOn8SLp6kFg"        
+        layout.operator(
+            "wm.url_open", text="Closet Design Tutorial", icon='URL',
+        ).url = "https://youtu.be/WGcZkVCLzWI"  
 
 
 class HOME_BUILDER_MT_closets(bpy.types.Menu):
