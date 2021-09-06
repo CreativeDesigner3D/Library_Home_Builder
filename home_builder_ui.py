@@ -256,6 +256,7 @@ class HOME_BUILDER_MT_asset_commands_menu(bpy.types.Menu):
         layout.operator('home_builder.create_thumbnails_for_selected_assets',icon='FILE_IMAGE')
         layout.operator('home_builder.open_browser_window',icon='FILEBROWSER').path = path
         layout.operator('home_builder.create_library_pdf',icon='FILE')
+        layout.operator('home_builder.create_library_pdf_from_folder',icon='FILE')
         layout.operator('home_builder.create_new_asset',icon='ADD')
         
 
