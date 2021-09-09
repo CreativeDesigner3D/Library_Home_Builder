@@ -360,7 +360,25 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         ctop_oh_front = self.closet.get_prompt("Countertop Overhang Front")       
         ctop_oh_left = self.closet.get_prompt("Countertop Overhang Left")   
         ctop_oh_right = self.closet.get_prompt("Countertop Overhang Right")   
+        lfe = self.closet.get_prompt("Left Finished End")   
+        rfe = self.closet.get_prompt("Right Finished End")   
         
+        row = layout.row()    
+        row.label(text="Finished Ends:")
+        row.prop(lfe,'checkbox_value',text="Left")    
+        row.prop(rfe,'checkbox_value',text="Right")    
+
+        row = layout.row()    
+        row.label(text="Bridge Sections:")
+        col_l = row.column()
+        col_l.prop(l_bridge,'checkbox_value',text="Left")
+        if l_bridge.get_value():
+            col_l.prop(l_bridge_width,'distance_value',text="Width")
+        col_r = row.column()
+        col_r.prop(r_bridge,'checkbox_value',text="Right")
+        if r_bridge.get_value():
+            col_r.prop(r_bridge_width,'distance_value',text="Width")
+
         row = layout.row()    
         row.label(text="Toe Kick:")
         row.prop(kick_height,'distance_value',text="Height")    
@@ -378,27 +396,15 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
             row.prop(ctop_oh_left,'distance_value',text="Left")
             row.prop(ctop_oh_right,'distance_value',text="Right")
 
-        row = layout.row()    
-        row.prop(l_bridge,'checkbox_value',text="Bridge Left")
-        if l_bridge.get_value():
-            row.prop(l_bridge_width,'distance_value',text="Width")
-        else:
-            row.label(text="")
-        row.prop(r_bridge,'checkbox_value',text="Bridge Right")
-        if r_bridge.get_value():
-            row.prop(r_bridge_width,'distance_value',text="Width")
-        else:
-            row.label(text="")
-
         row = layout.row()  
-        row.label(text="Remove Bottom")
+        row.label(text="Remove Bottom:")
         for i in range(1,9):
             remove_bottom = self.closet.get_prompt("Remove Bottom " + str(i))
             if remove_bottom:
                 row.prop(remove_bottom,'checkbox_value',text=str(i))
 
         row = layout.row()  
-        row.label(text="Double Panel")
+        row.label(text="Double Panels:")
         for i in range(1,9):
             double_panel = self.closet.get_prompt("Double Panel " + str(i))
             if double_panel:
