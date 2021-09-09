@@ -31,13 +31,14 @@ class Shelves(pc_types.Assembly):
         shelf_thickness = self.get_prompt("Shelf Thickness").get_var("shelf_thickness")
         
         adj_shelf = data_closet_parts.add_closet_array_part(self)
+        adj_shelf.obj_bp['IS_ADJ_SHELF'] = True
         adj_shelf.set_name("Adj Shelf")
         props = home_builder_utils.get_object_props(adj_shelf.obj_bp)
         props.ebl1 = True          
         props.ebl2 = True  
         props.ebw1 = True  
         props.ebw2 = True        
-        is_locked_shelf = adj_shelf.add_prompt("Is Locked Shelf",'CHECKBOX',True)
+        is_locked_shelf = adj_shelf.add_prompt("Is Locked Shelf",'CHECKBOX',False)
         is_lock_shelf_var = is_locked_shelf.get_var("is_lock_shelf_var")
         adj_shelf_setback = adj_shelf.add_prompt("Adj Shelf Setback",'DISTANCE',pc_unit.inch(.25))
         adj_shelf_setback_var = adj_shelf_setback.get_var("adj_shelf_setback_var")
@@ -89,8 +90,8 @@ class Shelves(pc_types.Assembly):
 
     def draw(self):
 
-        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(1)) 
-        shelf_clip_gap = self.add_prompt("Shelf Clip Gap",'DISTANCE',pc_unit.inch(1)) 
+        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75)) 
+        shelf_clip_gap = self.add_prompt("Shelf Clip Gap",'DISTANCE',pc_unit.inch(.125)) 
         shelf_qty = self.add_prompt("Shelf Quantity",'QUANTITY',3) 
         
         self.add_shelves()
@@ -210,6 +211,7 @@ class Vertical_Splitter(pc_types.Assembly):
         for i in range(1,self.splitter_qty+1):
             opening_height = self.get_prompt('Opening ' + str(i) + ' Height').get_var('Opening Calculator','opening_height')
             splitter = data_closet_parts.add_closet_part(self)
+            splitter.obj_bp["IS_SHELF_BP"] = True
             props = home_builder_utils.get_object_props(splitter.obj_bp)
             props.ebl1 = True             
             splitter.loc_x(value = 0)

@@ -34,6 +34,8 @@ class Wood_Drawer_Box(pc_types.Assembly):
         b_z_loc = drawer_box_z_loc.get_var('b_z_loc')
 
         left_side = data_cabinet_parts.add_cabinet_shelf(self)
+        left_side.obj_bp['IS_CUTPART_BP'] = True
+        left_side.obj_bp['IS_LEFT_DRAWER_SIDE_BP'] = True
         left_side.set_name("Left Drawer Side")
         left_side.loc_x(value = 0)
         left_side.loc_y(value = 0)
@@ -46,7 +48,9 @@ class Wood_Drawer_Box(pc_types.Assembly):
         left_side.dim_z('dt',[dt])      
 
         right_side = data_cabinet_parts.add_cabinet_shelf(self)
+        right_side.obj_bp['IS_CUTPART_BP'] = True
         right_side.set_name("Right Drawer Side")
+        right_side.obj_bp['IS_RIGHT_DRAWER_SIDE_BP'] = True
         right_side.loc_x('width',[width])
         right_side.loc_y(value = 0)
         right_side.loc_z(value = 0)
@@ -58,6 +62,8 @@ class Wood_Drawer_Box(pc_types.Assembly):
         right_side.dim_z('-dt',[dt])          
 
         front = data_cabinet_parts.add_cabinet_shelf(self)
+        front.obj_bp['IS_CUTPART_BP'] = True
+        front.obj_bp['IS_DRAWER_SUB_FRONT_BP'] = True
         front.set_name("Drawer Front")
         front.loc_x('dt',[dt])
         front.loc_y(value = 0)
@@ -70,6 +76,8 @@ class Wood_Drawer_Box(pc_types.Assembly):
         front.dim_z('-fbt',[fbt])              
 
         back = data_cabinet_parts.add_cabinet_shelf(self)
+        back.obj_bp['IS_CUTPART_BP'] = True
+        back.obj_bp['IS_DRAWER_BACK_BP'] = True
         back.set_name("Drawer Back")
         back.loc_x('dt',[dt])
         back.loc_y('depth',[depth])
@@ -82,6 +90,8 @@ class Wood_Drawer_Box(pc_types.Assembly):
         back.dim_z('fbt',[fbt])            
 
         bottom = data_cabinet_parts.add_cabinet_shelf(self)
+        bottom.obj_bp['IS_CUTPART_BP'] = True
+        bottom.obj_bp['IS_DRAWER_BOTTOM_BP'] = True
         bottom.set_name("Drawer Bottom")
         bottom.loc_x('width-dt+dado_depth',[width,dt,dado_depth])
         bottom.loc_y('fbt-dado_depth',[fbt,dado_depth])
