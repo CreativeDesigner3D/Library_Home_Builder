@@ -1145,6 +1145,25 @@ class home_builder_OT_save_asset_to_library(Operator):
 
         return os.path.join(bpy.app.tempdir,'save_temp.py')
 
+    def create_save_assembly_script(self,save_dir,asset):
+        source_file = bpy.data.filepath
+        file = codecs.open(os.path.join(bpy.app.tempdir,"save_temp.py"),'w',encoding='utf-8')
+        file.write("import bpy\n")
+        file.write("import os\n")
+        file.write("for mat in bpy.data.materials:\n")
+        file.write("    bpy.data.materials.remove(mat,do_unlink=True)\n")
+        file.write("for obj in bpy.data.objects:\n")
+        file.write("    bpy.data.objects.remove(obj,do_unlink=True)\n")        
+        file.write("bpy.context.preferences.filepaths.save_version = 0\n")
+        file.write("with bpy.data.libraries.load(r'" + source_file + "', False, True) as (data_from, data_to):\n")
+        file.write("    data_to.objects = data_from.objects\n")
+        file.write("for obj in data_to.objects:\n")
+        file.write("    bpy.context.view_layer.active_layer_collection.collection.objects.link(obj)\n")
+        file.write("bpy.ops.wm.save_as_mainfile(filepath=r'" + os.path.join(save_dir,asset.name) + ".blend')\n")
+        file.close()
+
+        return os.path.join(bpy.app.tempdir,'save_temp.py')
+
     def create_save_material_script(self,save_dir,material):
         source_file = bpy.data.filepath
         file = codecs.open(os.path.join(bpy.app.tempdir,"save_temp.py"),'w',encoding='utf-8')
@@ -1197,7 +1216,7 @@ class home_builder_OT_save_asset_to_library(Operator):
             # subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"',shell=True)
 
         if scene_props.asset_tabs in self.assembly_libraries:
-            save_script_path = self.create_save_object_script(path, self.get_asset(context))
+            save_script_path = self.create_save_assembly_script(path, self.get_asset(context))
             command = [bpy.app.binary_path,"-b","--python",save_script_path]
             subprocess.call(command)            
             # subprocess.call(bpy.app.binary_path + ' -b --python "' + save_script_path + '"',shell=True)
