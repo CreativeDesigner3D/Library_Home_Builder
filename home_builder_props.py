@@ -526,6 +526,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                        unit='LENGTH')   
 
     #CLOSET OPTIONS
+    use_fixed_closet_heights: bpy.props.BoolProperty(name="Use Fixed Closet Heights",
+                                           description="Check this option to use the 32mm system and force panel heights to change in 32mm increments.",
+                                           default=False) 
+
     default_closet_hanging_height: bpy.props.EnumProperty(name="Default Closet Hanging Height",
                                                      items=home_builder_enums.PANEL_HEIGHTS,
                                                      default = '2131')
@@ -825,9 +829,18 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
         if self.default_tabs == 'CLOSET_CONSTRUCTION':
             box = prop_col.box()
+
+            row = box.row(align=True)
+            row.label(text="General Construction Options:")
+            row = box.row(align=True)
+            row.label(text="Use Fixed Closet Heights:")
+            row.prop(self,"use_fixed_closet_heights",text="")   
             row = box.row(align=True)
             row.label(text="Default Hanging Height:")
             row.prop(self,"default_closet_hanging_height",text="")   
+            row = box.row(align=True)
+            row.label(text="Show Closet Panel Drilling")
+            row.prop(self,"show_closet_panel_drilling",text="")    
 
             box = prop_col.box()
             row = box.row(align=True)
@@ -849,13 +862,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
             box = prop_col.box()
             row = box.row(align=True)
-            row.label(text="General Construction Options:")
+            row.label(text="Closet Corner Options:")
             row = box.row(align=True)
             row.label(text="Closet Corner Spacing")
             row.prop(self,"closet_corner_spacing",text="")    
-            row = box.row(align=True)
-            row.label(text="Show Closet Panel Drilling")
-            row.prop(self,"show_closet_panel_drilling",text="")              
     
         if self.default_tabs == 'DOOR_SIZES':
             box = prop_col.box()

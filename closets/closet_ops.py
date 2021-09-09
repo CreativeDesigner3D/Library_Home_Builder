@@ -177,13 +177,15 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         self.closet = None
         self.calculators = []
 
-    def update_product_size(self):
+    def update_product_size(self,context):
+        hb_props = home_builder_utils.get_scene_props(context.scene)
         self.closet.obj_x.location.x = self.width
-        for i in range(1,9):
-            opening_height = self.closet.get_prompt("Opening " + str(i) + " Height")
-            if opening_height:
-                height = eval("float(self.opening_" + str(i) + "_height)/1000")
-                opening_height.set_value(height)
+        if hb_props.use_fixed_closet_heights:
+            for i in range(1,9):
+                opening_height = self.closet.get_prompt("Opening " + str(i) + " Height")
+                if opening_height:
+                    height = eval("float(self.opening_" + str(i) + "_height)/1000")
+                    opening_height.set_value(height)
 
     def update_materials(self,context):
         pass
@@ -236,7 +238,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
                         break
 
     def check(self, context):
-        self.update_product_size()
+        self.update_product_size(context)
         self.update_fillers(context)    
         self.update_bridge_parts(context) 
         self.update_materials(context)
@@ -415,6 +417,8 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         return number_of_equal_widths
 
     def draw_closet_prompts(self,layout,context):
+        hb_props = home_builder_utils.get_scene_props(context.scene)
+
         col = layout.column(align=True)
         box = col.box()
         row = box.row()
@@ -441,13 +445,17 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
                         row.prop(width,'equal',text="")
                     else:
                         row.label(text="",icon='BLANK1')                
-                # row.prop(width,'distance_value',text="Width")
+                
                 if width.equal:
                     row.label(text=str(pc_unit.meter_to_active_unit(width.distance_value)) + '"')
                 else:
                     row.prop(width,'distance_value',text="")
-                # row.prop(floor,'checkbox_value',text="",icon='TRIA_DOWN' if floor.get_value() else 'TRIA_UP')
-                row.prop(self,'opening_' + str(i) + '_height',text="")
+                
+                if hb_props.use_fixed_closet_heights:
+                    row.prop(self,'opening_' + str(i) + '_height',text="")
+                else:
+                    row.prop(height,'distance_value',text="")
+
                 if self.is_base:
                     row.label(text=str(pc_unit.meter_to_active_unit(depth.distance_value)) + '"')
                 else:
