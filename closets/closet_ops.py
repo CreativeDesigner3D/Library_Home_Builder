@@ -417,6 +417,7 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
         return number_of_equal_widths
 
     def draw_closet_prompts(self,layout,context):
+        unit_settings = context.scene.unit_settings
         hb_props = home_builder_utils.get_scene_props(context.scene)
 
         col = layout.column(align=True)
@@ -447,7 +448,8 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
                         row.label(text="",icon='BLANK1')                
                 
                 if width.equal:
-                    row.label(text=str(pc_unit.meter_to_active_unit(width.distance_value)) + '"')
+                    value = pc_unit.unit_to_string(unit_settings,width.distance_value)  
+                    row.label(text=value)
                 else:
                     row.prop(width,'distance_value',text="")
                 
@@ -457,7 +459,8 @@ class home_builder_OT_closet_prompts(bpy.types.Operator):
                     row.prop(height,'distance_value',text="")
 
                 if self.is_base:
-                    row.label(text=str(pc_unit.meter_to_active_unit(depth.distance_value)) + '"')
+                    value = pc_unit.unit_to_string(unit_settings,depth.distance_value) 
+                    row.label(text=value)
                 else:
                     row.prop(depth,'distance_value',text="")
 
