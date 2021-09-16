@@ -45,8 +45,9 @@ class HOME_BUILDER_MT_change_catalog_selection(bpy.types.Menu):
         dirs = os.listdir(path)
 
         for d in dirs:
-            path = os.path.join(path,d)
-            layout.operator('home_builder.change_library_category',text=d,icon='FILEBROWSER').category = d    
+            cat_path = os.path.join(path,d)
+            if os.path.isdir(cat_path):
+                layout.operator('home_builder.change_library_category',text=d,icon='FILEBROWSER').category = d    
 
 
 class HOME_BUILDER_MT_catalog_menu(bpy.types.Menu):
