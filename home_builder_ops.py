@@ -3506,6 +3506,39 @@ class home_builder_OT_update_checkbox_prompt_in_scene(bpy.types.Operator):
                     prompt.set_value(self.prompt_value)
         return {'FINISHED'}
 
+
+class home_builder_OT_unit_settings(bpy.types.Operator):
+    bl_idname = "home_builder.unit_settings"
+    bl_label = "Change Units"
+    bl_description = "This will show the unit settings"
+    bl_options = {'UNDO'}
+    
+    def check(self, context):
+        return True
+
+    def invoke(self,context,event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=200)
+        
+    def draw(self, context):
+        layout = self.layout
+        unit = context.scene.unit_settings
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        layout.prop(unit, "system")
+
+        col = layout.column()
+        col.prop(unit, "system_rotation", text="Rotation")
+        subcol = col.column()
+        subcol.enabled = unit.system != 'NONE'
+        subcol.prop(unit, "length_unit", text="Length")
+        subcol.prop(unit, "temperature_unit", text="Temperature")
+
+    def execute(self, context):
+        return {'FINISHED'}
+
 classes = (
     home_builder_OT_activate,
     home_builder_OT_change_library_category,
@@ -3563,6 +3596,7 @@ classes = (
     home_builder_OT_free_move_object,
     home_builder_OT_update_distance_prompt_in_scene,
     home_builder_OT_update_checkbox_prompt_in_scene,
+    home_builder_OT_unit_settings,
 )
 
 register, unregister = bpy.utils.register_classes_factory(classes)

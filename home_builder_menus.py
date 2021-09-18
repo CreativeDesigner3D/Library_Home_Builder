@@ -7,6 +7,7 @@ class HOME_BUILDER_MT_home_builder_menu(bpy.types.Menu):
 
     def draw(self, _context):
         layout = self.layout
+        layout.operator('home_builder.unit_settings',text="Change Units",icon='SETTINGS')
         layout.menu('HOME_BUILDER_MT_home_builder_reports',icon='TEXT')
         layout.menu('HOME_BUILDER_MT_home_builder_2d_commands',icon='CON_SIZELIMIT')
         layout.menu('HOME_BUILDER_MT_home_builder_training',icon='QUESTION')
