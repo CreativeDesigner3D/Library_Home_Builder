@@ -570,6 +570,21 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                        description="Check this option if you want drilling to show on the closet panels",
                                                        default=False)      
 
+    adj_shelf_setback: bpy.props.FloatProperty(name="Adjustable Shelf Setback",
+                                                 description="Default setback for adjustable shelves",
+                                                 default=0,
+                                                 unit='LENGTH')
+
+    fixed_shelf_setback: bpy.props.FloatProperty(name="Fixed Shelf Setback",
+                                                 description="Default setback for fixed shelves",
+                                                 default=0,
+                                                 unit='LENGTH')
+
+    shelf_clip_gap: bpy.props.FloatProperty(name="Shelf Clip Gap",
+                                                 description="Amount to deduct from shelf width for adjustable shelf clips",
+                                                 default=0,
+                                                 unit='LENGTH')
+
     #ENTRY DOORS
     single_door_width: bpy.props.FloatProperty(name="Single Door Width",
                                                description="Is the width of single entry doors",
@@ -1457,6 +1472,10 @@ class Home_Builder_Object_Props(PropertyGroup):
     insert_opening: bpy.props.PointerProperty(name="Insert Opening",
                                                 type=bpy.types.Object,
                                                 description="This is the opening the insert is assigned to.")
+
+    drawer_box: bpy.props.PointerProperty(name="Drawer Box",
+                                          type=bpy.types.Object,
+                                          description="This is the drawer box the drawer front is attached to.")
 
     pointer_name: bpy.props.StringProperty(name="Pointer Name")
 

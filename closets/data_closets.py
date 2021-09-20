@@ -177,19 +177,31 @@ class Closet_Starter(Closet):
         left_height_prompt.set_formula('left_height',[left_height])   
         left_floor_prompt = d_panel.add_prompt("Left Floor",'CHECKBOX',False)
         left_floor_prompt.set_formula('left_floor',[left_floor]) 
+        left_drill_start = d_panel.add_prompt("Left Drill Start",'DISTANCE',0)
+        left_drill_start.set_formula('IF(left_floor,.00889,IF(right_floor,height-left_height+.00889,IF(left_height<=right_height,right_height-left_height+.00889,.00889)))',
+                                     [left_floor,right_floor,height,left_height,right_height])  
+        left_drill_stop = d_panel.add_prompt("Left Drill Stop",'DISTANCE',0)
+        left_drill_stop.set_formula('IF(left_floor,left_height,IF(right_floor,height,max(left_height,right_height)))',
+                                    [left_floor,right_floor,height,left_height,right_height])  
+
         right_depth_prompt = d_panel.add_prompt("Right Depth",'DISTANCE',0)
         right_depth_prompt.set_formula('0',[])      
         right_height_prompt = d_panel.add_prompt("Right Height",'DISTANCE',0)
         right_height_prompt.set_formula('0',[])   
         right_floor_prompt = d_panel.add_prompt("Right Floor",'CHECKBOX',False)
         right_floor_prompt.set_formula('False',[]) 
-        drill_from_left = d_panel.add_prompt("Drill From Left",'CHECKBOX',True)  
-
+        right_drill_start = d_panel.add_prompt("Right Drill Start",'DISTANCE',0)
+        right_drill_start.set_formula('0',[])
+        right_drill_stop = d_panel.add_prompt("Right Drill Stop",'DISTANCE',0)
+        right_drill_stop.set_formula('0',[])     
+        drill_from_left = d_panel.add_prompt("Drill From Left",'CHECKBOX',True)                                       
         return panel
 
     def add_shelf(self,index,left_panel,right_panel):
         left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
         right_panel_x = right_panel.obj_bp.pyclone.get_var('location.x','right_panel_x')
+        left_depth = left_panel.get_prompt('Left Depth').get_var('left_depth')
+        right_depth = right_panel.get_prompt('Right Depth').get_var('right_depth')
 
         opening_width = self.get_prompt("Opening " + str(index) + " Width").get_var('Opening Calculator','opening_width')
         opening_depth = self.get_prompt("Opening " + str(index) + " Depth").get_var('opening_depth')
@@ -199,6 +211,10 @@ class Closet_Starter(Closet):
         shelf = data_closet_parts.add_closet_part(self)
         props = home_builder_utils.get_object_props(shelf.obj_bp)
         props.ebl1 = True        
+        l_depth = shelf.add_prompt("Left Depth",'DISTANCE',0)
+        l_depth.set_formula('left_depth',[left_depth])
+        r_depth = shelf.add_prompt("Right Depth",'DISTANCE',0)
+        r_depth.set_formula('right_depth',[right_depth])        
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Shelf ' + str(index))
         shelf.loc_x('left_panel_x+p_thickness',[left_panel_x,p_thickness])
@@ -277,7 +293,14 @@ class Closet_Starter(Closet):
     def add_opening(self,index,left_panel,right_panel):
         left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
         right_panel_x = right_panel.obj_bp.pyclone.get_var('location.x','right_panel_x')
-
+        # left_depth_p = self.get_prompt("Opening " + str(index-1) + " Depth")
+        # if left_depth_p:
+        #     left_depth = left_depth_p.get_var('left_depth')
+        # right_depth_p = self.get_prompt("Opening " + str(index+1) + " Depth")
+        # if right_depth_p:
+        #     right_depth = right_depth_p.get_var('right_depth')
+        left_depth = left_panel.get_prompt('Left Depth').get_var('left_depth')
+        right_depth = right_panel.get_prompt('Right Depth').get_var('right_depth')
         p_height = self.obj_z.pyclone.get_var('location.z','p_height')
         floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
         opening_width = self.get_prompt("Opening " + str(index) + " Width").get_var('Opening Calculator','opening_width')
@@ -287,8 +310,22 @@ class Closet_Starter(Closet):
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         kick_height = self.get_prompt("Closet Kick Height").get_var("kick_height")
-
         opening = data_closet_parts.add_closet_opening(self)
+        l_depth = opening.get_prompt("Left Depth")
+        l_depth.set_formula('left_depth',[left_depth])
+        r_depth = opening.get_prompt("Right Depth")
+        r_depth.set_formula('right_depth',[right_depth])
+        # if left_depth_p:
+        #     left_depth = left_depth_p.get_var('left_depth')
+        #     l_depth.set_formula('left_depth',[left_depth])
+        # else:
+        #     l_depth.set_formula('0',[])
+        # if right_depth_p:
+        #     right_depth = right_depth_p.get_var('right_depth')
+        #     r_depth.set_formula('right_depth',[right_depth])
+        # else:
+        #     r_depth.set_formula('0',[])
+        opening.obj_prompts.hide_viewport = False
         opening.set_name('Opening ' + str(index))
         opening.loc_x('left_panel_x+p_thickness',[left_panel_x,p_thickness])
         opening.loc_y('-opening_depth',[opening_depth])

@@ -198,7 +198,7 @@ class Cabinet_Exterior(pc_types.Assembly):
 
         home_builder_pointers.assign_pointer_to_object(pull_obj,"Cabinet Pull Finish")
 
-    def add_drawer_box(self,drawer_front,drawer_z=None):
+    def add_drawer_box(self,drawer_front,drawer,drawer_z=None):
         x_loc = drawer_front.obj_bp.pyclone.get_var('location.x','x_loc')
         y_loc = drawer_front.obj_bp.pyclone.get_var('location.y','y_loc')
         if drawer_z:
@@ -208,27 +208,41 @@ class Cabinet_Exterior(pc_types.Assembly):
         inside_depth = self.obj_y.pyclone.get_var('location.y','inside_depth')
         drawer_front_width = drawer_front.obj_y.pyclone.get_var('location.y','drawer_front_width')
         drawer_front_height = drawer_front.obj_x.pyclone.get_var('location.x','drawer_front_height')
-        drawer_box_gap = self.get_prompt("Drawer Box Gap").get_var('drawer_box_gap')
 
-        left_overlay = self.overlay_prompts.pyclone.get_prompt('Left Overlay')
+        left_overlay = drawer_front.get_prompt("Left Overlay")
         lo = left_overlay.get_var('lo')
-
-        right_overlay = self.overlay_prompts.pyclone.get_prompt('Right Overlay')
+        right_overlay = drawer_front.get_prompt("Right Overlay")
         ro = right_overlay.get_var('ro')
+        top_overlay = drawer_front.get_prompt("Top Overlay")
+        to = top_overlay.get_var('to')
+        bottom_overlay = drawer_front.get_prompt("Bottom Overlay")
+        bo = bottom_overlay.get_var('bo')
 
-        drawer = data_drawer_box.Wood_Drawer_Box()
+        o_height = math.fabs(drawer_front.obj_x.location.x) - top_overlay.get_value() - bottom_overlay.get_value()
+        if hasattr(drawer,'set_size'):
+            drawer.set_size(o_height,self.obj_y.location.y)
         drawer.draw()
         self.add_assembly(drawer)
-        drawer.loc_x('x_loc+lo+drawer_box_gap',[x_loc,lo,drawer_box_gap])
+        drawer.loc_x('x_loc',[x_loc])
         drawer.loc_y('y_loc',[y_loc])
-        drawer.loc_z('z_loc+.025',[z_loc])
-        drawer.dim_x('fabs(drawer_front_width)-lo-ro-(drawer_box_gap*2)',[drawer_front_width,lo,ro,drawer_box_gap])
+        drawer.loc_z('z_loc',[z_loc])
+        drawer.dim_x('fabs(drawer_front_width)',[drawer_front_width])
         drawer.dim_y('inside_depth',[inside_depth])
-        drawer.dim_z('drawer_front_height-.06',[drawer_front_height])
+        drawer.dim_z('drawer_front_height',[drawer_front_height])
         drawer.obj_x.hide_viewport = True
         drawer.obj_y.hide_viewport = True
         drawer.obj_z.hide_viewport = True
         drawer.obj_bp.hide_viewport = True
+        left_o = drawer.get_prompt('Left Overlay')
+        left_o.set_formula('lo',[lo])
+        right_o = drawer.get_prompt('Right Overlay')
+        right_o.set_formula('ro',[ro])
+        top_o = drawer.get_prompt('Top Overlay')
+        top_o.set_formula('to',[to])
+        bottom_o = drawer.get_prompt('Bottom Overlay')
+        bottom_o.set_formula('bo',[bo])
+        front_props = home_builder_utils.get_object_props(drawer_front.obj_bp)
+        front_props.drawer_box = drawer.obj_bp
 
     def add_drawer_boxes(self):
         pass
@@ -434,7 +448,11 @@ class Drawers(Cabinet_Exterior):
         pull_pointer = props.pull_pointers["Drawer Pulls"]
 
         drawer_front = data_cabinet_parts.add_door_part(self,front_pointer)
-        drawer_front.obj_bp['IS_DRAWER_FRONT'] = True
+        top_o = drawer_front.add_prompt("Top Overlay",'DISTANCE',0)
+        bottom_o = drawer_front.add_prompt("Bottom Overlay",'DISTANCE',0)
+        left_o = drawer_front.add_prompt("Left Overlay",'DISTANCE',0)
+        right_o = drawer_front.add_prompt("Right Overlay",'DISTANCE',0)
+        drawer_front.obj_bp['IS_CABINET_DRAWER_FRONT_PANEL'] = True
         drawer_front.set_name('Drawer Front')
         drawer_front.loc_x('-left_overlay',[left_overlay])
         drawer_front.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -444,6 +462,13 @@ class Drawers(Cabinet_Exterior):
         drawer_front.dim_x('drawer_front_height',[drawer_front_height])
         drawer_front.dim_y('(x+left_overlay+right_overlay)*-1',[x,left_overlay,right_overlay])
         drawer_front.dim_z('front_thickness',[front_thickness])
+        left_o.set_formula('left_overlay',[left_overlay])
+        right_o.set_formula('right_overlay',[right_overlay])
+        if index == 1:
+            top_o.set_formula('top_overlay',[top_overlay])
+        # if index == self.drawer_qty:
+        #     bottom_o.set_formula('to_var',[to_var])
+     
         
         self.add_drawer_pull(drawer_front,pull_pointer)
         # self.add_drawer_box(drawer_front,front_empty)
@@ -598,7 +623,11 @@ class Door_Drawer(Cabinet_Exterior):
         self.add_door_pull(r_door,pull_pointer)
 
         l_drawer_front = data_cabinet_parts.add_door_part(self,drawer_front_pointer)
-        l_drawer_front.obj_bp['IS_DRAWER_FRONT'] = True
+        top_o = l_drawer_front.add_prompt("Top Overlay",'DISTANCE',0)
+        bottom_o = l_drawer_front.add_prompt("Bottom Overlay",'DISTANCE',0)
+        left_o = l_drawer_front.add_prompt("Left Overlay",'DISTANCE',0)
+        right_o = l_drawer_front.add_prompt("Right Overlay",'DISTANCE',0)        
+        l_drawer_front.obj_bp['IS_CABINET_DRAWER_FRONT_PANEL'] = True
         l_drawer_front.set_name('Drawer Front')
         l_drawer_front.loc_x('-lo_var',[lo_var])
         l_drawer_front.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -609,10 +638,16 @@ class Door_Drawer(Cabinet_Exterior):
         l_drawer_front.dim_y('IF(add_two_drawer_fronts_var,(((x+lo_var+ro_var)-vertical_gap)/2)*-1,(x+lo_var+ro_var)*-1)',[add_two_drawer_fronts_var,x,lo_var,ro_var,vertical_gap])
         l_drawer_front.dim_z('front_thickness',[front_thickness])
         self.add_drawer_pull(l_drawer_front,drawer_pull_pointer)
+        left_o.set_formula('lo_var',[lo_var])
+        right_o.set_formula('IF(add_two_drawer_fronts_var,0,ro_var)',[add_two_drawer_fronts_var,ro_var])
         # self.add_drawer_box(l_drawer_front)
 
         r_drawer_front = data_cabinet_parts.add_door_part(self,drawer_front_pointer)
-        r_drawer_front.obj_bp['IS_DRAWER_FRONT'] = True
+        top_o = r_drawer_front.add_prompt("Top Overlay",'DISTANCE',0)
+        bottom_o = r_drawer_front.add_prompt("Bottom Overlay",'DISTANCE',0)
+        left_o = r_drawer_front.add_prompt("Left Overlay",'DISTANCE',0)
+        right_o = r_drawer_front.add_prompt("Right Overlay",'DISTANCE',0)        
+        r_drawer_front.obj_bp['IS_CABINET_DRAWER_FRONT_PANEL'] = True
         r_drawer_front.set_name('Drawer Front')
         r_drawer_front.loc_x('(x/2)+(vertical_gap/2)',[x,vertical_gap])
         r_drawer_front.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
@@ -625,6 +660,8 @@ class Door_Drawer(Cabinet_Exterior):
         hide = r_drawer_front.get_prompt('Hide')
         hide.set_formula('IF(add_two_drawer_fronts_var,False,True)',[add_two_drawer_fronts_var])
         self.add_drawer_pull(r_drawer_front,drawer_pull_pointer)
+        left_o.set_formula('0',[])
+        right_o.set_formula('ro_var',[ro_var])        
         # self.add_drawer_box(r_drawer_front)
 
         self.set_prompts()

@@ -1548,6 +1548,13 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
             self.insert.obj_x.location.x = opening.obj_x.location.x
             self.insert.obj_y.location.y = opening.obj_y.location.y
             self.insert.obj_z.location.z = opening.obj_z.location.z
+            o_left_depth = opening.get_prompt('Left Depth').get_var('o_left_depth')
+            o_right_depth = opening.get_prompt('Right Depth').get_var('o_right_depth')
+            i_left_depth = self.insert.get_prompt('Left Depth')
+            i_right_depth = self.insert.get_prompt('Right Depth')
+            i_left_depth.set_formula('o_left_depth',[o_left_depth])
+            i_right_depth.set_formula('o_right_depth',[o_right_depth])
+            
             props = home_builder_utils.get_object_props(self.insert.obj_bp)
             props.insert_opening = opening.obj_bp
 

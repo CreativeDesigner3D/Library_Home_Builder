@@ -112,6 +112,15 @@ class Square_Cutout(pc_types.Assembly):
         hook.object = self.obj_z
         hook.vertex_indices_set([4,5,6,7])
 
+def add_buyout_drawer(assembly):
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Drawer Box.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    assembly.add_assembly(part)
+    home_builder_utils.add_bevel(part)
+    home_builder_pointers.assign_pointer_to_assembly(part,"Cabinet Interior Surfaces")
+    home_builder_pointers.assign_materials_to_assembly(part)
+    return part
+
 def add_countertop_part(assembly):
     part_path = path.join(home_builder_paths.get_assembly_path(),"Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))

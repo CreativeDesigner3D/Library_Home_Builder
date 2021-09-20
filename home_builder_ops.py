@@ -491,13 +491,14 @@ class home_builder_OT_add_drawer(bpy.types.Operator):
         scene_props = home_builder_utils.get_scene_props(context.scene)
 
         for obj in context.selected_objects:
-            door_bp = home_builder_utils.get_cabinet_door_bp(obj)
+            door_bp = home_builder_utils.get_cabinet_drawer_front_bp(obj)
             if door_bp and door_bp not in door_panel_bps:
                 door_panel_bps.append(door_bp)
 
         for door_panel_bp in door_panel_bps:
+            drawer = data_drawer_box.Buyout_Drawer_Box()
             exterior = data_cabinet_exteriors.Cabinet_Exterior(door_panel_bp.parent)
-            exterior.add_drawer_box(pc_types.Assembly(door_panel_bp))
+            exterior.add_drawer_box(pc_types.Assembly(door_panel_bp),drawer)
 
         return {'FINISHED'}
 
