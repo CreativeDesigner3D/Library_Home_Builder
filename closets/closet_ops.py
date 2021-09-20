@@ -887,12 +887,12 @@ class home_builder_OT_hanging_rod_prompts(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         loc_from_top = self.insert.get_prompt("Hanging Rod Location From Top")
-        bottom_rod_location = self.insert.get_prompt("Bottom Rod Location From Top")
+        top_opening_height = self.insert.get_prompt("Top Opening Height")
         setback = self.insert.get_prompt("Hanging Rod Setback")
         if loc_from_top:
             layout.prop(loc_from_top,'distance_value',text="Rod Location From Top")
-        if bottom_rod_location:
-            layout.prop(bottom_rod_location,'distance_value',text="Bottom Rod Location")
+        if top_opening_height:
+            layout.prop(top_opening_height,'distance_value',text="Top Opening Height")
         if setback:
             layout.prop(setback,'distance_value',text="Rod Setback")
 

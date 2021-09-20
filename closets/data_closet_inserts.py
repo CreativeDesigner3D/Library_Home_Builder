@@ -682,15 +682,15 @@ class Hanging_Rod(pc_types.Assembly):
         reference.dim_z('height',[height])  
 
     def draw(self):      
-        top_loc = self.add_prompt("Hanging Rod Location From Top",'DISTANCE',pc_unit.inch(2.145)) 
-        shelf_clip_gap = self.add_prompt("Hanging Rod Setback",'DISTANCE',pc_unit.inch(2)) 
-        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75)) 
+        self.add_prompt("Hanging Rod Location From Top",'DISTANCE',pc_unit.inch(2.145)) 
+        self.add_prompt("Hanging Rod Setback",'DISTANCE',pc_unit.inch(2)) 
+        self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75)) 
 
         height = self.obj_z.pyclone.get_var('location.z','height')
         x = self.obj_x.pyclone.get_var('location.x','x')
         y = self.obj_y.pyclone.get_var('location.y','y')
-        hanging_rod_location_from_top = top_loc.get_var("hanging_rod_location_from_top")
-        s_thickness = shelf_thickness.get_var("s_thickness")
+        hanging_rod_location_from_top = self.get_prompt("Hanging Rod Location From Top").get_var("hanging_rod_location_from_top")
+        s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
 
@@ -698,10 +698,11 @@ class Hanging_Rod(pc_types.Assembly):
         rod.loc_z('height-hanging_rod_location_from_top',[height,hanging_rod_location_from_top])
 
         if self.is_double:
-            bot_loc = self.add_prompt("Bottom Rod Location From Top",'DISTANCE',pc_unit.inch(38)) 
-            hanging_rod_location_from_bot = bot_loc.get_var("hanging_rod_location_from_bot")
+            self.add_prompt("Top Opening Height",'DISTANCE',pc_unit.inch(38)) 
+            top_opening_height = self.get_prompt("Top Opening Height").get_var("top_opening_height")
+
             rod = self.add_hanging_rod()
-            rod.loc_z('height-hanging_rod_location_from_bot-hanging_rod_location_from_top',[height,hanging_rod_location_from_bot,hanging_rod_location_from_top])
+            rod.loc_z('height-top_opening_height-hanging_rod_location_from_top-s_thickness',[height,top_opening_height,hanging_rod_location_from_top,s_thickness])
 
             #MID SHELF
             shelf = data_closet_parts.add_closet_lock_shelf(self)
@@ -712,7 +713,7 @@ class Hanging_Rod(pc_types.Assembly):
             shelf.set_name('Shelf')
             shelf.loc_x(value = 0)
             shelf.loc_y(value = 0)
-            shelf.loc_z('height-hanging_rod_location_from_bot',[height,hanging_rod_location_from_bot,hanging_rod_location_from_top])
+            shelf.loc_z('height-top_opening_height-s_thickness',[height,top_opening_height,s_thickness])
             shelf.rot_y(value = 0)
             shelf.rot_z(value = 0)
             shelf.dim_x('x',[x])
@@ -728,15 +729,14 @@ class Hanging_Rod(pc_types.Assembly):
             top_opening.set_name('Top Opening')
             top_opening.loc_x(value = 0)
             top_opening.loc_y(value = 0)
-            top_opening.loc_z('height-hanging_rod_location_from_bot+s_thickness',
-                              [height,hanging_rod_location_from_bot,s_thickness])
+            top_opening.loc_z('height-top_opening_height',
+                              [height,top_opening_height])
             top_opening.rot_x(value = 0)
             top_opening.rot_y(value = 0)
             top_opening.rot_z(value = 0)
             top_opening.dim_x('x',[x])
             top_opening.dim_y('y',[y])
-            top_opening.dim_z('hanging_rod_location_from_bot-s_thickness',
-                              [hanging_rod_location_from_bot,s_thickness])            
+            top_opening.dim_z('top_opening_height',[top_opening_height])            
             left_depth_p = top_opening.get_prompt("Left Depth")
             left_depth_p.set_formula('left_depth',[left_depth])
             right_depth_p = top_opening.get_prompt("Right Depth")
@@ -752,8 +752,8 @@ class Hanging_Rod(pc_types.Assembly):
             bot_opening.rot_z(value = 0)
             bot_opening.dim_x('x',[x])
             bot_opening.dim_y('y',[y])
-            bot_opening.dim_z('height-hanging_rod_location_from_bot',
-                              [height,hanging_rod_location_from_bot])           
+            bot_opening.dim_z('height-top_opening_height-s_thickness',
+                              [height,top_opening_height,s_thickness])           
             left_depth_p = bot_opening.get_prompt("Left Depth")
             left_depth_p.set_formula('left_depth',[left_depth])
             right_depth_p = bot_opening.get_prompt("Right Depth")
