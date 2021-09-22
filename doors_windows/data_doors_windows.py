@@ -181,8 +181,8 @@ class Standard_Door(pc_types.Assembly):
         self.add_prompt("Entry Door Swing",'COMBOBOX',0,["Left","Right","Double"])
         self.add_prompt("Door Thickness",'DISTANCE',pc_unit.inch(1.5))
         self.add_prompt("Door Reveal",'DISTANCE',pc_unit.inch(.125))
-        Door_Frame_Width = self.add_prompt("Door Frame Width",'DISTANCE',pc_unit.inch(3))
-        Door_Frame_Reveal = self.add_prompt("Door Frame Reveal",'DISTANCE',pc_unit.inch(.125))
+        self.add_prompt("Door Frame Width",'DISTANCE',pc_unit.inch(3))
+        self.add_prompt("Door Frame Reveal",'DISTANCE',pc_unit.inch(.125))
         self.add_prompt("Handle Vertical Location",'DISTANCE',pc_unit.inch(36))
         self.add_prompt("Handle Location From Edge",'DISTANCE',pc_unit.inch(2.5))
         self.add_prompt("Outswing",'CHECKBOX',True)
@@ -190,18 +190,17 @@ class Standard_Door(pc_types.Assembly):
         self.add_prompt("Turn Off Door Panels",'CHECKBOX',False)
         self.add_prompt("Open Door",'PERCENTAGE',0)
         self.add_prompt("Door Rotation",'ANGLE',120)
-        Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
+        self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
         
         self.obj_x.location.x = self.width
         self.obj_y.location.y = self.depth
         self.obj_z.location.z = self.height
-
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
-        boolean_overhang_var = Boolean_Overhang.get_var("boolean_overhang_var")
-        door_frame_reveal = Door_Frame_Reveal.get_var("door_frame_reveal")
-        door_frame_width_parent = Door_Frame_Width.get_var("door_frame_width_parent")
+        boolean_overhang_var = self.get_prompt("Boolean Overhang").get_var("boolean_overhang_var")
+        door_frame_reveal = self.get_prompt("Door Frame Reveal").get_var("door_frame_reveal")
+        door_frame_width_parent = self.get_prompt("Door Frame Width").get_var("door_frame_width_parent")
 
         hole = self.add_assembly(home_builder_parts.Hole())
         hole.set_name("Hole")
@@ -312,7 +311,7 @@ class Standard_Window(pc_types.Assembly):
         self.obj_bp["PROMPT_ID"] = "home_builder.window_prompts" 
         self.obj_bp["MENU_ID"] = "HOME_BUILDER_MT_windows"
 
-        Boolean_Overhang = self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
+        self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
         self.add_prompt("Left Window Frame Width",'DISTANCE',pc_unit.inch(3))
         self.add_prompt("Right Window Frame Width",'DISTANCE',pc_unit.inch(3))
         self.add_prompt("Top Window Frame Width",'DISTANCE',pc_unit.inch(3))
@@ -328,7 +327,7 @@ class Standard_Window(pc_types.Assembly):
         width = self.obj_x.pyclone.get_var('location.x','width')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         height = self.obj_z.pyclone.get_var('location.z','height')
-        boolean_overhang_var = Boolean_Overhang.get_var("boolean_overhang_var")
+        boolean_overhang_var = self.get_prompt("Boolean Overhang").get_var("boolean_overhang_var")
 
         hole = self.add_assembly(home_builder_parts.Hole())
         hole.set_name("Hole")
