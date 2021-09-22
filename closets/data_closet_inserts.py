@@ -1279,7 +1279,10 @@ class Drawers(Doors):
         dh5 = drawer_5_height.get_var('dh5')  
         drawer_6_height = self.add_prompt("Drawer 6 Height",'DISTANCE',pc_unit.millimeter(157))
         dh6 = drawer_6_height.get_var('dh6')  
-
+        drawer_7_height = self.add_prompt("Drawer 7 Height",'DISTANCE',pc_unit.millimeter(157))
+        dh7 = drawer_7_height.get_var('dh7')  
+        drawer_8_height = self.add_prompt("Drawer 8 Height",'DISTANCE',pc_unit.millimeter(157))
+        dh8 = drawer_8_height.get_var('dh8')          
         common_prompts.add_front_prompts(self)
         common_prompts.add_drawer_prompts(self)
         common_prompts.add_drawer_pull_prompts(self)
@@ -1318,8 +1321,8 @@ class Drawers(Doors):
         shelf.set_name('Door Shelf')
         shelf.loc_x(value = 0)
         shelf.loc_y(value = 0)
-        shelf.loc_z('-bo_var-to_var+dh1+IF(dq>1,dh2+h_gap,0)+IF(dq>2,dh3+h_gap,0)+IF(dq>3,dh4+h_gap,0)+IF(dq>4,dh5+h_gap,0)+IF(dq>5,dh6+h_gap,0)',
-                    [bo_var,to_var,dq,dh1,dh2,dh3,dh4,dh5,dh6,h_gap])        
+        shelf.loc_z('-bo_var-to_var+dh1+IF(dq>1,dh2+h_gap,0)+IF(dq>2,dh3+h_gap,0)+IF(dq>3,dh4+h_gap,0)+IF(dq>4,dh5+h_gap,0)+IF(dq>5,dh6+h_gap,0)+IF(dq>6,dh7+h_gap,0)+IF(dq>7,dh8+h_gap,0)',
+                    [bo_var,to_var,dq,dh1,dh2,dh3,dh4,dh5,dh6,dh7,dh8,h_gap])        
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
         shelf.dim_x('x',[x])
@@ -1354,7 +1357,7 @@ class Drawers(Doors):
 
         prev_drawer_empty = None
 
-        for i in range(1,7):
+        for i in range(1,9):
             drawer_height = self.get_prompt('Drawer ' + str(i) + " Height")
             dh = drawer_height.get_var('dh')
             front_empty = self.add_empty('Front Loc ' + str(i))
@@ -1457,6 +1460,7 @@ class Single_Drawer(Doors):
     def draw(self):
         self.add_prompts()
 
+        self.add_prompt("Remove Top Shelf",'CHECKBOX',False)
         drawer_height = self.add_prompt("Drawer Height",'DISTANCE',pc_unit.millimeter(157))
         dh = drawer_height.get_var('dh')
 
@@ -1477,6 +1481,7 @@ class Single_Drawer(Doors):
         s_thickness = self.get_prompt("Shelf Thickness").get_var('s_thickness')
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        remove_top_shelf = self.get_prompt("Remove Top Shelf").get_var("remove_top_shelf")
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
@@ -1504,6 +1509,8 @@ class Single_Drawer(Doors):
         left_depth_p.set_formula('left_depth',[left_depth])
         right_depth_p = shelf.get_prompt("Right Depth")
         right_depth_p.set_formula('right_depth',[right_depth])
+        hide = shelf.get_prompt("Hide")
+        hide.set_formula('remove_top_shelf',[remove_top_shelf])
 
         shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
 

@@ -945,6 +945,17 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
     bl_idname = "home_builder.closet_drawer_prompts"
     bl_label = "Closet Drawer Prompts"
 
+    drawer_qty: bpy.props.EnumProperty(name="Drawer Quantity",
+                          items=[('1',"1","1 Drawer"),
+                                 ('2',"2","2 Drawer"),
+                                 ('3',"3","3 Drawer"),
+                                 ('4',"4","4 Drawer"),
+                                 ('5',"5","5 Drawer"),
+                                 ('6',"6","6 Drawer"),
+                                 ('7',"7","7 Drawer"),
+                                 ('8',"8","8 Drawer")],
+                          default='3')
+
     front_1_height: bpy.props.EnumProperty(name="Front 1 Height",
                                     items=home_builder_enums.FRONT_HEIGHTS,
                                     default = '125')
@@ -969,6 +980,14 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
                                     items=home_builder_enums.FRONT_HEIGHTS,
                                     default = '125')      
 
+    front_7_height: bpy.props.EnumProperty(name="Front 5 Height",
+                                    items=home_builder_enums.FRONT_HEIGHTS,
+                                    default = '125')
+
+    front_8_height: bpy.props.EnumProperty(name="Front 6 Height",
+                                    items=home_builder_enums.FRONT_HEIGHTS,
+                                    default = '125')   
+
     insert = None
     calculators = []
 
@@ -982,11 +1001,13 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
     def update_front_height_size(self,context):
         hb_props = home_builder_utils.get_scene_props(context.scene)
         drawer_height = self.insert.get_prompt("Drawer Height")
-        if drawer_height:
+        if drawer_height:             
             if hb_props.use_fixed_closet_heights:
                 height = eval("float(self.front_1_height)/1000")
                 drawer_height.set_value(height)
         else:
+            drawer_qty = self.insert.get_prompt("Drawer Quantity")
+            drawer_qty.set_value(int(self.drawer_qty))             
             if hb_props.use_fixed_closet_heights:
                 for i in range(1,9):
                     drawer_height = self.insert.get_prompt("Drawer " + str(i) + " Height")
@@ -1003,6 +1024,8 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
                     exec('self.front_1_height = home_builder_enums.FRONT_HEIGHTS[index - 1][0]')                                                                                                                                                                                                        
                     break
         else:
+            drawer_qty = self.insert.get_prompt("Drawer Quantity")
+            self.drawer_qty = str(drawer_qty.get_value())               
             for i in range(1,9):
                 drawer_height_prompt = self.insert.get_prompt("Drawer " + str(i) + " Height")
                 if drawer_height_prompt:
@@ -1041,9 +1064,9 @@ class home_builder_OT_closet_drawer_prompts(bpy.types.Operator):
             total_drawer_height += drawer_height.get_value()
         if drawer_qty:
             row = box.row()
-            row.label(text="Drawer Quantity")            
-            row.prop(drawer_qty,'quantity_value',text="")
-            for i in range(1,7):
+            row.label(text="Qty")            
+            row.prop(self,'drawer_qty',expand=True)
+            for i in range(1,9):
                 if drawer_qty.get_value() > i - 1:
                     if hb_props.use_fixed_closet_heights:
                         drawer_height = self.insert.get_prompt("Drawer " + str(i) + " Height")
