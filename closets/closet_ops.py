@@ -1453,7 +1453,7 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
 
     def draw_prompts(self,layout,name="Height"):
         hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
-
+        unit_settings = bpy.context.scene.unit_settings
         for i in range(1,10):
             opening = self.insert.get_prompt("Opening " + str(i) + " " + name)
             if opening:
@@ -1467,7 +1467,8 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
                         row.label(text="",icon='BLANK1')                
                 row.label(text="Opening " + str(i) + " " + name + ":")
                 if opening.equal:
-                    row.label(text=str(pc_unit.meter_to_active_unit(opening.distance_value)) + '"')
+                    value = pc_unit.unit_to_string(unit_settings,opening.distance_value)
+                    row.label(text=value)
                 else:
                     if name == 'Height':
                         if hb_props.use_fixed_closet_heights:
