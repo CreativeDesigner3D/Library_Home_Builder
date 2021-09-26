@@ -58,7 +58,7 @@ class HOME_BUILDER_MT_closets(bpy.types.Menu):
         layout.operator('home_builder.edit_part',text="Edit Part Shape",icon='EDITMODE_HLT')
         layout.separator()
         layout.operator('home_builder.delete_closet_opening',text="Delete Insert",icon='X')
-        layout.operator('home_builder.delete_assembly',text="Delete Closet",icon='X').obj_name = bp.name
+        layout.operator('home_builder.delete_assembly',text="Delete Product",icon='X').obj_name = bp.name
 
 
 class HOME_BUILDER_MT_closets_corner(bpy.types.Menu):
