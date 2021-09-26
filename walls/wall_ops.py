@@ -11,6 +11,7 @@ from . import wall_library
 class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
     bl_idname = "home_builder.draw_multiple_walls"
     bl_label = "Draw Multiple Walls"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -327,7 +328,7 @@ class home_builder_OT_draw_multiple_walls(bpy.types.Operator):
             obj_list.append(child)
         pc_utils.delete_obj_list(obj_list)
         bpy.ops.view3d.view_all(center=False)
-        return {'CANCELLED'}
+        return {'FINISHED'}
 
 
 class home_builder_OT_wall_prompts(bpy.types.Operator):

@@ -48,8 +48,7 @@ class home_builder_OT_drop(Operator):
     bl_idname = "home_builder.drop"
     bl_label = "Home Builder Drop"
     bl_description = "This is called when an asset is dropped from the home builder library"
-    bl_options = {'UNDO'}
-    
+
     filepath: StringProperty(name='Library Name')
 
     def get_custom_cabinet(self,context,filepath):
@@ -143,6 +142,7 @@ class home_builder_OT_drop(Operator):
 class home_builder_OT_place_room(bpy.types.Operator):
     bl_idname = "home_builder.place_room"
     bl_label = "Place Room"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -271,6 +271,7 @@ class home_builder_OT_place_room(bpy.types.Operator):
 class home_builder_OT_place_cabinet(bpy.types.Operator):
     bl_idname = "home_builder.place_cabinet"
     bl_label = "Place Cabinet"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -553,6 +554,7 @@ class home_builder_OT_place_cabinet(bpy.types.Operator):
 class home_builder_OT_place_door_window(bpy.types.Operator):
     bl_idname = "home_builder.place_door_window"
     bl_label = "Place Door or Window"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -722,6 +724,7 @@ class home_builder_OT_place_door_window(bpy.types.Operator):
 class home_builder_OT_place_appliance(bpy.types.Operator):
     bl_idname = "home_builder.place_appliance"
     bl_label = "Place Appliance"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -956,6 +959,7 @@ class home_builder_OT_place_appliance(bpy.types.Operator):
 class home_builder_OT_place_closet(bpy.types.Operator):
     bl_idname = "home_builder.place_closet"
     bl_label = "Place Closet"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -1197,6 +1201,7 @@ class home_builder_OT_place_closet(bpy.types.Operator):
 class home_builder_OT_place_corner_closet(bpy.types.Operator):
     bl_idname = "home_builder.place_corner_closet"
     bl_label = "Place Corner Closet"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -1428,6 +1433,7 @@ class home_builder_OT_place_corner_closet(bpy.types.Operator):
 class home_builder_OT_place_closet_insert(bpy.types.Operator):
     bl_idname = "home_builder.place_closet_insert"
     bl_label = "Place Closet Insert"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -1650,6 +1656,7 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
 class home_builder_OT_place_closet_part(bpy.types.Operator):
     bl_idname = "home_builder.place_closet_part"
     bl_label = "Place Closet Part"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -1811,6 +1818,7 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
 class home_builder_OT_place_closet_cleat(bpy.types.Operator):
     bl_idname = "home_builder.place_closet_cleat"
     bl_label = "Place Closet Cleat"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -1994,6 +2002,7 @@ class home_builder_OT_place_closet_cleat(bpy.types.Operator):
 class home_builder_OT_place_closet_back(bpy.types.Operator):
     bl_idname = "home_builder.place_closet_back"
     bl_label = "Place Closet Back"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -2157,6 +2166,7 @@ class home_builder_OT_place_closet_back(bpy.types.Operator):
 class home_builder_OT_place_slanted_shoe_shelf(bpy.types.Operator):
     bl_idname = "home_builder.slanted_shoe_shelf"
     bl_label = "Place Slanted Shoe Shelf"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -2374,6 +2384,7 @@ class home_builder_OT_place_slanted_shoe_shelf(bpy.types.Operator):
 class home_builder_OT_place_wall_obstacle(bpy.types.Operator):
     bl_idname = "home_builder.place_wall_obstacle"
     bl_label = "Place Wall Obstacle"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -2466,6 +2477,7 @@ class home_builder_OT_place_wall_obstacle(bpy.types.Operator):
 class home_builder_OT_place_bathroom_fixture(bpy.types.Operator):
     bl_idname = "home_builder.place_bathroom_fixture"
     bl_label = "Place Bathroom Fixture"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
@@ -2590,6 +2602,7 @@ class home_builder_OT_place_bathroom_fixture(bpy.types.Operator):
 class home_builder_OT_place_decoration(bpy.types.Operator):
     bl_idname = "home_builder.place_decoration"
     bl_label = "Place Decoration"
+    bl_options = {'UNDO'}
     
     filepath: bpy.props.StringProperty(name="Filepath",default="Error")
 
