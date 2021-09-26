@@ -640,14 +640,20 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
                                               ('RIGHT',"Right","Right Swing Door"),
                                               ('DOUBLE',"Double","Double Door")])
 
-    opening_1_height: bpy.props.EnumProperty(name="Opening 1 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
+    door_opening_height: bpy.props.EnumProperty(name="Door Opening Height",
+                                    items=home_builder_enums.OPENING_HEIGHTS,
+                                    default = '716.95')
     
     insert = None
     calculators = []
 
     def check(self, context):
+        hb_props = home_builder_utils.get_scene_props(context.scene)
+        if hb_props.use_fixed_closet_heights:
+            insert_height = self.insert.get_prompt("Door Height")
+            if insert_height:
+                insert_height.distance_value = pc_unit.inch(float(self.door_opening_height) / 25.4)
+
         door_swing = self.insert.get_prompt("Door Swing")
         if self.door_swing == 'LEFT':
             door_swing.set_value(0)
@@ -660,15 +666,27 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
     def execute(self, context):                   
         return {'FINISHED'}
 
-    def invoke(self,context,event):
-        self.get_assemblies(context)
+    def set_properties_from_prompts(self):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
+        if hb_props.use_fixed_closet_heights:        
+            door_height = self.insert.get_prompt("Door Height")
+            if door_height:
+                value = round(door_height.distance_value * 1000,2)
+                for index, height in enumerate(home_builder_enums.OPENING_HEIGHTS):
+                    if not value >= float(height[0]):
+                        self.door_opening_height = home_builder_enums.OPENING_HEIGHTS[index - 1][0]
+                        break
         door_swing = self.insert.get_prompt("Door Swing")
         if door_swing.get_value() == 0:
             self.door_swing = 'LEFT'
         if door_swing.get_value() == 1:
             self.door_swing = 'RIGHT'
         if door_swing.get_value() == 2:
-            self.door_swing = 'DOUBLE'            
+            self.door_swing = 'DOUBLE' 
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        self.set_properties_from_prompts()
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=300)
 
@@ -677,6 +695,8 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
         self.insert = pc_types.Assembly(bp)
 
     def draw(self, context):
+        hb_props = home_builder_utils.get_scene_props(context.scene)
+              
         layout = self.layout
         hot = self.insert.get_prompt("Half Overlay Top")
         hob = self.insert.get_prompt("Half Overlay Bottom")
@@ -693,8 +713,12 @@ class home_builder_OT_closet_door_prompts(bpy.types.Operator):
         row.prop(self,'door_swing',expand=True) 
         if door_height:         
             row = box.row()
-            row.label(text="Door Height")      
-            row.prop(door_height,'distance_value',text="")          
+            if hb_props.use_fixed_closet_heights:  
+                row.label(text="Door Opening Height")      
+                row.prop(self,'door_opening_height',text="") 
+            else:
+                row.label(text="Door Opening Height")      
+                row.prop(door_height,'distance_value',text="")          
         row = box.row()
         row.label(text="Open Door")      
         row.prop(open_door,'percentage_value',text="")  
@@ -867,32 +891,60 @@ class home_builder_OT_hanging_rod_prompts(bpy.types.Operator):
     bl_idname = "home_builder.hanging_rod_prompts"
     bl_label = "Hanging Rod Prompts"
 
+    top_opening_height: bpy.props.EnumProperty(name="Top Opening Height",
+                                    items=home_builder_enums.OPENING_HEIGHTS,
+                                    default = '716.95')
+
     insert = None
 
     def check(self, context):
+        self.insert.obj_prompts.hide_viewport = False
+        hb_props = home_builder_utils.get_scene_props(context.scene)
+        if hb_props.use_fixed_closet_heights:
+            top_opening_height = self.insert.get_prompt("Top Opening Height")
+            if top_opening_height:
+                top_opening_height.distance_value = pc_unit.inch(float(self.top_opening_height) / 25.4)
         return True
 
     def execute(self, context):                   
         return {'FINISHED'}
 
+    def set_properties_from_prompts(self):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
+        if hb_props.use_fixed_closet_heights:        
+            top_opening_height = self.insert.get_prompt("Top Opening Height")
+            if top_opening_height:
+                value = round(top_opening_height.distance_value * 1000,2)
+                for index, height in enumerate(home_builder_enums.OPENING_HEIGHTS):
+                    if not value >= float(height[0]):
+                        self.top_opening_height = home_builder_enums.OPENING_HEIGHTS[index - 1][0]
+                        break
+
     def invoke(self,context,event):
         self.get_assemblies(context)
+        self.set_properties_from_prompts()
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=200)
+        return wm.invoke_props_dialog(self, width=230)
 
     def get_assemblies(self,context):
         bp = home_builder_utils.get_hanging_rod_insert_bp(context.object)
         self.insert = pc_types.Assembly(bp)
 
     def draw(self, context):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
         layout = self.layout
         loc_from_top = self.insert.get_prompt("Hanging Rod Location From Top")
         top_opening_height = self.insert.get_prompt("Top Opening Height")
         setback = self.insert.get_prompt("Hanging Rod Setback")
+        if top_opening_height:
+            if hb_props.use_fixed_closet_heights:
+                row = layout.row()
+                row.label(text="Top Opening Height")
+                row.prop(self,'top_opening_height',text="") 
+            else:
+                layout.prop(top_opening_height,'distance_value',text="Top Opening Height")        
         if loc_from_top:
             layout.prop(loc_from_top,'distance_value',text="Rod Location From Top")
-        if top_opening_height:
-            layout.prop(top_opening_height,'distance_value',text="Top Opening Height")
         if setback:
             layout.prop(setback,'distance_value',text="Rod Setback")
 
@@ -903,7 +955,7 @@ class home_builder_OT_closet_wire_baskets_prompts(bpy.types.Operator):
 
     insert = None
 
-    def check(self, context):
+    def check(self, context):     
         return True
 
     def execute(self, context):                   
@@ -1114,14 +1166,21 @@ class home_builder_OT_closet_cubby_prompts(bpy.types.Operator):
                                                   ('TOP',"Top","Place on Top"),
                                                   ('FILL',"Fill","Fill Opening")])
 
-    opening_1_height: bpy.props.EnumProperty(name="Opening 1 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
+    cubby_height: bpy.props.EnumProperty(name="Cubby Height",
+                                    items=home_builder_enums.OPENING_HEIGHTS,
+                                    default = '716.95')
     
     insert = None
     calculators = []
 
     def check(self, context):
+        self.insert.obj_prompts.hide_viewport = False
+        hb_props = home_builder_utils.get_scene_props(context.scene)
+        if hb_props.use_fixed_closet_heights:
+            cubby_height = self.insert.get_prompt("Cubby Height")
+            if cubby_height:
+                cubby_height.distance_value = pc_unit.inch(float(self.cubby_height) / 25.4)  
+
         cubby_placement = self.insert.get_prompt("Cubby Placement")
         if self.cubby_location == 'BOTTOM':
             cubby_placement.set_value(0)
@@ -1134,15 +1193,28 @@ class home_builder_OT_closet_cubby_prompts(bpy.types.Operator):
     def execute(self, context):                   
         return {'FINISHED'}
 
-    def invoke(self,context,event):
-        self.get_assemblies(context)
+    def set_properties_from_prompts(self):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
+        if hb_props.use_fixed_closet_heights:        
+            cubby_height = self.insert.get_prompt("Cubby Height")
+            if cubby_height:
+                value = round(cubby_height.distance_value * 1000,2)
+                for index, height in enumerate(home_builder_enums.OPENING_HEIGHTS):
+                    if not value >= float(height[0]):
+                        self.cubby_height = home_builder_enums.OPENING_HEIGHTS[index - 1][0]
+                        break
+
         cubby_placement = self.insert.get_prompt("Cubby Placement")
         if cubby_placement.get_value() == 0:
             self.cubby_location = 'BOTTOM'
         if cubby_placement.get_value() == 1:
             self.cubby_location = 'TOP'
         if cubby_placement.get_value() == 2:
-            self.cubby_location = 'FILL'            
+            self.cubby_location = 'FILL'  
+
+    def invoke(self,context,event):
+        self.get_assemblies(context)
+        self.set_properties_from_prompts()
         wm = context.window_manager        
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=300)
@@ -1160,15 +1232,22 @@ class home_builder_OT_closet_cubby_prompts(bpy.types.Operator):
         row = layout.row()
         row.label(text="Location")
         row.prop(self,'cubby_location',expand=True)
+        if self.cubby_location != 'FILL':
+            hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
+            if hb_props.use_fixed_closet_heights:  
+                row = layout.row()
+                row.label(text="Cubby Height")        
+                row.prop(self,'cubby_height',text="")
+            else:
+                row = layout.row()
+                row.label(text="Cubby Height")        
+                row.prop(c_height,'distance_value',text="")
         row = layout.row()
         row.label(text="Shelf Quantity")           
         row.prop(h_qty,'quantity_value',text="")
         row = layout.row()
         row.label(text="Division Quantity")           
         row.prop(v_qty,'quantity_value',text="")        
-        row = layout.row()
-        row.label(text="Cubby Height")        
-        row.prop(c_height,'distance_value',text="")
         row = layout.row()
         row.label(text="Cubby Setback")           
         row.prop(c_setback,'distance_value',text="")
@@ -1294,13 +1373,36 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
     bl_label = "Splitter Prompts"
 
     opening_1_height: bpy.props.EnumProperty(name="Opening 1 Height",
-                                    items=home_builder_enums.PANEL_HEIGHTS,
-                                    default = '2131')
+                                    items=home_builder_enums.OPENING_HEIGHTS,
+                                    default = '716.95')
     
+    opening_2_height: bpy.props.EnumProperty(name="Opening 2 Height",
+                                    items=home_builder_enums.OPENING_HEIGHTS,
+                                    default = '716.95')
+
+    opening_3_height: bpy.props.EnumProperty(name="Opening 3 Height",
+                                    items=home_builder_enums.OPENING_HEIGHTS,
+                                    default = '716.95')
+
+    opening_4_height: bpy.props.EnumProperty(name="Opening 4 Height",
+                                    items=home_builder_enums.OPENING_HEIGHTS,
+                                    default = '716.95')
+
+    opening_5_height: bpy.props.EnumProperty(name="Opening 5 Height",
+                                    items=home_builder_enums.OPENING_HEIGHTS,
+                                    default = '716.95')
+
     insert = None
     calculators = []
 
     def check(self, context): 
+        hb_props = home_builder_utils.get_scene_props(context.scene)
+        if hb_props.use_fixed_closet_heights:
+            for i in range(1,6):
+                opening = self.insert.get_prompt("Opening " + str(i) + " Height")
+                if opening:
+                    height = eval("float(self.opening_" + str(i) + "_height)/1000")
+                    opening.set_value(height)        
         for calculator in self.calculators:
             calculator.calculate()
         return True
@@ -1308,9 +1410,22 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
     def execute(self, context):                   
         return {'FINISHED'}
 
+    def set_properties_from_prompts(self):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
+        if hb_props.use_fixed_closet_heights:        
+            for i in range(1,6):
+                opening = self.insert.get_prompt("Opening " + str(i) + " Height")
+                if opening:
+                    value = round(opening.distance_value * 1000,2)
+                    for index, height in enumerate(home_builder_enums.OPENING_HEIGHTS):
+                        if not value >= float(height[0]):
+                            exec("self.opening_" + str(i) + "_height = home_builder_enums.OPENING_HEIGHTS[index - 1][0]")
+                            break
+
     def invoke(self,context,event):
         self.get_assemblies(context) 
         self.get_calculators(self.insert.obj_bp)
+        self.set_properties_from_prompts()
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=300)
 
@@ -1337,6 +1452,8 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
         return number_of_equal_openings
 
     def draw_prompts(self,layout,name="Height"):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
+
         for i in range(1,10):
             opening = self.insert.get_prompt("Opening " + str(i) + " " + name)
             if opening:
@@ -1352,7 +1469,13 @@ class home_builder_OT_splitter_prompts(bpy.types.Operator):
                 if opening.equal:
                     row.label(text=str(pc_unit.meter_to_active_unit(opening.distance_value)) + '"')
                 else:
-                    row.prop(opening,'distance_value',text="")
+                    if name == 'Height':
+                        if hb_props.use_fixed_closet_heights:
+                            row.prop(self,'opening_' + str(i) + '_height',text="")
+                        else:
+                            row.prop(opening,'distance_value',text="")
+                    else:
+                        row.prop(opening,'distance_value',text="")
 
     def draw(self, context):
         layout = self.layout

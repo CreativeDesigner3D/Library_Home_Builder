@@ -923,8 +923,7 @@ class Base_Doors(Doors):
 
     def draw(self):
         self.add_prompts()        
-        door_height = self.add_prompt("Door Height",'DISTANCE',pc_unit.millimeter(716.95))
-        door_height_var = door_height.get_var('door_height_var')
+        self.add_prompt("Door Height",'DISTANCE',pc_unit.millimeter(716.95))
 
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         front_pointer = props.cabinet_door_pointers["Base Cabinet Doors"]
@@ -949,6 +948,7 @@ class Base_Doors(Doors):
         s_thickness = self.get_prompt("Shelf Thickness").get_var('s_thickness')
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        door_height_var = self.get_prompt("Door Height").get_var("door_height_var")
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
