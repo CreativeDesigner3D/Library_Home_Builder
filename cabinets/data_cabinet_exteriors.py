@@ -343,6 +343,8 @@ class Doors(Cabinet_Exterior):
         common_prompts.add_pull_prompts(self)
         common_prompts.add_thickness_prompts(self)
 
+        self.add_prompt("Back Inset",'DISTANCE',0)
+
         carcass_type = self.get_prompt("Carcass Type")
         carcass_type.set_value(self.carcass_type)
 
@@ -490,6 +492,8 @@ class Drawers(Cabinet_Exterior):
         common_prompts.add_front_overlay_prompts(self)
         common_prompts.add_drawer_pull_prompts(self)
 
+        self.add_prompt("Back Inset",'DISTANCE',0)
+
         carcass_type = self.get_prompt("Carcass Type")
         carcass_type.set_value("Drawer")
 
@@ -547,6 +551,8 @@ class Door_Drawer(Cabinet_Exterior):
         common_prompts.add_thickness_prompts(self)
         common_prompts.add_drawer_pull_prompts(self)
 
+        self.add_prompt("Back Inset",'DISTANCE',0)
+        
         door_swing_prompt = self.get_prompt("Door Swing")
         door_swing_prompt.set_value(self.door_swing)
 
