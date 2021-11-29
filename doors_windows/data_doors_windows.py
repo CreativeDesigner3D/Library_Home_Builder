@@ -47,7 +47,7 @@ def get_door_handle(door_handle_category,door_handle_name):
     else:
         return path.join(ASSET_DIR, door_handle_category, door_handle_name + ".blend") 
 
-class Standard_Door(pc_types.Assembly):
+class Door(pc_types.Assembly):
 
     width = pc_unit.inch(36)
     height = pc_unit.inch(70)
@@ -73,7 +73,7 @@ class Standard_Door(pc_types.Assembly):
 
         door_frame_width = door_frame.get_prompt("Door Frame Width").get_value()
 
-        self.get_prompt("Door Frame Width").set_value(door_frame_width)        
+        self.get_prompt("Door Frame Width").set_value(door_frame_width)    
 
     def add_door_handle(self,door_panel,door_handle_category="",door_handle_name=""):
         door_panel_width = door_panel.obj_x.pyclone.get_var('location.x','door_panel_width')
@@ -109,6 +109,39 @@ class Standard_Door(pc_types.Assembly):
         mirror.use_axis[0] = False
         mirror.use_axis[1] = True
         mirror.use_axis[2] = False
+
+    def add_hole_and_jamb(self):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')        
+        boolean_overhang_var = self.get_prompt("Boolean Overhang").get_var("boolean_overhang_var")
+        door_frame_reveal = self.get_prompt("Door Frame Reveal").get_var("door_frame_reveal")
+        door_frame_width_parent = self.get_prompt("Door Frame Width").get_var("door_frame_width_parent")
+
+        hole = self.add_assembly(home_builder_parts.Hole())
+        hole.set_name("Hole")
+        hole.loc_x(value=0)
+        hole.loc_y('-boolean_overhang_var',[boolean_overhang_var])
+        hole.loc_z('-boolean_overhang_var',[boolean_overhang_var])
+        hole.rot_z(value=math.radians(0))
+        hole.dim_x('width',[width])
+        hole.dim_y('depth+(boolean_overhang_var*2)',[depth,boolean_overhang_var])
+        hole.dim_z('height+boolean_overhang_var',[height,boolean_overhang_var])
+
+        door_jamb = pc_types.Assembly(self.add_assembly_from_file(get_default_door_jamb()))
+        self.add_assembly(door_jamb)
+        door_jamb.set_name("Door Jamb")
+        door_jamb.loc_x('door_frame_reveal',[door_frame_reveal])
+        door_jamb.loc_y(value=0)
+        door_jamb.loc_z(value=0)
+        door_jamb.dim_x('width-door_frame_reveal*2',[width,door_frame_reveal])
+        door_jamb.dim_y('depth',[depth])
+        door_jamb.dim_z('height-door_frame_reveal',[height,door_frame_reveal])  
+        home_builder_pointers.assign_pointer_to_assembly(door_jamb,"Entry Door Frame")
+        door_frame_width = door_jamb.get_prompt("Door Frame Width")
+        door_frame_width.set_formula('door_frame_width_parent',[door_frame_width_parent])
+
+class Swing_Door(Door):
 
     def add_doors(self,door_panel_category="",door_panel_name="",door_handle_category="",door_handle_name=""):
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -175,6 +208,7 @@ class Standard_Door(pc_types.Assembly):
     def draw_assembly(self):
         self.create_assembly("Door")
         self.obj_bp["IS_DOOR_BP"] = True
+        self.obj_bp["IS_SWING_DOOR"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.door_prompts" 
         self.obj_bp["MENU_ID"] = "HOME_BUILDER_MT_doors"
 
@@ -195,39 +229,103 @@ class Standard_Door(pc_types.Assembly):
         self.obj_x.location.x = self.width
         self.obj_y.location.y = self.depth
         self.obj_z.location.z = self.height
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        boolean_overhang_var = self.get_prompt("Boolean Overhang").get_var("boolean_overhang_var")
-        door_frame_reveal = self.get_prompt("Door Frame Reveal").get_var("door_frame_reveal")
-        door_frame_width_parent = self.get_prompt("Door Frame Width").get_var("door_frame_width_parent")
 
-        hole = self.add_assembly(home_builder_parts.Hole())
-        hole.set_name("Hole")
-        hole.loc_x(value=0)
-        hole.loc_y('-boolean_overhang_var',[boolean_overhang_var])
-        hole.loc_z('-boolean_overhang_var',[boolean_overhang_var])
-        hole.rot_z(value=math.radians(0))
-        hole.dim_x('width',[width])
-        hole.dim_y('depth+(boolean_overhang_var*2)',[depth,boolean_overhang_var])
-        hole.dim_z('height+boolean_overhang_var',[height,boolean_overhang_var])
-
-        door_jamb = pc_types.Assembly(self.add_assembly_from_file(get_default_door_jamb()))
-        self.add_assembly(door_jamb)
-        door_jamb.set_name("Door Jamb")
-        door_jamb.loc_x('door_frame_reveal',[door_frame_reveal])
-        door_jamb.loc_y(value=0)
-        door_jamb.loc_z(value=0)
-        door_jamb.dim_x('width-door_frame_reveal*2',[width,door_frame_reveal])
-        door_jamb.dim_y('depth',[depth])
-        door_jamb.dim_z('height-door_frame_reveal',[height,door_frame_reveal])  
-        home_builder_pointers.assign_pointer_to_assembly(door_jamb,"Entry Door Frame")
-        door_frame_width = door_jamb.get_prompt("Door Frame Width")
-        door_frame_width.set_formula('door_frame_width_parent',[door_frame_width_parent])
-
+        self.add_hole_and_jamb()
         self.add_frame()
         self.set_prompts()
         
+class Sliding_Door(Door):
+
+    def add_doors(self,door_panel_category="",door_panel_name="",door_handle_category="",door_handle_name=""):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        height = self.obj_z.pyclone.get_var('location.z','height')        
+        door_reveal = self.get_prompt("Door Reveal").get_var('door_reveal')
+        door_thickness = self.get_prompt("Door Thickness").get_var('door_thickness')
+        entry_door_swing = self.get_prompt("Entry Door Swing").get_var('entry_door_swing')
+        door_frame_width = self.get_prompt("Door Frame Width").get_var('door_frame_width')
+        door_frame_reveal = self.get_prompt("Door Frame Reveal").get_var('door_frame_reveal')
+        outswing = self.get_prompt("Outswing").get_var('outswing')
+        open_door = self.get_prompt("Open Door").get_var('open_door')
+        door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
+        turn_off_door_panels = self.get_prompt("Turn Off Door Panels").get_var('turn_off_door_panels')
+
+        #LEFT DOOR
+        l_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_category,door_panel_name)))
+        l_door_panel.set_name("Left Door Panel")
+        l_door_panel.obj_bp["IS_ENTRY_DOOR_PANEL"] = True
+        self.add_assembly(l_door_panel)
+        l_open_door = l_door_panel.get_prompt("Open Door")
+        l_door_panel.loc_x('IF(outswing,width-door_frame_width-door_reveal-door_frame_reveal,door_frame_width+door_reveal+door_frame_reveal)',[outswing,width,door_frame_width,door_reveal,door_frame_reveal])
+        l_door_panel.loc_y('IF(outswing,depth,0)',[outswing,depth])
+        l_door_panel.loc_z(value = 0)
+        if not l_open_door:
+            l_door_panel.rot_z('IF(outswing,radians(180),0)-door_rotation*open_door',[open_door,door_rotation,outswing])
+        else:
+            l_door_panel.rot_z('IF(outswing,radians(180),0)',[outswing])
+            l_open_door.set_formula('open_door',[open_door])
+        l_door_panel.dim_x('IF(entry_door_swing==2,(width-(door_frame_width*2)-(door_reveal*3)-(door_frame_reveal*2))/2,width-(door_frame_width*2)-(door_reveal*2)-(door_frame_reveal*2))',[width,entry_door_swing,door_frame_width,door_reveal,door_frame_reveal])
+        l_door_panel.dim_y('door_thickness',[door_thickness])
+        l_door_panel.dim_z('height-door_frame_width-door_reveal-door_frame_reveal',[height,door_frame_width,door_reveal,door_frame_reveal])       
+        home_builder_pointers.assign_materials_to_assembly(l_door_panel)
+        hide = l_door_panel.get_prompt("Hide")
+        hide.set_formula('IF(OR(entry_door_swing==1,turn_off_door_panels),True,False)',[entry_door_swing,turn_off_door_panels]) 
+
+        self.add_door_handle(l_door_panel,door_handle_category,door_handle_name)
+        home_builder_utils.update_assembly_id_props(l_door_panel,self)
+
+        #RIGHT DOOR
+        r_door_panel = pc_types.Assembly(self.add_assembly_from_file(get_door_panel(door_panel_category,door_panel_name)))
+        r_open_door = r_door_panel.get_prompt("Open Door")
+        r_door_panel.set_name("Right Door Panel")
+        r_door_panel.obj_bp["IS_ENTRY_DOOR_PANEL"] = True
+        self.add_assembly(r_door_panel)
+        r_door_panel.loc_x('IF(outswing,door_frame_width+door_reveal+door_frame_reveal,width-door_frame_width-door_reveal-door_frame_reveal)',[outswing,width,door_frame_width,door_reveal,door_frame_reveal])
+        r_door_panel.loc_y('IF(outswing,depth,0)',[outswing,depth])
+        r_door_panel.loc_z(value = 0)
+        if not r_open_door:
+            r_door_panel.rot_z('IF(outswing,radians(180),0)+door_rotation*open_door',[open_door,door_rotation,outswing])
+        else:
+            r_door_panel.rot_z('IF(outswing,radians(180),0)',[outswing])
+            r_open_door.set_formula('open_door',[open_door])
+        r_door_panel.dim_x('IF(entry_door_swing==2,(width-(door_frame_width*2)-(door_reveal*3)-(door_frame_reveal*2))/2,width-(door_frame_width*2)-(door_reveal*2)-(door_frame_reveal*2))*-1',[width,entry_door_swing,door_frame_width,door_reveal,door_frame_reveal])
+        r_door_panel.dim_y('door_thickness',[door_thickness])
+        r_door_panel.dim_z('height-door_frame_width-door_reveal-door_frame_reveal',[height,door_frame_width,door_reveal,door_frame_reveal])      
+        home_builder_pointers.assign_materials_to_assembly(r_door_panel)
+        hide = r_door_panel.get_prompt("Hide")
+        hide.set_formula('IF(OR(entry_door_swing==0,turn_off_door_panels),True,False)',[entry_door_swing,turn_off_door_panels]) 
+
+        self.add_door_handle(r_door_panel,door_handle_category,door_handle_name)
+        home_builder_utils.update_assembly_id_props(r_door_panel,self)
+
+    def draw_assembly(self):
+        self.create_assembly("Door")
+        self.obj_bp["IS_DOOR_BP"] = True
+        self.obj_bp["IS_SLIDING_DOOR"] = True
+        self.obj_bp["PROMPT_ID"] = "home_builder.door_prompts" 
+        self.obj_bp["MENU_ID"] = "HOME_BUILDER_MT_doors"
+
+        self.add_prompt("Entry Door Swing",'COMBOBOX',0,["Left","Right","Double"])
+        self.add_prompt("Door Thickness",'DISTANCE',pc_unit.inch(1.5))
+        self.add_prompt("Door Reveal",'DISTANCE',pc_unit.inch(.125))
+        self.add_prompt("Door Frame Width",'DISTANCE',pc_unit.inch(3))
+        self.add_prompt("Door Frame Reveal",'DISTANCE',pc_unit.inch(.125))
+        self.add_prompt("Handle Vertical Location",'DISTANCE',pc_unit.inch(36))
+        self.add_prompt("Handle Location From Edge",'DISTANCE',pc_unit.inch(2.5))
+        self.add_prompt("Outswing",'CHECKBOX',True)
+        self.add_prompt("Turn Off Handles",'CHECKBOX',False)
+        self.add_prompt("Turn Off Door Panels",'CHECKBOX',False)
+        self.add_prompt("Open Door",'PERCENTAGE',0)
+        self.add_prompt("Door Rotation",'ANGLE',120)
+        self.add_prompt("Boolean Overhang",'DISTANCE',pc_unit.inch(1))
+        
+        self.obj_x.location.x = self.width
+        self.obj_y.location.y = self.depth
+        self.obj_z.location.z = self.height
+
+        self.add_hole_and_jamb()
+        self.add_frame()
+        self.set_prompts()
 
 class Standard_Window(pc_types.Assembly):
 

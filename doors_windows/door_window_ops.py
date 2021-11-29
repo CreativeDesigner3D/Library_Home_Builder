@@ -153,7 +153,10 @@ class home_builder_OT_door_prompts(bpy.types.Operator):
         
         bp_door = home_builder_utils.get_door_bp(context.object)  
         if bp_door:
-            self.assembly = data_doors_windows.Standard_Door(bp_door)
+            if 'IS_SWING_DOOR' in bp_door:
+                self.assembly = data_doors_windows.Swing_Door(bp_door)
+            if 'IS_SLIDING_DOOR' in bp_door:
+                self.assembly = data_doors_windows.Sliding_Door(bp_door)
         for child in self.assembly.obj_bp.children:
             if "IS_ENTRY_DOOR_PANEL" in child:
                 self.door_panels.append(child)
