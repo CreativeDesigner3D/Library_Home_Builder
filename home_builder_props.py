@@ -871,7 +871,8 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.prop(self,"use_fixed_closet_heights",text="")   
             row = box.row(align=True)
             row.label(text="Default Hanging Height")
-            row.prop(self,"default_closet_hanging_height",text="")   
+            row.prop(self,"default_closet_hanging_height",text="")  
+            
             row = box.row(align=True)
             row.label(text="Show Closet Panel Drilling")
             row.prop(self,"show_closet_panel_drilling",text="")    
@@ -884,13 +885,17 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row.label(text="Default Closet Panel Sizes:")
             row = box.row(align=True)
             row.label(text="Base Panel Height")
-            row.prop(self,"base_closet_panel_height",text="")    
+            row.prop(self,"base_closet_panel_height",text="")   
+            row.operator('home_builder.update_closet_height',text="",icon='FILE_REFRESH').product_type = 'BASE' 
             row = box.row(align=True)
             row.label(text="Hanging Panel Height")            
             row.prop(self,"hanging_closet_panel_height",text="")  
+            row.operator('home_builder.update_closet_height',text="",icon='FILE_REFRESH').product_type = 'HANGING'
             row = box.row(align=True)
             row.label(text="Tall Panel Height")            
             row.prop(self,"tall_closet_panel_height",text="")  
+            row.label(text="",icon='BLANK1')
+
             row = box.row(align=True)
             row.label(text="Panel Depths")
             row.prop(self,"default_base_closet_depth",text="Base")  

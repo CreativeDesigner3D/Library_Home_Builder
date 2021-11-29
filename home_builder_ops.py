@@ -3512,6 +3512,7 @@ class home_builder_OT_update_checkbox_prompt_in_scene(bpy.types.Operator):
 class home_builder_OT_update_closet_height(bpy.types.Operator):
     bl_idname = "home_builder.update_closet_height"
     bl_label = "Update Closet Height"
+    bl_description = "This will automatically set the size of the panel based on the base and hanging panel height. This makes it so base units can be easily placed under hanging units"
 
     product_type: bpy.props.EnumProperty(name="Product Type",
                                          items=[('BASE',"Base","Base Units"),
