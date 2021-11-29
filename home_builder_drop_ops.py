@@ -162,6 +162,7 @@ class home_builder_OT_place_room(bpy.types.Operator):
         self.starting_point = ()
         self.parent_obj_dict = {}
         self.all_objects = []
+        self.empties = []
 
     def execute(self, context):
         self.reset_properties()
