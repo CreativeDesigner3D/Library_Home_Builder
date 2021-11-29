@@ -46,7 +46,7 @@ def add_front_overlay_prompts(assembly):
     assembly.add_prompt("Horizontal Gap",'DISTANCE',pc_unit.inch(.125))
 
 def add_closet_toe_kick_prompts(assembly):
-    assembly.add_prompt("Closet Kick Height",'DISTANCE',pc_unit.inch(2.5)) 
+    assembly.add_prompt("Closet Kick Height",'DISTANCE',pc_unit.millimeter(96)) 
     assembly.add_prompt("Closet Kick Setback",'DISTANCE',pc_unit.inch(1.625)) 
 
 def add_closet_thickness_prompts(assembly):

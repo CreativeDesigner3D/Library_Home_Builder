@@ -493,6 +493,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
                                                        default=pc_unit.inch(1.0),
                                                        unit='LENGTH')     
 
+    countertop_thickness: bpy.props.FloatProperty(name="Countertop Thickness",
+                                                       description="This is the thickness of countertops.",
+                                                       default=pc_unit.inch(1.5),
+                                                       unit='LENGTH')     
+
     #CABINET LIGHTING
     add_toe_kick_lighting: bpy.props.BoolProperty(name="Add Toe Kick Lighting",
                                                    description="This will add toe kick lighting to cabinets",
@@ -528,6 +533,10 @@ class Home_Builder_Scene_Props(PropertyGroup):
     #CLOSET OPTIONS
     use_fixed_closet_heights: bpy.props.BoolProperty(name="Use Fixed Closet Heights",
                                            description="Check this option to use the 32mm system and force panel heights to change in 32mm increments.",
+                                           default=True) 
+
+    add_bottom_filler_shelf: bpy.props.BoolProperty(name="Add Bottom Filler Shelf",
+                                           description="Check this option to add a bottom shelf when turning on filler panels.",
                                            default=False) 
 
     default_closet_hanging_height: bpy.props.EnumProperty(name="Default Closet Hanging Height",
@@ -549,6 +558,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
     default_base_closet_depth: bpy.props.FloatProperty(name="Default Base Closet Depth",
                                                  description="Default depth for base closets",
                                                  default=pc_unit.inch(14.0),
+                                                 unit='LENGTH')
+
+    opening_height_to_fill_doors: bpy.props.FloatProperty(name="Opening Height to Fill Doors",
+                                                 description="The maximum opening height to automatically fill opening when placing closet doors.",
+                                                 default=pc_unit.inch(35.0),
                                                  unit='LENGTH')
 
     default_hanging_closet_depth: bpy.props.FloatProperty(name="Default hanging Closet Depth",
@@ -582,6 +596,11 @@ class Home_Builder_Scene_Props(PropertyGroup):
 
     shelf_clip_gap: bpy.props.FloatProperty(name="Shelf Clip Gap",
                                                  description="Amount to deduct from shelf width for adjustable shelf clips",
+                                                 default=0,
+                                                 unit='LENGTH')
+
+    extend_panel_amount: bpy.props.FloatProperty(name="Extend Panel Amount",
+                                                 description="The amount to extend the panels to countertop",
                                                  default=0,
                                                  unit='LENGTH')
 
@@ -848,14 +867,17 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row = box.row(align=True)
             row.label(text="General Construction Options:")
             row = box.row(align=True)
-            row.label(text="Use Fixed Closet Heights:")
+            row.label(text="Use Fixed Closet Heights")
             row.prop(self,"use_fixed_closet_heights",text="")   
             row = box.row(align=True)
-            row.label(text="Default Hanging Height:")
+            row.label(text="Default Hanging Height")
             row.prop(self,"default_closet_hanging_height",text="")   
             row = box.row(align=True)
             row.label(text="Show Closet Panel Drilling")
             row.prop(self,"show_closet_panel_drilling",text="")    
+            row = box.row(align=True)
+            row.label(text="Opening Height to Fill Doors")
+            row.prop(self,"opening_height_to_fill_doors",text="")                
 
             box = prop_col.box()
             row = box.row(align=True)
@@ -881,6 +903,9 @@ class Home_Builder_Scene_Props(PropertyGroup):
             row = box.row(align=True)
             row.label(text="Closet Corner Spacing")
             row.prop(self,"closet_corner_spacing",text="")    
+            row = box.row(align=True)
+            row.label(text="Add Bottom Filler Panels")
+            row.prop(self,"add_bottom_filler_shelf",text="")
     
         if self.default_tabs == 'DOOR_SIZES':
             box = prop_col.box()
@@ -1469,6 +1494,7 @@ class Home_Builder_Object_Props(PropertyGroup):
                                                 type=bpy.types.Object,
                                                 description="This is the used to store objects that are connected together.")
 
+    #NOT SURE IF THIS IS NEEDED SINCE I PARENT THE INSERTS TO OPENINGS NOW
     insert_opening: bpy.props.PointerProperty(name="Insert Opening",
                                                 type=bpy.types.Object,
                                                 description="This is the opening the insert is assigned to.")
@@ -1479,6 +1505,7 @@ class Home_Builder_Object_Props(PropertyGroup):
 
     pointer_name: bpy.props.StringProperty(name="Pointer Name")
 
+    opening_number: bpy.props.IntProperty(name="Opening Number") 
     material_group_index: bpy.props.IntProperty(name="Material Group Index",update=update_material_group_index)                
     pull_group_index: bpy.props.IntProperty(name="Pull Group Index")
     cabinet_door_group_index: bpy.props.IntProperty(name="Cabinet Door Group Index")

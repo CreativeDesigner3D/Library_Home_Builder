@@ -33,7 +33,7 @@ class Corner_Filler(data_closets.Closet_Inside_Corner_Filler):
     def __init__(self):
         pass
 
-class Shelves(data_closet_inserts.Shelves):
+class Adj_Shelves(data_closet_inserts.Shelves):
 
     def __init__(self):
         pass    
@@ -93,22 +93,22 @@ class Wire_Baskets(data_closet_inserts.Wire_Baskets):
     def __init__(self):
         pass            
 
-class Vertical_Splitter_1(data_closet_inserts.Vertical_Splitter):
+class Fixed_Shelf_1(data_closet_inserts.Vertical_Splitter):
 
     def __init__(self):
         self.splitter_qty = 1          
 
-class Vertical_Splitter_2(data_closet_inserts.Vertical_Splitter):
+class Fixed_Shelf_2(data_closet_inserts.Vertical_Splitter):
 
     def __init__(self):
         self.splitter_qty = 2    
 
-class Vertical_Splitter_3(data_closet_inserts.Vertical_Splitter):
+class Fixed_Shelf_3(data_closet_inserts.Vertical_Splitter):
 
     def __init__(self):
         self.splitter_qty = 3    
 
-class Vertical_Splitter_4(data_closet_inserts.Vertical_Splitter):
+class Fixed_Shelf_4(data_closet_inserts.Vertical_Splitter):
 
     def __init__(self):
         self.splitter_qty = 4              

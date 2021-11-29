@@ -1481,11 +1481,12 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
                 for child in opening.obj_bp.children:
                     if child.type == 'MESH':
                         child.select_set(True)
-                loc_pos = opening.obj_bp.matrix_world
-                self.insert.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
-                self.insert.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
-                self.insert.obj_bp.location.z = opening.obj_bp.matrix_world[2][3]
-                self.insert.obj_bp.rotation_euler.z = loc_pos.to_euler()[2]
+                self.insert.obj_bp.parent = opening.obj_bp
+                # loc_pos = opening.obj_bp.matrix_world
+                # self.insert.obj_bp.location.x = opening.obj_bp.matrix_world[0][3]
+                # self.insert.obj_bp.location.y = opening.obj_bp.matrix_world[1][3]
+                # self.insert.obj_bp.location.z = opening.obj_bp.matrix_world[2][3]
+                # self.insert.obj_bp.rotation_euler.z = loc_pos.to_euler()[2]
                 self.insert.obj_x.location.x = opening.obj_x.location.x
                 self.insert.obj_y.location.y = opening.obj_y.location.y
                 self.insert.obj_z.location.z = opening.obj_z.location.z
@@ -1549,24 +1550,28 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
 
     def confirm_placement(self,context,opening):
         if opening:
-            self.insert.obj_bp.parent = opening.obj_bp.parent
-            self.insert.obj_bp.location = opening.obj_bp.location
-            self.insert.obj_bp.rotation_euler = (0,0,0)
-            self.insert.obj_x.location.x = opening.obj_x.location.x
-            self.insert.obj_y.location.y = opening.obj_y.location.y
-            self.insert.obj_z.location.z = opening.obj_z.location.z
+            self.insert.obj_bp.parent = opening.obj_bp
+            # self.insert.obj_bp.parent = opening.obj_bp.parent
+            # self.insert.obj_bp.location = opening.obj_bp.location
+            # self.insert.obj_bp.rotation_euler = (0,0,0)
+            self.insert.obj_x.location.x = 0
+            self.insert.obj_y.location.y = 0
+            self.insert.obj_z.location.z = 0
             o_left_depth = opening.get_prompt('Left Depth').get_var('o_left_depth')
             o_right_depth = opening.get_prompt('Right Depth').get_var('o_right_depth')
+            o_back_inset = opening.get_prompt('Back Inset').get_var('o_back_inset')
             i_left_depth = self.insert.get_prompt('Left Depth')
             i_right_depth = self.insert.get_prompt('Right Depth')
+            i_back_inset = self.insert.get_prompt('Back Inset')
             i_left_depth.set_formula('o_left_depth',[o_left_depth])
             i_right_depth.set_formula('o_right_depth',[o_right_depth])
+            i_back_inset.set_formula('o_back_inset',[o_back_inset])
             
             props = home_builder_utils.get_object_props(self.insert.obj_bp)
             props.insert_opening = opening.obj_bp
 
             opening.obj_bp["IS_FILLED"] = True
-            home_builder_utils.copy_drivers(opening.obj_bp,self.insert.obj_bp)
+            # home_builder_utils.copy_drivers(opening.obj_bp,self.insert.obj_bp)
             home_builder_utils.copy_drivers(opening.obj_x,self.insert.obj_x)
             home_builder_utils.copy_drivers(opening.obj_y,self.insert.obj_y)
             home_builder_utils.copy_drivers(opening.obj_z,self.insert.obj_z)
@@ -1582,6 +1587,17 @@ class home_builder_OT_place_closet_insert(bpy.types.Operator):
         for cal in self.calculators:
             cal.calculate()
         self.refresh_data(False)
+        self.set_prompts_for_insert()
+
+    def set_prompts_for_insert(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        
+        closet_doors = home_builder_utils.get_closet_doors_bp(self.insert.obj_bp)
+        if closet_doors:
+            if self.insert.obj_z.location.z < props.opening_height_to_fill_doors:
+                fill_opening = self.insert.get_prompt("Fill Opening")
+                if fill_opening:
+                    fill_opening.set_value(True)
 
     def modal(self, context, event):
         
@@ -1747,7 +1763,7 @@ class home_builder_OT_place_closet_part(bpy.types.Operator):
             home_builder_utils.copy_drivers(opening.obj_x,self.part.obj_x)
             home_builder_utils.copy_drivers(opening.obj_y,self.part.obj_y)
             home_builder_utils.copy_drivers(opening.obj_prompts,self.part.obj_prompts)
-            home_builder_pointers.assign_cabinet_shelf_pointers(self.part)
+            home_builder_pointers.assign_double_sided_pointers(self.part)
             home_builder_pointers.assign_materials_to_assembly(self.part)
 
         self.refresh_data(False)
@@ -1886,7 +1902,7 @@ class home_builder_OT_place_closet_cleat(bpy.types.Operator):
         path = os.path.join(home_builder_paths.get_assembly_path(),"Part.blend")
         self.part = pc_types.Assembly(filepath=path)
         self.part.obj_z.location.z = pc_unit.inch(.75)
-        self.part.add_prompt("Cleat Inset",'DISTANCE',0)
+        self.part.add_prompt("Cleat Inset",'DISTANCE',pc_unit.inch(0))
 
         self.exclude_objects.append(self.part.obj_bp)
         for obj in self.part.obj_bp.children:
@@ -1932,7 +1948,7 @@ class home_builder_OT_place_closet_cleat(bpy.types.Operator):
             
             home_builder_utils.copy_drivers(opening.obj_x,self.part.obj_x)
             home_builder_utils.copy_drivers(opening.obj_prompts,self.part.obj_prompts)
-            home_builder_pointers.assign_cabinet_shelf_pointers(self.part)
+            home_builder_pointers.assign_double_sided_pointers(self.part)
             home_builder_pointers.assign_materials_to_assembly(self.part)
 
         self.refresh_data(False)
@@ -2053,7 +2069,7 @@ class home_builder_OT_place_closet_back(bpy.types.Operator):
         path = os.path.join(home_builder_paths.get_assembly_path(),"Part.blend")
         self.part = pc_types.Assembly(filepath=path)
         self.part.obj_z.location.z = pc_unit.inch(.75)
-        self.part.add_prompt('Back Inset','DISTANCE',value=0)
+        self.part.add_prompt('Back Inset','DISTANCE',value=pc_unit.inch(.25))
 
         self.exclude_objects.append(self.part.obj_bp)
         for obj in self.part.obj_bp.children:
@@ -2095,8 +2111,11 @@ class home_builder_OT_place_closet_back(bpy.types.Operator):
             depth_var = opening.obj_y.pyclone.get_var('location.y','depth_var')
             self.part.loc_y('depth_var-back_inset',[depth_var,back_inset])    
 
+            opening_back_inset = opening.get_prompt("Back Inset")
+            opening_back_inset.set_value(pc_unit.inch(1))
+
             home_builder_utils.copy_drivers(opening.obj_prompts,self.part.obj_prompts)
-            home_builder_pointers.assign_cabinet_shelf_pointers(self.part)
+            home_builder_pointers.assign_double_sided_pointers(self.part)
             home_builder_pointers.assign_materials_to_assembly(self.part)
 
         self.refresh_data(False)

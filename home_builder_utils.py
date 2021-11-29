@@ -75,6 +75,14 @@ def get_closet_doors_bp(obj):
     elif obj.parent:
         return get_closet_doors_bp(obj.parent)
 
+def get_closet_panel_bp(obj):
+    if not obj:
+        return None    
+    if "IS_PANEL_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_panel_bp(obj.parent)
+
 def get_closet_drawers_bp(obj):
     if not obj:
         return None    
@@ -82,6 +90,14 @@ def get_closet_drawers_bp(obj):
         return obj
     elif obj.parent:
         return get_closet_drawers_bp(obj.parent)
+
+def get_closet_bottom_support_cleat_bp(obj):
+    if not obj:
+        return None    
+    if "IS_BOTTOM_SUPPORT_CLEAT_BP" in obj:
+        return obj
+    elif obj.parent:
+        return get_closet_bottom_support_cleat_bp(obj.parent)
 
 def get_closet_cubby_bp(obj):
     if not obj:
@@ -492,4 +508,9 @@ def get_file_browser_path(context):
             for space in area.spaces:
                 if space.type == 'FILE_BROWSER':
                     params = space.params     
-                    return params.directory.decode('utf-8')    
+                    return params.directory.decode('utf-8')  
+
+def delete_driver_variables(drivers):
+    for driver in drivers:
+        for var in driver.driver.variables:
+            driver.driver.variables.remove(var)   

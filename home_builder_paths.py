@@ -19,6 +19,12 @@ def get_asset_folder_path():
     else:
         return os.path.join(os.path.dirname(__file__),'assets')
 
+def get_object_path():
+    return os.path.join(get_asset_folder_path(),'OBJECTS') 
+
+def get_metabox_hardware_path():
+    return os.path.join(get_object_path(),'Hardware Metabox') 
+
 def get_assembly_path():
     return os.path.join(get_asset_folder_path(),'ASSEMBLIES') 
 

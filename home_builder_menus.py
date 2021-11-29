@@ -49,15 +49,17 @@ class HOME_BUILDER_MT_closets(bpy.types.Menu):
     def draw(self, context):
         bp = home_builder_utils.get_closet_bp(context.object)
         layout = self.layout
-        layout.operator('home_builder.closet_prompts',icon='WINDOW')
-        layout.operator('home_builder.change_closet_openings',icon='WINDOW')
-        layout.operator('home_builder.change_closet_offsets',text="Change Closet Offsets",icon='ARROW_LEFTRIGHT')
+        layout.operator('home_builder.closet_prompts',icon='WINDOW')     
+        layout.operator('home_builder.change_closet_openings',icon='UV_ISLANDSEL')
+        layout.operator('home_builder.change_closet_offsets',text="Change Closet Offsets",icon='TRACKING_CLEAR_FORWARDS')
         layout.operator('home_builder.free_move_object',text="Grab Closet",icon='VIEW_PAN').obj_bp_name = bp.name  
         layout.operator('home_builder.duplicate_closet_insert',text="Duplicate Insert",icon='DUPLICATE')
+        layout.operator('home_builder.move_closet_insert',text="Move Insert",icon='ARROW_LEFTRIGHT')
         layout.operator('home_builder.add_drawer',text="Add Drawer",icon='UGLYPACKAGE')
         layout.operator('home_builder.edit_part',text="Edit Part Shape",icon='EDITMODE_HLT')
+        layout.operator('home_builder.add_bottom_support_cleat',text="Add Bottom Support Cleat",icon='NODE_TOP')
         layout.separator()
-        layout.operator('home_builder.delete_closet_opening',text="Delete Insert",icon='X')
+        layout.operator('home_builder.delete_closet_insert',text="Delete Insert",icon='X')
         layout.operator('home_builder.delete_assembly',text="Delete Product",icon='X').obj_name = bp.name
 
 

@@ -10,17 +10,41 @@ from .. import home_builder_utils
 from .. import home_builder_pointers
 from .. import home_builder_paths
 
-class Shelves(pc_types.Assembly):
+class Closet_Insert(pc_types.Assembly):
+    
+    def add_closet_insert_prompts(self):
+        self.add_prompt("Left Depth",'DISTANCE',0) 
+        self.add_prompt("Right Depth",'DISTANCE',0)         
+        self.add_prompt("Back Inset",'DISTANCE',0)  
+
+    def add_opening(self):
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        depth = self.obj_y.pyclone.get_var('location.y','depth')
+        left_depth = self.get_prompt("Left Depth").get_var("left_depth")
+        right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
+
+        opening = data_closet_parts.add_closet_opening(self)
+        opening.set_name('Opening')
+        opening.loc_x(value = 0)
+        opening.loc_y(value = 0)
+        opening.rot_x(value = 0)
+        opening.rot_y(value = 0)
+        opening.rot_z(value = 0)
+        opening.dim_x('width',[width])
+        opening.dim_y('depth-back_inset',[depth,back_inset])
+        left_depth_p = opening.get_prompt("Left Depth")
+        left_depth_p.set_formula('left_depth',[left_depth])
+        right_depth_p = opening.get_prompt("Right Depth")
+        right_depth_p.set_formula('right_depth',[right_depth])
+        return opening
+
+
+class Shelves(Closet_Insert):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "INSERTS"
     catalog_name = "_Sample"
-
-    def add_adj_prompts(self):
-        self.add_prompt(name="Shelf Qty",
-                        prompt_type='QUANTITY',
-                        value=5,
-                        tab_index=0)
 
     def add_shelves(self):
         hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
@@ -32,6 +56,7 @@ class Shelves(pc_types.Assembly):
         shelf_thickness = self.get_prompt("Shelf Thickness").get_var("shelf_thickness")
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         adj_shelf = data_closet_parts.add_closet_array_part(self)
         adj_shelf.obj_bp['IS_ADJ_SHELF'] = True
@@ -47,20 +72,21 @@ class Shelves(pc_types.Assembly):
         adj_shelf_setback_var = adj_shelf_setback.get_var("adj_shelf_setback_var")
         fixed_shelf_setback = adj_shelf.add_prompt("Fixed Shelf Setback",'DISTANCE',hb_props.fixed_shelf_setback)
         fixed_shelf_setback_var = fixed_shelf_setback.get_var("fixed_shelf_setback_var")
-        l_depth = adj_shelf.add_prompt("Left Depth",'DISTANCE',0)
-        r_depth = adj_shelf.add_prompt("Right Depth",'DISTANCE',0)
-
+        l_depth = adj_shelf.get_prompt("Left Depth")
+        r_depth = adj_shelf.get_prompt("Right Depth")
 
         adj_shelf.loc_x('IF(is_lock_shelf_var,0,shelf_clip_gap)',[shelf_clip_gap,is_lock_shelf_var])
-        adj_shelf.loc_y('depth',[depth])
+        adj_shelf.loc_y('depth-back_inset',[depth,back_inset])
         adj_shelf.loc_z('((height-(shelf_thickness*shelf_qty))/(shelf_qty+1))',[height,shelf_thickness,shelf_qty])
         adj_shelf.rot_x(value = 0)
         adj_shelf.rot_y(value = 0)
         adj_shelf.rot_z(value = 0)
         adj_shelf.dim_x('width-IF(is_lock_shelf_var,0,shelf_clip_gap*2)',[width,is_lock_shelf_var,shelf_clip_gap])
-        adj_shelf.dim_y('-depth+IF(is_lock_shelf_var,fixed_shelf_setback_var,adj_shelf_setback_var)',[depth,is_lock_shelf_var,fixed_shelf_setback_var,adj_shelf_setback_var])
+        adj_shelf.dim_y('-depth+IF(is_lock_shelf_var,fixed_shelf_setback_var,adj_shelf_setback_var)+back_inset',[depth,back_inset,is_lock_shelf_var,fixed_shelf_setback_var,adj_shelf_setback_var])
         adj_shelf.dim_z('shelf_thickness',[shelf_thickness])
+        home_builder_utils.flip_normals(adj_shelf)
         hide = adj_shelf.get_prompt("Hide")
+        hide.set_formula('IF(shelf_qty==0,True,False)',[shelf_qty])
         z_quantity = adj_shelf.get_prompt("Z Quantity")
         z_offset = adj_shelf.get_prompt("Z Offset")
 
@@ -71,8 +97,7 @@ class Shelves(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)         
+        self.add_closet_insert_prompts()
         self.obj_bp["IS_SHELVES_INSERT"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
@@ -81,28 +106,12 @@ class Shelves(pc_types.Assembly):
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(60)
 
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_opening(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
-
     def draw(self):
         hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
 
-        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75)) 
-        shelf_clip_gap = self.add_prompt("Shelf Clip Gap",'DISTANCE',hb_props.shelf_clip_gap) 
-        shelf_qty = self.add_prompt("Shelf Quantity",'QUANTITY',3) 
+        self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75)) 
+        self.add_prompt("Shelf Clip Gap",'DISTANCE',hb_props.shelf_clip_gap) 
+        self.add_prompt("Shelf Quantity",'QUANTITY',3) 
 
         self.add_shelves()
 
@@ -110,7 +119,7 @@ class Shelves(pc_types.Assembly):
         self.pre_draw()
         self.draw()
 
-
+#TODO: DELETE THIS
 class Single_Shelf(pc_types.Assembly):
     show_in_library = True
     category_name = "CLOSETS"
@@ -165,7 +174,8 @@ class Single_Shelf(pc_types.Assembly):
     def pre_draw(self):
         self.create_assembly()
         left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)         
+        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)    
+        back_inset = self.add_prompt("Back Inset",'DISTANCE',0)       
         self.obj_bp["IS_SHELVES_INSERT"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
@@ -203,7 +213,7 @@ class Single_Shelf(pc_types.Assembly):
         self.draw()
 
 
-class Vertical_Splitter(pc_types.Assembly):
+class Vertical_Splitter(Closet_Insert):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_PARTS"
@@ -219,6 +229,7 @@ class Vertical_Splitter(pc_types.Assembly):
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         previous_splitter = None
 
@@ -239,7 +250,7 @@ class Vertical_Splitter(pc_types.Assembly):
             splitter.rot_y(value = 0)
             splitter.rot_z(value = 0)
             splitter.dim_x('width',[width])
-            splitter.dim_y('depth',[depth])
+            splitter.dim_y('depth-back_inset',[depth,back_inset])
             splitter.dim_z('s_thickness',[s_thickness])
             left_depth_p = splitter.get_prompt("Left Depth")
             left_depth_p.set_formula('left_depth',[left_depth])
@@ -248,46 +259,21 @@ class Vertical_Splitter(pc_types.Assembly):
 
             s_loc_z = splitter.obj_bp.pyclone.get_var('location.z','s_loc_z')
 
-            opening = data_closet_parts.add_closet_opening(self)
-            opening.set_name('Opening')
-            opening.loc_x(value = 0)
-            opening.loc_y(value = 0)
+            opening = self.add_opening()
             opening.loc_z('s_loc_z+s_thickness',[s_loc_z,s_thickness])
-            opening.rot_x(value = 0)
-            opening.rot_y(value = 0)
-            opening.rot_z(value = 0)
-            opening.dim_x('width',[width])
-            opening.dim_y('depth',[depth])
             opening.dim_z('opening_height',[opening_height])
-            left_depth_p = opening.get_prompt("Left Depth")
-            left_depth_p.set_formula('left_depth',[left_depth])
-            right_depth_p = opening.get_prompt("Right Depth")
-            right_depth_p.set_formula('right_depth',[right_depth])
 
             previous_splitter = splitter
 
         last_opening_height = self.get_prompt('Opening ' + str(self.splitter_qty+1) + ' Height').get_var('Opening Calculator','last_opening_height')
 
-        opening = data_closet_parts.add_closet_opening(self)
-        opening.set_name('Opening')
-        opening.loc_x(value = 0)
-        opening.loc_y(value = 0)
+        opening = self.add_opening()
         opening.loc_z(value = 0)
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('width',[width])
-        opening.dim_y('depth',[depth])
-        opening.dim_z('last_opening_height',[last_opening_height])
-        left_depth_p = opening.get_prompt("Left Depth")
-        left_depth_p.set_formula('left_depth',[left_depth])
-        right_depth_p = opening.get_prompt("Right Depth")
-        right_depth_p.set_formula('right_depth',[right_depth])        
+        opening.dim_z('last_opening_height',[last_opening_height])       
 
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)         
+        self.add_closet_insert_prompts()   
         self.obj_bp["IS_SPLITTER_INSERT"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.splitter_prompts"
@@ -296,24 +282,8 @@ class Vertical_Splitter(pc_types.Assembly):
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(.75)
 
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_opening(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
-
     def draw(self):
-        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(1)) 
+        shelf_thickness = self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75)) 
 
         height = self.obj_z.pyclone.get_var('location.z','height')
         s_thickness = shelf_thickness.get_var('s_thickness')
@@ -336,7 +306,7 @@ class Vertical_Splitter(pc_types.Assembly):
         self.draw()
 
 
-class Horizontal_Splitter(pc_types.Assembly):
+class Horizontal_Splitter(Closet_Insert):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_PARTS"
@@ -349,13 +319,14 @@ class Horizontal_Splitter(pc_types.Assembly):
         height = self.obj_z.pyclone.get_var('location.z','height')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
         d_thickness = self.get_prompt("Division Thickness").get_var("d_thickness")
-        
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
+
         previous_splitter = None
 
         for i in range(1,self.splitter_qty+1):
             opening_width = self.get_prompt('Opening ' + str(i) + ' Width').get_var('Opening Calculator','opening_width')
 
-            opening = data_closet_parts.add_closet_opening(self)
+            opening = self.add_opening()
             opening.set_name('Opening ' + str(i))
             if previous_splitter:
                 loc_x = previous_splitter.obj_bp.pyclone.get_var('location.x','loc_x')
@@ -364,11 +335,7 @@ class Horizontal_Splitter(pc_types.Assembly):
                 opening.loc_x(value = 0)
             opening.loc_y(value = 0)
             opening.loc_z(value = 0)
-            opening.rot_x(value = 0)
-            opening.rot_y(value = 0)
-            opening.rot_z(value = 0)
             opening.dim_x('opening_width',[opening_width])
-            opening.dim_y('depth',[depth])
             opening.dim_z('height',[height])
 
             splitter = data_closet_parts.add_closet_part(self)
@@ -386,7 +353,7 @@ class Horizontal_Splitter(pc_types.Assembly):
             splitter.rot_y(value = math.radians(-90))
             splitter.rot_z(value = 0)
             splitter.dim_x('height',[height])
-            splitter.dim_y('depth',[depth])
+            splitter.dim_y('depth-back_inset',[depth,back_inset])
             splitter.dim_z('d_thickness',[d_thickness])
 
             previous_splitter = splitter
@@ -408,8 +375,7 @@ class Horizontal_Splitter(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)         
+        self.add_closet_insert_prompts()  
         self.obj_bp["IS_SPLITTER_INSERT"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.splitter_prompts"
@@ -417,22 +383,6 @@ class Horizontal_Splitter(pc_types.Assembly):
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(.75)
-
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_opening(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
 
     def draw(self):
         division_thickness = self.add_prompt("Division Thickness",'DISTANCE',pc_unit.inch(1)) 
@@ -458,7 +408,7 @@ class Horizontal_Splitter(pc_types.Assembly):
         self.draw()
 
 
-class Slanted_Shoe_Shelf(pc_types.Assembly):
+class Slanted_Shoe_Shelf(Closet_Insert):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_PARTS"
@@ -467,8 +417,7 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)         
+        self.add_closet_insert_prompts()    
         self.obj_bp["IS_SHELVES_INSERT"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_shelves_prompts"
@@ -477,30 +426,15 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(.75)
 
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_reference(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
-
     def draw(self):
 
-        self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(1)) 
+        self.add_prompt("Shelf Thickness",'DISTANCE',pc_unit.inch(.75)) 
         self.add_prompt("Shelf Clip Gap",'DISTANCE',pc_unit.inch(1)) 
-        self.add_prompt("Shelf Setback",'DISTANCE',pc_unit.inch(1))
+        self.add_prompt("Shelf Setback",'DISTANCE',pc_unit.inch(0))
         self.add_prompt("Shelf Lip Width",'DISTANCE',pc_unit.inch(2))
+        self.add_prompt("Metal Lip Width Inset",'DISTANCE',pc_unit.millimeter(19))
         self.add_prompt("Distance Between Shelves",'DISTANCE',pc_unit.inch(8))
-        self.add_prompt("Space From Bottom",'DISTANCE',pc_unit.inch(3.5))
+        self.add_prompt("Space From Bottom",'DISTANCE',pc_unit.inch(4.25))
         self.add_prompt("Shelf Quantity",'QUANTITY',3) 
         self.add_prompt("Shelf Angle",'ANGLE',17.25) 
 
@@ -516,6 +450,8 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
         dim_between_shelves = self.get_prompt("Distance Between Shelves").get_var('dim_between_shelves')
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
+        metal_width_inset = self.get_prompt("Metal Lip Width Inset").get_var("metal_width_inset")
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_lock_shelf(self)
@@ -529,7 +465,7 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
         shelf.dim_x('width',[width])
-        shelf.dim_y('depth',[depth])
+        shelf.dim_y('depth-back_inset',[depth,back_inset])
         shelf.dim_z('s_thickness',[s_thickness])
         left_depth_p = shelf.get_prompt("Left Depth")
         left_depth_p.set_formula('left_depth',[left_depth])
@@ -538,29 +474,18 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
 
         z_loc = shelf.obj_bp.pyclone.get_var('location.z','z_loc')
 
-        opening = data_closet_parts.add_closet_opening(self)
-        opening.set_name('Opening')
-        opening.loc_x(value = 0)
-        opening.loc_y(value = 0)
+        opening = self.add_opening()
         opening.loc_z('z_loc+s_thickness',[z_loc,s_thickness])
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('width',[width])
-        opening.dim_y('depth',[depth])
         opening.dim_z('height-z_loc-s_thickness',[height,z_loc,s_thickness])
-        left_depth_p = opening.get_prompt("Left Depth")
-        left_depth_p.set_formula('left_depth',[left_depth])
-        right_depth_p = opening.get_prompt("Right Depth")
-        right_depth_p.set_formula('right_depth',[right_depth])
 
         for i in range(1,11):
             slanted_shelf = data_closet_parts.add_closet_array_part(self)
             props = home_builder_utils.get_object_props(slanted_shelf.obj_bp)
             props.ebl1 = True            
             slanted_shelf.set_name("Slanted Shelf")
+            slanted_shelf.obj_bp['IS_SLANTED_SHOE_SHELF'] = True
             slanted_shelf.loc_x(value = 0)
-            slanted_shelf.loc_y('depth',[depth])
+            slanted_shelf.loc_y('depth-back_inset',[depth,back_inset])
             if i == 1:
                 slanted_shelf.loc_z('bot_space',[bot_space])
             else:
@@ -578,22 +503,26 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
             shelf_depth = slanted_shelf.obj_y.pyclone.get_var('location.y','shelf_depth')
             z_loc = slanted_shelf.obj_bp.pyclone.get_var('location.z','z_loc')
 
-            shelf_lip = data_closet_parts.add_closet_part(self)
+            # shelf_lip = data_closet_parts.add_closet_part(self)
+            shelf_lip = data_closet_parts.add_metal_shoe_shelf_part(slanted_shelf)
+            
             props = home_builder_utils.get_object_props(shelf_lip.obj_bp)
             props.ebl1 = True            
             props.ebl2 = True     
             props.ebw1 = True     
             props.ebw2 = True      
             shelf_lip.set_name("Shelf Lip")
-            shelf_lip.loc_x(value = 0)
-            shelf_lip.loc_y('fabs(depth)-(fabs(shelf_depth)*cos(angle))',[depth,shelf_depth,angle])
-            shelf_lip.loc_z('z_loc-(fabs(shelf_depth)*sin(angle))',[z_loc,shelf_depth,angle])
-            shelf_lip.rot_x('angle-radians(90)',[angle])
+            shelf_lip.loc_x('metal_width_inset',[metal_width_inset])
+            shelf_lip.loc_y('-depth+.02',[depth])
+            shelf_lip.loc_z('s_thickness',[s_thickness])
+            # shelf_lip.loc_y('fabs(depth)-(fabs(shelf_depth)*cos(angle))',[depth,shelf_depth,angle])
+            # shelf_lip.loc_z('z_loc-(fabs(shelf_depth)*sin(angle))',[z_loc,shelf_depth,angle])
+            # shelf_lip.rot_x('angle-radians(90)',[angle])
             shelf_lip.rot_y(value = 0)
             shelf_lip.rot_z(value = 0)
-            shelf_lip.dim_x('width',[width])
-            shelf_lip.dim_y('-lip_width',[lip_width])
-            shelf_lip.dim_z('-s_thickness',[s_thickness])
+            shelf_lip.dim_x('width-metal_width_inset*2',[width,metal_width_inset])
+            # shelf_lip.dim_y('-lip_width',[lip_width])
+            # shelf_lip.dim_z('-s_thickness',[s_thickness])
             hide = shelf_lip.get_prompt('Hide')
             hide.set_formula('IF(' + str(i) + '>qty,True,False)',[qty])
 
@@ -602,7 +531,7 @@ class Slanted_Shoe_Shelf(pc_types.Assembly):
         self.draw()
 
 
-class Hanging_Rod(pc_types.Assembly):
+class Hanging_Rod(Closet_Insert):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "INSERTS"
@@ -655,8 +584,7 @@ class Hanging_Rod(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)           
+        self.add_closet_insert_prompts()      
         self.obj_bp["IS_HANGING_RODS_BP"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.hanging_rod_prompts"
@@ -664,22 +592,6 @@ class Hanging_Rod(pc_types.Assembly):
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(60)
-
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_opening(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
 
     def draw(self):      
         self.add_prompt("Hanging Rod Location From Top",'DISTANCE',pc_unit.inch(2.145)) 
@@ -693,6 +605,7 @@ class Hanging_Rod(pc_types.Assembly):
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         rod = self.add_hanging_rod()
         rod.loc_z('height-hanging_rod_location_from_top',[height,hanging_rod_location_from_top])
@@ -717,7 +630,7 @@ class Hanging_Rod(pc_types.Assembly):
             shelf.rot_y(value = 0)
             shelf.rot_z(value = 0)
             shelf.dim_x('x',[x])
-            shelf.dim_y('y',[y])
+            shelf.dim_y('y-back_inset',[y,back_inset])
             shelf.dim_z('s_thickness',[s_thickness])
             home_builder_utils.flip_normals(shelf)
             left_depth_p = shelf.get_prompt("Left Depth")
@@ -725,62 +638,30 @@ class Hanging_Rod(pc_types.Assembly):
             right_depth_p = shelf.get_prompt("Right Depth")
             right_depth_p.set_formula('right_depth',[right_depth])
 
-            top_opening = data_closet_parts.add_closet_opening(self)
+            top_opening = self.add_opening()
             top_opening.set_name('Top Opening')
-            top_opening.loc_x(value = 0)
-            top_opening.loc_y(value = 0)
             top_opening.loc_z('height-top_opening_height',
                               [height,top_opening_height])
-            top_opening.rot_x(value = 0)
-            top_opening.rot_y(value = 0)
-            top_opening.rot_z(value = 0)
-            top_opening.dim_x('x',[x])
-            top_opening.dim_y('y',[y])
             top_opening.dim_z('top_opening_height',[top_opening_height])            
-            left_depth_p = top_opening.get_prompt("Left Depth")
-            left_depth_p.set_formula('left_depth',[left_depth])
-            right_depth_p = top_opening.get_prompt("Right Depth")
-            right_depth_p.set_formula('right_depth',[right_depth])
 
-            bot_opening = data_closet_parts.add_closet_opening(self)
+            bot_opening = self.add_opening()
             bot_opening.set_name('Bottom Opening')
-            bot_opening.loc_x(value = 0)
-            bot_opening.loc_y(value = 0)
             bot_opening.loc_z(value = 0)
-            bot_opening.rot_x(value = 0)
-            bot_opening.rot_y(value = 0)
-            bot_opening.rot_z(value = 0)
-            bot_opening.dim_x('x',[x])
-            bot_opening.dim_y('y',[y])
             bot_opening.dim_z('height-top_opening_height-s_thickness',
                               [height,top_opening_height,s_thickness])           
-            left_depth_p = bot_opening.get_prompt("Left Depth")
-            left_depth_p.set_formula('left_depth',[left_depth])
-            right_depth_p = bot_opening.get_prompt("Right Depth")
-            right_depth_p.set_formula('right_depth',[right_depth])        
+      
         else:
-            opening = data_closet_parts.add_closet_opening(self)
+            opening = self.add_opening()
             opening.set_name('Opening')
-            opening.loc_x(value = 0)
-            opening.loc_y(value = 0)
             opening.loc_z(value = 0)
-            opening.rot_x(value = 0)
-            opening.rot_y(value = 0)
-            opening.rot_z(value = 0)
-            opening.dim_x('x',[x])
-            opening.dim_y('y',[y])
             opening.dim_z('height',[height])
-            left_depth_p = opening.get_prompt("Left Depth")
-            left_depth_p.set_formula('left_depth',[left_depth])
-            right_depth_p = opening.get_prompt("Right Depth")
-            right_depth_p.set_formula('right_depth',[right_depth])
 
     def render(self):
         self.pre_draw()
         self.draw()        
 
 
-class Doors(pc_types.Assembly):
+class Doors(Closet_Insert):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "INSERTS"
@@ -818,8 +699,7 @@ class Doors(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)         
+        self.add_closet_insert_prompts()    
         self.obj_bp["IS_CLOSET_DOORS_BP"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["IS_EXTERIOR_BP"] = True
@@ -828,22 +708,6 @@ class Doors(pc_types.Assembly):
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(60)
-
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_opening(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
 
     def add_door_pull(self,front,pointer):
         pull_length = self.get_prompt("Pull Length")  
@@ -922,8 +786,11 @@ class Doors(pc_types.Assembly):
 class Base_Doors(Doors):
 
     def draw(self):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.add_prompts()        
         self.add_prompt("Door Height",'DISTANCE',pc_unit.millimeter(716.95))
+        self.add_prompt("Fill Opening",'CHECKBOX',False)
+        self.add_prompt("Shelf Quantity",'QUANTITY',2)      
 
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         front_pointer = props.cabinet_door_pointers["Base Cabinet Doors"]
@@ -937,7 +804,8 @@ class Base_Doors(Doors):
 
         x = self.obj_x.pyclone.get_var('location.x','x')
         y = self.obj_y.pyclone.get_var('location.y','y')
-        z = self.obj_z.pyclone.get_var('location.z','z')        
+        z = self.obj_z.pyclone.get_var('location.z','z')       
+        fill = self.get_prompt("Fill Opening").get_var('fill')   
         vertical_gap = self.get_prompt("Vertical Gap").get_var('vertical_gap')
         door_swing = door_swing_prompt.get_var('door_swing')
         door_to_cabinet_gap = self.get_prompt("Door to Cabinet Gap").get_var('door_to_cabinet_gap')
@@ -949,6 +817,8 @@ class Base_Doors(Doors):
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
         door_height_var = self.get_prompt("Door Height").get_var("door_height_var")
+        s_qty = self.get_prompt("Shelf Quantity").get_var("s_qty")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
@@ -957,21 +827,10 @@ class Base_Doors(Doors):
         lo_var = lo.get_var("lo_var")
         ro_var = ro.get_var("ro_var")
 
-        opening = data_closet_parts.add_closet_opening(self)
+        opening = self.add_opening()
         opening.set_name('Opening')
-        opening.loc_x(value = 0)
-        opening.loc_y(value = 0)
-        opening.loc_z('door_height_var+s_thickness',[door_height_var,s_thickness])
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('x',[x])
-        opening.dim_y('y',[y])
-        opening.dim_z('z-door_height_var-s_thickness',[z,door_height_var,s_thickness])
-        left_depth_p = opening.get_prompt("Left Depth")
-        left_depth_p.set_formula('left_depth',[left_depth])
-        right_depth_p = opening.get_prompt("Right Depth")
-        right_depth_p.set_formula('right_depth',[right_depth])
+        opening.loc_z('IF(fill,0,door_height_var+s_thickness)',[fill,door_height_var,s_thickness])
+        opening.dim_z('IF(fill,0,z-door_height_var-s_thickness)',[fill,z,door_height_var,s_thickness])
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_lock_shelf(self)
@@ -985,12 +844,46 @@ class Base_Doors(Doors):
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
         shelf.dim_x('x',[x])
-        shelf.dim_y('y',[y])
+        shelf.dim_y('y-back_inset',[y,back_inset])
         shelf.dim_z('s_thickness',[s_thickness])
+        hide = shelf.get_prompt("Hide")
+        hide.set_formula('fill',[fill])        
         left_depth_p = shelf.get_prompt("Left Depth")
         left_depth_p.set_formula('left_depth',[left_depth])
         right_depth_p = shelf.get_prompt("Right Depth")
         right_depth_p.set_formula('right_depth',[right_depth])
+
+        adj_shelf = data_closet_parts.add_closet_array_part(self)
+        adj_shelf.obj_bp['IS_ADJ_SHELF'] = True
+        adj_shelf.set_name("Adj Shelf")
+        props = home_builder_utils.get_object_props(adj_shelf.obj_bp)
+        props.ebl1 = True          
+        props.ebl2 = True  
+        props.ebw1 = True  
+        props.ebw2 = True        
+        adj_shelf.add_prompt("Is Locked Shelf",'CHECKBOX',False)
+        adj_shelf.add_prompt("Adj Shelf Setback",'DISTANCE',hb_props.adj_shelf_setback)
+        adj_shelf.add_prompt("Fixed Shelf Setback",'DISTANCE',hb_props.fixed_shelf_setback)
+        l_depth = adj_shelf.add_prompt("Left Depth",'DISTANCE',0)
+        r_depth = adj_shelf.add_prompt("Right Depth",'DISTANCE',0)
+
+        adj_shelf.loc_x(value = 0)
+        adj_shelf.loc_y('y-back_inset',[y,back_inset])
+        adj_shelf.loc_z('((IF(fill,z,door_height_var)-(s_thickness*s_qty))/(s_qty+1))',[fill,door_height_var,z,s_thickness,s_qty])
+        adj_shelf.rot_x(value = 0)
+        adj_shelf.rot_y(value = 0)
+        adj_shelf.rot_z(value = 0)
+        adj_shelf.dim_x('x',[x])
+        adj_shelf.dim_y('-y+back_inset',[y,back_inset])
+        adj_shelf.dim_z('s_thickness',[s_thickness])
+        hide = adj_shelf.get_prompt("Hide")
+        z_quantity = adj_shelf.get_prompt("Z Quantity")
+        z_offset = adj_shelf.get_prompt("Z Offset")
+        hide.set_formula('IF(s_qty==0,True,False)',[s_qty])
+        l_depth.set_formula('left_depth',[left_depth]) 
+        r_depth.set_formula('right_depth',[right_depth]) 
+        z_quantity.set_formula('s_qty',[s_qty]) 
+        z_offset.set_formula('((IF(fill,z,door_height_var)-(s_thickness*s_qty))/(s_qty+1))+s_thickness',[fill,z,door_height_var,s_thickness,s_qty]) 
 
         #LEFT DOOR
         l_door = data_closet_parts.add_door_part(self,front_pointer)
@@ -998,14 +891,22 @@ class Base_Doors(Doors):
         props.ebl1 = True   
         props.ebl2 = True   
         props.ebw1 = True   
-        props.ebw2 = True          
+        props.ebw2 = True
+        top_o = l_door.add_prompt("Top Overlay",'DISTANCE',0)
+        top_o.set_formula("to_var",[to_var])
+        bottom_o = l_door.add_prompt("Bottom Overlay",'DISTANCE',0)
+        bottom_o.set_formula("bo_var",[bo_var])
+        left_o = l_door.add_prompt("Left Overlay",'DISTANCE',0)
+        left_o.set_formula("lo_var",[lo_var])
+        right_o = l_door.add_prompt("Right Overlay",'DISTANCE',0)
+        right_o.set_formula("ro_var",[ro_var])
         l_door.loc_x('-lo_var',[lo_var])
         l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         l_door.loc_z('-bo_var',[bo_var])
         l_door.rot_x(value = math.radians(90))
         l_door.rot_y(value = math.radians(-90))
         l_door.rot_z('-door_rotation*open_door',[door_rotation,open_door])
-        l_door.dim_x('door_height_var+to_var+bo_var',[door_height_var,to_var,bo_var])
+        l_door.dim_x('IF(fill,z,door_height_var)+to_var+bo_var',[fill,z,door_height_var,to_var,bo_var])
         l_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)*-1',[door_swing,x,lo_var,ro_var,vertical_gap])            
         l_door.dim_z('front_thickness',[front_thickness])
         hide = l_door.get_prompt("Hide") 
@@ -1019,13 +920,21 @@ class Base_Doors(Doors):
         props.ebl2 = True   
         props.ebw1 = True   
         props.ebw2 = True               
+        top_o = r_door.add_prompt("Top Overlay",'DISTANCE',0)
+        top_o.set_formula("to_var",[to_var])
+        bottom_o = r_door.add_prompt("Bottom Overlay",'DISTANCE',0)
+        bottom_o.set_formula("bo_var",[bo_var])
+        left_o = r_door.add_prompt("Left Overlay",'DISTANCE',0)
+        left_o.set_formula("lo_var",[lo_var])
+        right_o = r_door.add_prompt("Right Overlay",'DISTANCE',0)
+        right_o.set_formula("ro_var",[ro_var])        
         r_door.loc_x('x+ro_var',[x,ro_var])
         r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         r_door.loc_z('-bo_var',[bo_var])
         r_door.rot_x(value = math.radians(90))
         r_door.rot_y(value = math.radians(-90))
         r_door.rot_z('door_rotation*open_door',[door_rotation,open_door])   
-        r_door.dim_x('door_height_var+to_var+bo_var',[door_height_var,to_var,bo_var])
+        r_door.dim_x('IF(fill,z,door_height_var)+to_var+bo_var',[fill,z,door_height_var,to_var,bo_var])
         r_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)',[door_swing,x,lo_var,ro_var,vertical_gap])     
         r_door.dim_z('front_thickness',[front_thickness])
         hide = r_door.get_prompt("Hide") 
@@ -1039,7 +948,9 @@ class Base_Doors(Doors):
 class Tall_Doors(Doors):
 
     def draw(self):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.add_prompts()
+        self.add_prompt("Shelf Quantity",'QUANTITY',2) 
 
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         front_pointer = props.cabinet_door_pointers["Tall Cabinet Doors"]
@@ -1052,6 +963,7 @@ class Tall_Doors(Doors):
         door_type_prompt.set_value("Tall")
 
         x = self.obj_x.pyclone.get_var('location.x','x')
+        y = self.obj_y.pyclone.get_var('location.y','y')
         z = self.obj_z.pyclone.get_var('location.z','z')        
         vertical_gap = self.get_prompt("Vertical Gap").get_var('vertical_gap')
         door_swing = door_swing_prompt.get_var('door_swing')
@@ -1060,6 +972,11 @@ class Tall_Doors(Doors):
         door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
         open_door = self.get_prompt("Open Door").get_var('open_door')
         door_swing = self.get_prompt("Door Swing").get_var('door_swing')
+        s_thickness = self.get_prompt("Shelf Thickness").get_var('s_thickness')
+        s_qty = self.get_prompt("Shelf Quantity").get_var('s_qty')
+        left_depth = self.get_prompt("Left Depth").get_var("left_depth")
+        right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
@@ -1068,6 +985,38 @@ class Tall_Doors(Doors):
         lo_var = lo.get_var("lo_var")
         ro_var = ro.get_var("ro_var")
 
+        adj_shelf = data_closet_parts.add_closet_array_part(self)
+        adj_shelf.obj_bp['IS_ADJ_SHELF'] = True
+        adj_shelf.set_name("Adj Shelf")
+        props = home_builder_utils.get_object_props(adj_shelf.obj_bp)
+        props.ebl1 = True          
+        props.ebl2 = True  
+        props.ebw1 = True  
+        props.ebw2 = True        
+        adj_shelf.add_prompt("Is Locked Shelf",'CHECKBOX',False)
+        adj_shelf.add_prompt("Adj Shelf Setback",'DISTANCE',hb_props.adj_shelf_setback)
+        adj_shelf.add_prompt("Fixed Shelf Setback",'DISTANCE',hb_props.fixed_shelf_setback)
+        l_depth = adj_shelf.add_prompt("Left Depth",'DISTANCE',0)
+        r_depth = adj_shelf.add_prompt("Right Depth",'DISTANCE',0)
+
+        adj_shelf.loc_x(value = 0)
+        adj_shelf.loc_y('y-back_inset',[y,back_inset])
+        adj_shelf.loc_z('(z-(s_thickness*s_qty))/(s_qty+1)',[z,s_thickness,s_qty])
+        adj_shelf.rot_x(value = 0)
+        adj_shelf.rot_y(value = 0)
+        adj_shelf.rot_z(value = 0)
+        adj_shelf.dim_x('x',[x])
+        adj_shelf.dim_y('-y+back_inset',[y,back_inset])
+        adj_shelf.dim_z('s_thickness',[s_thickness])
+        hide = adj_shelf.get_prompt("Hide")
+        z_quantity = adj_shelf.get_prompt("Z Quantity")
+        z_offset = adj_shelf.get_prompt("Z Offset")
+        hide.set_formula('IF(s_qty==0,True,False)',[s_qty])
+        l_depth.set_formula('left_depth',[left_depth]) 
+        r_depth.set_formula('right_depth',[right_depth]) 
+        z_quantity.set_formula('s_qty',[s_qty]) 
+        z_offset.set_formula('((z-(s_thickness*s_qty))/(s_qty+1))+s_thickness',[z,s_thickness,s_qty]) 
+
         #LEFT DOOR
         l_door = data_closet_parts.add_door_part(self,front_pointer)
         props = home_builder_utils.get_object_props(l_door.obj_bp)
@@ -1075,6 +1024,14 @@ class Tall_Doors(Doors):
         props.ebl2 = True   
         props.ebw1 = True   
         props.ebw2 = True          
+        top_o = l_door.add_prompt("Top Overlay",'DISTANCE',0)
+        top_o.set_formula("to_var",[to_var])
+        bottom_o = l_door.add_prompt("Bottom Overlay",'DISTANCE',0)
+        bottom_o.set_formula("bo_var",[bo_var])
+        left_o = l_door.add_prompt("Left Overlay",'DISTANCE',0)
+        left_o.set_formula("lo_var",[lo_var])
+        right_o = l_door.add_prompt("Right Overlay",'DISTANCE',0)
+        right_o.set_formula("ro_var",[ro_var])        
         l_door.loc_x('-lo_var',[lo_var])
         l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         l_door.loc_z('-bo_var',[bo_var])
@@ -1095,6 +1052,14 @@ class Tall_Doors(Doors):
         props.ebl2 = True   
         props.ebw1 = True   
         props.ebw2 = True            
+        top_o = r_door.add_prompt("Top Overlay",'DISTANCE',0)
+        top_o.set_formula("to_var",[to_var])
+        bottom_o = r_door.add_prompt("Bottom Overlay",'DISTANCE',0)
+        bottom_o.set_formula("bo_var",[bo_var])
+        left_o = r_door.add_prompt("Left Overlay",'DISTANCE',0)
+        left_o.set_formula("lo_var",[lo_var])
+        right_o = r_door.add_prompt("Right Overlay",'DISTANCE',0)
+        right_o.set_formula("ro_var",[ro_var])        
         r_door.loc_x('x+ro_var',[x,ro_var])
         r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
         r_door.loc_z('-bo_var',[bo_var])
@@ -1116,9 +1081,11 @@ class Tall_Doors(Doors):
 class Upper_Doors(Doors):
 
     def draw(self):
+        hb_props = home_builder_utils.get_scene_props(bpy.context.scene)
         self.add_prompts()      
-        door_height = self.add_prompt("Door Height",'DISTANCE',pc_unit.millimeter(716.95))
-        door_height_var = door_height.get_var('door_height_var')
+        self.add_prompt("Fill Opening",'CHECKBOX',False)
+        self.add_prompt("Door Height",'DISTANCE',pc_unit.millimeter(716.95))
+        self.add_prompt("Shelf Quantity",'QUANTITY',2) 
 
         props = home_builder_utils.get_scene_props(bpy.context.scene)
         front_pointer = props.cabinet_door_pointers["Upper Cabinet Doors"]
@@ -1132,7 +1099,9 @@ class Upper_Doors(Doors):
 
         x = self.obj_x.pyclone.get_var('location.x','x')
         y = self.obj_y.pyclone.get_var('location.y','y')
-        z = self.obj_z.pyclone.get_var('location.z','z')        
+        z = self.obj_z.pyclone.get_var('location.z','z')    
+        fill = self.get_prompt("Fill Opening").get_var('fill')    
+        door_height_var = self.get_prompt("Door Height").get_var('door_height_var')
         vertical_gap = self.get_prompt("Vertical Gap").get_var('vertical_gap')
         door_swing = door_swing_prompt.get_var('door_swing')
         door_to_cabinet_gap = self.get_prompt("Door to Cabinet Gap").get_var('door_to_cabinet_gap')
@@ -1143,6 +1112,8 @@ class Upper_Doors(Doors):
         s_thickness = self.get_prompt("Shelf Thickness").get_var('s_thickness')
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        s_qty = self.get_prompt("Shelf Quantity").get_var("s_qty")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
@@ -1151,21 +1122,10 @@ class Upper_Doors(Doors):
         lo_var = lo.get_var("lo_var")
         ro_var = ro.get_var("ro_var")
 
-        opening = data_closet_parts.add_closet_opening(self)
+        opening = self.add_opening()
         opening.set_name('Opening')
-        opening.loc_x(value = 0)
-        opening.loc_y(value = 0)
         opening.loc_z(value = 0)
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('x',[x])
-        opening.dim_y('y',[y])
-        opening.dim_z('z-door_height_var-s_thickness',[z,door_height_var,s_thickness])
-        left_depth_p = opening.get_prompt("Left Depth")
-        left_depth_p.set_formula('left_depth',[left_depth])
-        right_depth_p = opening.get_prompt("Right Depth")
-        right_depth_p.set_formula('right_depth',[right_depth])
+        opening.dim_z('IF(fill,0,z-door_height_var-s_thickness)',[fill,z,door_height_var,s_thickness])
 
         #BOTTOM SHELF
         shelf = data_closet_parts.add_closet_lock_shelf(self)
@@ -1179,12 +1139,46 @@ class Upper_Doors(Doors):
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
         shelf.dim_x('x',[x])
-        shelf.dim_y('y',[y])
+        shelf.dim_y('y-back_inset',[y,back_inset])
         shelf.dim_z('s_thickness',[s_thickness])
+        hide = shelf.get_prompt("Hide")
+        hide.set_formula('fill',[fill])
         left_depth_p = shelf.get_prompt("Left Depth")
         left_depth_p.set_formula('left_depth',[left_depth])
         right_depth_p = shelf.get_prompt("Right Depth")
         right_depth_p.set_formula('right_depth',[right_depth])
+
+        adj_shelf = data_closet_parts.add_closet_array_part(self)
+        adj_shelf.obj_bp['IS_ADJ_SHELF'] = True
+        adj_shelf.set_name("Adj Shelf")
+        props = home_builder_utils.get_object_props(adj_shelf.obj_bp)
+        props.ebl1 = True          
+        props.ebl2 = True  
+        props.ebw1 = True  
+        props.ebw2 = True        
+        adj_shelf.add_prompt("Is Locked Shelf",'CHECKBOX',False)
+        adj_shelf.add_prompt("Adj Shelf Setback",'DISTANCE',hb_props.adj_shelf_setback)
+        adj_shelf.add_prompt("Fixed Shelf Setback",'DISTANCE',hb_props.fixed_shelf_setback)
+        l_depth = adj_shelf.add_prompt("Left Depth",'DISTANCE',0)
+        r_depth = adj_shelf.add_prompt("Right Depth",'DISTANCE',0)
+
+        adj_shelf.loc_x(value = 0)
+        adj_shelf.loc_y('y-back_inset',[y,back_inset])
+        adj_shelf.loc_z('IF(fill,0,z-door_height_var)+((IF(fill,z,door_height_var)-(s_thickness*s_qty))/(s_qty+1))',[fill,door_height_var,z,s_thickness,s_qty])
+        adj_shelf.rot_x(value = 0)
+        adj_shelf.rot_y(value = 0)
+        adj_shelf.rot_z(value = 0)
+        adj_shelf.dim_x('x',[x])
+        adj_shelf.dim_y('-y+back_inset',[y,back_inset])
+        adj_shelf.dim_z('s_thickness',[s_thickness])
+        hide = adj_shelf.get_prompt("Hide")
+        z_quantity = adj_shelf.get_prompt("Z Quantity")
+        z_offset = adj_shelf.get_prompt("Z Offset")
+        hide.set_formula('IF(s_qty==0,True,False)',[s_qty])
+        l_depth.set_formula('left_depth',[left_depth]) 
+        r_depth.set_formula('right_depth',[right_depth]) 
+        z_quantity.set_formula('s_qty',[s_qty]) 
+        z_offset.set_formula('((IF(fill,z,door_height_var)-(s_thickness*s_qty))/(s_qty+1))+s_thickness',[fill,z,door_height_var,s_thickness,s_qty]) 
 
         #LEFT DOOR
         l_door = data_closet_parts.add_door_part(self,front_pointer)
@@ -1193,13 +1187,21 @@ class Upper_Doors(Doors):
         props.ebl2 = True    
         props.ebw1 = True    
         props.ebw2 = True    
+        top_o = l_door.add_prompt("Top Overlay",'DISTANCE',0)
+        top_o.set_formula("to_var",[to_var])
+        bottom_o = l_door.add_prompt("Bottom Overlay",'DISTANCE',0)
+        bottom_o.set_formula("bo_var",[bo_var])
+        left_o = l_door.add_prompt("Left Overlay",'DISTANCE',0)
+        left_o.set_formula("lo_var",[lo_var])
+        right_o = l_door.add_prompt("Right Overlay",'DISTANCE',0)
+        right_o.set_formula("ro_var",[ro_var])           
         l_door.loc_x('-lo_var',[lo_var])
         l_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
-        l_door.loc_z('z-door_height_var-bo_var',[z,door_height_var,bo_var])
+        l_door.loc_z('IF(fill,0,z-door_height_var)-bo_var',[fill,z,door_height_var,bo_var])
         l_door.rot_x(value = math.radians(90))
         l_door.rot_y(value = math.radians(-90))
         l_door.rot_z('-door_rotation*open_door',[door_rotation,open_door])
-        l_door.dim_x('door_height_var+to_var+bo_var',[door_height_var,to_var,bo_var])
+        l_door.dim_x('IF(fill,z,door_height_var)+to_var+bo_var',[fill,z,door_height_var,to_var,bo_var])
         l_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)*-1',[door_swing,x,lo_var,ro_var,vertical_gap])            
         l_door.dim_z('front_thickness',[front_thickness])
         hide = l_door.get_prompt("Hide") 
@@ -1212,14 +1214,22 @@ class Upper_Doors(Doors):
         props.ebl1 = True          
         props.ebl2 = True    
         props.ebw1 = True    
-        props.ebw2 = True        
+        props.ebw2 = True      
+        top_o = r_door.add_prompt("Top Overlay",'DISTANCE',0)
+        top_o.set_formula("to_var",[to_var])
+        bottom_o = r_door.add_prompt("Bottom Overlay",'DISTANCE',0)
+        bottom_o.set_formula("bo_var",[bo_var])
+        left_o = r_door.add_prompt("Left Overlay",'DISTANCE',0)
+        left_o.set_formula("lo_var",[lo_var])
+        right_o = r_door.add_prompt("Right Overlay",'DISTANCE',0)
+        right_o.set_formula("ro_var",[ro_var])             
         r_door.loc_x('x+ro_var',[x,ro_var])
         r_door.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
-        r_door.loc_z('z-door_height_var-bo_var',[z,door_height_var,bo_var])
+        r_door.loc_z('IF(fill,0,z-door_height_var)-bo_var',[fill,z,door_height_var,bo_var])
         r_door.rot_x(value = math.radians(90))
         r_door.rot_y(value = math.radians(-90))
         r_door.rot_z('door_rotation*open_door',[door_rotation,open_door])   
-        r_door.dim_x('door_height_var+to_var+bo_var',[door_height_var,to_var,bo_var])
+        r_door.dim_x('IF(fill,z,door_height_var)+to_var+bo_var',[fill,z,door_height_var,to_var,bo_var])
         r_door.dim_y('IF(door_swing==2,((x+lo_var+ro_var)-vertical_gap)/2,x+lo_var+ro_var)',[door_swing,x,lo_var,ro_var,vertical_gap])     
         r_door.dim_z('front_thickness',[front_thickness])
         hide = r_door.get_prompt("Hide") 
@@ -1235,8 +1245,7 @@ class Drawers(Doors):
 
     def pre_draw(self):
         self.create_assembly()    
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)             
+        self.add_closet_insert_prompts()         
         self.obj_bp['IS_CLOSET_DRAWERS_BP'] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["IS_EXTERIOR_BP"] = True
@@ -1246,42 +1255,26 @@ class Drawers(Doors):
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(60)
 
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_opening(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
-
     def draw(self):
         self.add_prompts()
 
         self.add_prompt("Remove Top Shelf",'CHECKBOX',False)
         self.add_prompt("Drawer Quantity",'QUANTITY',3)
-        drawer_1_height = self.add_prompt("Drawer 1 Height",'DISTANCE',pc_unit.millimeter(157))
+        drawer_1_height = self.add_prompt("Drawer 1 Height",'DISTANCE',pc_unit.millimeter(140.95))
         dh1 = drawer_1_height.get_var('dh1')
-        drawer_2_height = self.add_prompt("Drawer 2 Height",'DISTANCE',pc_unit.millimeter(157))
+        drawer_2_height = self.add_prompt("Drawer 2 Height",'DISTANCE',pc_unit.millimeter(140.95))
         dh2 = drawer_2_height.get_var('dh2')
-        drawer_3_height = self.add_prompt("Drawer 3 Height",'DISTANCE',pc_unit.millimeter(157))
+        drawer_3_height = self.add_prompt("Drawer 3 Height",'DISTANCE',pc_unit.millimeter(140.95))
         dh3 = drawer_3_height.get_var('dh3')     
-        drawer_4_height = self.add_prompt("Drawer 4 Height",'DISTANCE',pc_unit.millimeter(157))
+        drawer_4_height = self.add_prompt("Drawer 4 Height",'DISTANCE',pc_unit.millimeter(140.95))
         dh4 = drawer_4_height.get_var('dh4')  
-        drawer_5_height = self.add_prompt("Drawer 5 Height",'DISTANCE',pc_unit.millimeter(157))
+        drawer_5_height = self.add_prompt("Drawer 5 Height",'DISTANCE',pc_unit.millimeter(140.95))
         dh5 = drawer_5_height.get_var('dh5')  
-        drawer_6_height = self.add_prompt("Drawer 6 Height",'DISTANCE',pc_unit.millimeter(157))
+        drawer_6_height = self.add_prompt("Drawer 6 Height",'DISTANCE',pc_unit.millimeter(140.95))
         dh6 = drawer_6_height.get_var('dh6')  
-        drawer_7_height = self.add_prompt("Drawer 7 Height",'DISTANCE',pc_unit.millimeter(157))
+        drawer_7_height = self.add_prompt("Drawer 7 Height",'DISTANCE',pc_unit.millimeter(140.95))
         dh7 = drawer_7_height.get_var('dh7')  
-        drawer_8_height = self.add_prompt("Drawer 8 Height",'DISTANCE',pc_unit.millimeter(157))
+        drawer_8_height = self.add_prompt("Drawer 8 Height",'DISTANCE',pc_unit.millimeter(140.95))
         dh8 = drawer_8_height.get_var('dh8')          
         common_prompts.add_front_prompts(self)
         common_prompts.add_drawer_prompts(self)
@@ -1300,11 +1293,11 @@ class Drawers(Doors):
         h_gap = self.get_prompt("Horizontal Gap").get_var('h_gap') 
         door_to_cabinet_gap = self.get_prompt("Door to Cabinet Gap").get_var('door_to_cabinet_gap')
         front_thickness = self.get_prompt("Front Thickness").get_var('front_thickness')
-        door_rotation = self.get_prompt("Door Rotation").get_var('door_rotation')
-        open_door = self.get_prompt("Open Door").get_var('open_door')
-        s_thickness = self.get_prompt("Shelf Thickness").get_var('s_thickness')
+        open_drawer = self.get_prompt("Open Drawer").get_var('open_drawer')
+        st = self.get_prompt("Shelf Thickness").get_var('st')
         left_depth = self.get_prompt("Left Depth").get_var('left_depth')
         right_depth = self.get_prompt("Right Depth").get_var('right_depth')
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
@@ -1320,14 +1313,14 @@ class Drawers(Doors):
         shelf.obj_bp["IS_SHELF_BP"] = True
         shelf.set_name('Door Shelf')
         shelf.loc_x(value = 0)
-        shelf.loc_y(value = 0)
-        shelf.loc_z('-bo_var-to_var+dh1+IF(dq>1,dh2+h_gap,0)+IF(dq>2,dh3+h_gap,0)+IF(dq>3,dh4+h_gap,0)+IF(dq>4,dh5+h_gap,0)+IF(dq>5,dh6+h_gap,0)+IF(dq>6,dh7+h_gap,0)+IF(dq>7,dh8+h_gap,0)',
-                    [bo_var,to_var,dq,dh1,dh2,dh3,dh4,dh5,dh6,dh7,dh8,h_gap])        
+        shelf.loc_y(value = 0)  
+        shelf.loc_z('dh1+IF(dq>1,dh2,0)+IF(dq>2,dh3,0)+IF(dq>3,dh4,0)+IF(dq>4,dh5,0)+IF(dq>5,dh6,0)+IF(dq>6,dh7,0)+IF(dq>7,dh8,0)+(st*(dq-1))',
+                    [dq,dh1,dh2,dh3,dh4,dh5,dh6,dh7,dh8,st])                
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
         shelf.dim_x('x',[x])
-        shelf.dim_y('y',[y])
-        shelf.dim_z('s_thickness',[s_thickness])
+        shelf.dim_y('y-back_inset',[y,back_inset])
+        shelf.dim_z('st',[st])
         hide = shelf.get_prompt('Hide')
         hide.set_formula('remove_shelf',[remove_shelf])
         left_depth_p = shelf.get_prompt('Left Depth')
@@ -1337,23 +1330,9 @@ class Drawers(Doors):
 
         shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
 
-        opening = data_closet_parts.add_closet_opening(self)
-        opening.set_name('Opening')
-        opening.loc_x(value = 0)
-        opening.loc_y(value = 0)
-        opening.loc_z('shelf_z_loc+s_thickness',
-                      [shelf_z_loc,s_thickness])
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('x',[x])
-        opening.dim_y('y',[y])
-        opening.dim_z('z-shelf_z_loc-s_thickness',
-                      [z,shelf_z_loc,s_thickness])
-        left_depth_p = opening.get_prompt('Left Depth')
-        left_depth_p.set_formula('left_depth',[left_depth])
-        right_depth_p = opening.get_prompt('Right Depth')
-        right_depth_p.set_formula('right_depth',[right_depth])                      
+        opening = self.add_opening()
+        opening.loc_z('shelf_z_loc+st',[shelf_z_loc,st])
+        opening.dim_z('z-shelf_z_loc-st',[z,shelf_z_loc,st])  
 
         prev_drawer_empty = None
 
@@ -1363,42 +1342,42 @@ class Drawers(Doors):
             front_empty = self.add_empty('Front Loc ' + str(i))
             if prev_drawer_empty:
                 prev_drawer_z_loc = prev_drawer_empty.pyclone.get_var('location.z','prev_drawer_z_loc')
-                front_empty.pyclone.loc_z('prev_drawer_z_loc-dh-h_gap',[prev_drawer_z_loc,dh,h_gap])
+                front_empty.pyclone.loc_z('prev_drawer_z_loc-dh-st',[prev_drawer_z_loc,dh,st])
             else:
-                front_empty.pyclone.loc_z('shelf_z_loc+to_var-dh',
-                                          [shelf_z_loc,to_var,dh])      
+                front_empty.pyclone.loc_z('shelf_z_loc-dh-st',
+                                          [shelf_z_loc,dh,st])      
 
             z_loc = front_empty.pyclone.get_var('location.z','z_loc')
 
-            drawer = data_closet_parts.add_drawer_front_part(self,front_pointer)
-            top_o = drawer.add_prompt("Top Overlay",'DISTANCE',0)
-            bottom_o = drawer.add_prompt("Bottom Overlay",'DISTANCE',0)
-            left_o = drawer.add_prompt("Left Overlay",'DISTANCE',0)
-            right_o = drawer.add_prompt("Right Overlay",'DISTANCE',0)
+            front = data_closet_parts.add_drawer_front_part(self,front_pointer)
+            top_o = front.add_prompt("Top Overlay",'DISTANCE',0)
+            bottom_o = front.add_prompt("Bottom Overlay",'DISTANCE',0)
+            left_o = front.add_prompt("Left Overlay",'DISTANCE',0)
+            right_o = front.add_prompt("Right Overlay",'DISTANCE',0)
             left_o.set_formula('lo_var',[lo_var])
             right_o.set_formula('ro_var',[ro_var])
             if i == 1:
                 top_o.set_formula('to_var',[to_var])
             else:
-                top_o.set_formula('(s_thickness-h_gap)/2',[s_thickness,h_gap])
-            bottom_o.set_formula('IF(dq==' + str(i) + ',bo_var,(s_thickness-h_gap)/2)',[dq,bo_var,s_thickness,h_gap])
-            props = home_builder_utils.get_object_props(drawer.obj_bp)
+                top_o.set_formula('(st-h_gap)/2',[st,h_gap])
+            bottom_o.set_formula('IF(dq==' + str(i) + ',bo_var,(st-h_gap)/2)',[dq,bo_var,st,h_gap])
+            props = home_builder_utils.get_object_props(front.obj_bp)
             props.ebl1 = True          
             props.ebl2 = True    
             props.ebw1 = True    
             props.ebw2 = True               
-            drawer.loc_x('-lo_var',[lo_var])
-            drawer.loc_y('-door_to_cabinet_gap',[door_to_cabinet_gap])
-            drawer.loc_z('z_loc',[z_loc])                                                                             
-            drawer.rot_x(value = math.radians(90))
-            drawer.rot_y(value = math.radians(-90))
-            drawer.rot_z('-door_rotation*open_door',[door_rotation,open_door])
-            drawer.dim_x('dh',[dh])
-            drawer.dim_y('(x+lo_var+ro_var)*-1',[x,lo_var,ro_var])            
-            drawer.dim_z('front_thickness',[front_thickness])
-            hide = drawer.get_prompt('Hide')
+            front.loc_x('-lo_var',[lo_var])
+            front.loc_y('-door_to_cabinet_gap-(y*open_drawer)',[door_to_cabinet_gap,y,open_drawer])
+            front.loc_z('z_loc+st-bo_var',[z_loc,st,bo_var])                                                                             
+            front.rot_x(value = math.radians(90))
+            front.rot_y(value = math.radians(-90))
+            front.rot_z(value = 0)
+            front.dim_x('dh+to_var+bo_var',[dh,to_var,bo_var])
+            front.dim_y('(x+lo_var+ro_var)*-1',[x,lo_var,ro_var])            
+            front.dim_z('front_thickness',[front_thickness])
+            hide = front.get_prompt('Hide')
             hide.set_formula('IF(dq>' + str(i-1) + ',False,True)',[dq])
-            self.add_drawer_pull(drawer,pull_pointer)
+            self.add_drawer_pull(front,pull_pointer)
 
             stretcher = data_closet_parts.add_closet_part(self)
             stretcher.set_name("Drawer Stretcher")
@@ -1410,13 +1389,13 @@ class Drawers(Doors):
             stretcher.obj_bp['IS_DRAWER_STRETCHER_BP'] = True 
             stretcher.loc_x(value = 0)
             stretcher.loc_y(value = 0)
-            stretcher.loc_z('z_loc-(h_gap/2)-(s_thickness/2)',[z_loc,h_gap,s_thickness])
+            stretcher.loc_z('z_loc',[z_loc])
             stretcher.rot_x(value = 0)
             stretcher.rot_y(value = 0)
             stretcher.rot_z(value = 0)
             stretcher.dim_x('x',[x])
             stretcher.dim_y(value = pc_unit.inch(6))
-            stretcher.dim_z('s_thickness',[s_thickness])
+            stretcher.dim_z('st',[st])
             hide = stretcher.get_prompt('Hide')
             hide.set_formula('IF(dq>' + str(i) + ',False,True)',[dq])
 
@@ -1431,8 +1410,7 @@ class Single_Drawer(Doors):
 
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)                     
+        self.add_closet_insert_prompts()                     
         self.obj_bp['IS_CLOSET_DRAWERS_BP'] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp['PROMPT_ID'] = 'home_builder.closet_drawer_prompts'
@@ -1440,22 +1418,6 @@ class Single_Drawer(Doors):
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(60)
-
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_opening(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
 
     def draw(self):
         self.add_prompts()
@@ -1482,6 +1444,7 @@ class Single_Drawer(Doors):
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
         remove_top_shelf = self.get_prompt("Remove Top Shelf").get_var("remove_top_shelf")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         to, bo, lo, ro = self.add_overlay_prompts()
 
@@ -1503,7 +1466,7 @@ class Single_Drawer(Doors):
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
         shelf.dim_x('x',[x])
-        shelf.dim_y('y',[y])
+        shelf.dim_y('y-back_inset',[y,back_inset])
         shelf.dim_z('s_thickness',[s_thickness])
         left_depth_p = shelf.get_prompt("Left Depth")
         left_depth_p.set_formula('left_depth',[left_depth])
@@ -1514,23 +1477,9 @@ class Single_Drawer(Doors):
 
         shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
 
-        opening = data_closet_parts.add_closet_opening(self)
-        opening.set_name('Opening')
-        opening.loc_x(value = 0)
-        opening.loc_y(value = 0)
-        opening.loc_z('shelf_z_loc+s_thickness',
-                      [shelf_z_loc,s_thickness])
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('x',[x])
-        opening.dim_y('y',[y])
-        opening.dim_z('z-shelf_z_loc-s_thickness',
-                      [z,shelf_z_loc,s_thickness])
-        left_depth_p = opening.get_prompt("Left Depth")
-        left_depth_p.set_formula('left_depth',[left_depth])
-        right_depth_p = opening.get_prompt("Right Depth")
-        right_depth_p.set_formula('right_depth',[right_depth])
+        opening = self.add_opening()
+        opening.loc_z('shelf_z_loc+s_thickness',[shelf_z_loc,s_thickness])
+        opening.dim_z('z-shelf_z_loc-s_thickness',[z,shelf_z_loc,s_thickness])
 
         drawer = data_closet_parts.add_drawer_front_part(self,front_pointer)
         top_o = drawer.add_prompt("Top Overlay",'DISTANCE',0)
@@ -1562,7 +1511,7 @@ class Single_Drawer(Doors):
         self.draw()          
 
 
-class Wire_Baskets(pc_types.Assembly):
+class Wire_Baskets(Closet_Insert):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_INSERTS"
@@ -1571,8 +1520,7 @@ class Wire_Baskets(pc_types.Assembly):
     
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)         
+        self.add_closet_insert_prompts()      
         self.obj_bp['IS_WIRE_BASKET_INSERT_BP'] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp['PROMPT_ID'] = 'home_builder.closet_wire_baskets_prompts'
@@ -1580,22 +1528,6 @@ class Wire_Baskets(pc_types.Assembly):
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(60)
-
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_opening(self)
-        reference.obj_bp["IS_REFERENCE"] = True
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
 
     def draw(self):
         self.add_prompt("Wire Basket Quantity",'QUANTITY',3)
@@ -1623,6 +1555,7 @@ class Wire_Baskets(pc_types.Assembly):
         s_thickness = self.get_prompt("Shelf Thickness").get_var('s_thickness')
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_lock_shelf(self)
@@ -1637,7 +1570,7 @@ class Wire_Baskets(pc_types.Assembly):
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
         shelf.dim_x('x',[x])
-        shelf.dim_y('y',[y])
+        shelf.dim_y('y-back_inset',[y,back_inset])
         shelf.dim_z('s_thickness',[s_thickness])
         left_depth_p = shelf.get_prompt("Left Depth")
         left_depth_p.set_formula('left_depth',[left_depth])
@@ -1646,23 +1579,9 @@ class Wire_Baskets(pc_types.Assembly):
 
         shelf_z_loc = shelf.obj_bp.pyclone.get_var('location.z','shelf_z_loc')
 
-        opening = data_closet_parts.add_closet_opening(self)
-        opening.set_name('Opening')
-        opening.loc_x(value = 0)
-        opening.loc_y(value = 0)
-        opening.loc_z('shelf_z_loc+s_thickness',
-                      [shelf_z_loc,s_thickness])
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('x',[x])
-        opening.dim_y('y',[y])
-        opening.dim_z('z-shelf_z_loc-s_thickness',
-                      [z,shelf_z_loc,s_thickness])
-        left_depth_p = opening.get_prompt("Left Depth")
-        left_depth_p.set_formula('left_depth',[left_depth])
-        right_depth_p = opening.get_prompt("Right Depth")
-        right_depth_p.set_formula('right_depth',[right_depth])
+        opening = self.add_opening()
+        opening.loc_z('shelf_z_loc+s_thickness',[shelf_z_loc,s_thickness])
+        opening.dim_z('z-shelf_z_loc-s_thickness',[z,shelf_z_loc,s_thickness])
 
         prev_wire_basket_empty = None
 
@@ -1687,7 +1606,7 @@ class Wire_Baskets(pc_types.Assembly):
             basket.rot_y(value = 0)
             basket.rot_z(value = 0)
             basket.dim_x('x',[x])
-            basket.dim_y('y',[y])            
+            basket.dim_y('y-back_inset',[y,back_inset])            
             basket.dim_z('wbh',[wbh])
             hide = basket.get_prompt('Hide')
             hide.set_formula('IF(qty>' + str(i-1) + ',False,True)',[qty])
@@ -1701,7 +1620,7 @@ class Wire_Baskets(pc_types.Assembly):
         self.draw()          
 
 
-class Cubbies(pc_types.Assembly):
+class Cubbies(Closet_Insert):
     show_in_library = True
     category_name = "CLOSETS"
     subcategory_name = "CLOSET_INSERTS"
@@ -1710,8 +1629,7 @@ class Cubbies(pc_types.Assembly):
 
     def pre_draw(self):
         self.create_assembly()
-        left_depth = self.add_prompt("Left Depth",'DISTANCE',0) 
-        right_depth = self.add_prompt("Right Depth",'DISTANCE',0)           
+        self.add_closet_insert_prompts()        
         self.obj_bp["IS_CUBBY_INSERT"] = True
         self.obj_bp["IS_CLOSET_INSERT"] = True
         self.obj_bp["PROMPT_ID"] = "home_builder.closet_cubby_prompts"
@@ -1719,21 +1637,6 @@ class Cubbies(pc_types.Assembly):
         self.obj_x.location.x = pc_unit.inch(20)
         self.obj_y.location.y = pc_unit.inch(12)
         self.obj_z.location.z = pc_unit.inch(.75)
-
-        width = self.obj_x.pyclone.get_var('location.x','width')
-        height = self.obj_z.pyclone.get_var('location.z','height')
-        depth = self.obj_y.pyclone.get_var('location.y','depth')
-
-        reference = data_closet_parts.add_closet_reference(self)
-        reference.loc_x(value = 0)
-        reference.loc_y(value = 0)
-        reference.loc_z(value = 0)
-        reference.rot_x(value = 0)
-        reference.rot_y(value = 0)
-        reference.rot_z(value = 0)      
-        reference.dim_x('width',[width])
-        reference.dim_y('depth',[depth])
-        reference.dim_z('height',[height])  
 
     def draw(self):      
         self.add_prompt("Cubby Placement",'COMBOBOX',0,["Bottom","Top","Fill"])
@@ -1756,6 +1659,7 @@ class Cubbies(pc_types.Assembly):
         setback = self.get_prompt("Cubby Setback").get_var('setback')
         left_depth = self.get_prompt("Left Depth").get_var("left_depth")
         right_depth = self.get_prompt("Right Depth").get_var("right_depth")
+        back_inset = self.get_prompt("Back Inset").get_var("back_inset")
 
         #TOP SHELF
         shelf = data_closet_parts.add_closet_lock_shelf(self)
@@ -1769,7 +1673,7 @@ class Cubbies(pc_types.Assembly):
         shelf.rot_y(value = 0)
         shelf.rot_z(value = 0)
         shelf.dim_x('width',[width])
-        shelf.dim_y('depth',[depth])
+        shelf.dim_y('depth-back_inset',[depth,back_inset])
         shelf.dim_z('-s_thickness',[s_thickness])
         hide = shelf.get_prompt('Hide')
         hide.set_formula('IF(placement==2,True,False)',[placement])
@@ -1779,20 +1683,11 @@ class Cubbies(pc_types.Assembly):
         right_depth_p = shelf.get_prompt("Right Depth")
         right_depth_p.set_formula('right_depth',[right_depth])
 
-        opening = data_closet_parts.add_closet_opening(self)
-        opening.loc_x(value = 0)
-        opening.loc_y(value = 0)
+        opening = self.add_opening()
         opening.loc_z('IF(placement==0,c_height+s_thickness,0)',[placement,c_height,s_thickness])
-        opening.rot_x(value = 0)
-        opening.rot_y(value = 0)
-        opening.rot_z(value = 0)
-        opening.dim_x('IF(placement==2,0,width)',[placement,width])
-        opening.dim_y('IF(placement==2,0,depth)',[placement,depth])
+        # opening.dim_x('IF(placement==2,0,width)',[placement,width])
+        # opening.dim_y('IF(placement==2,0,depth)',[placement,depth])
         opening.dim_z('IF(placement==2,0,height-c_height-s_thickness)',[placement,height,c_height,s_thickness])
-        left_depth_p = opening.get_prompt("Left Depth")
-        left_depth_p.set_formula('left_depth',[left_depth])
-        right_depth_p = opening.get_prompt("Right Depth")
-        right_depth_p.set_formula('right_depth',[right_depth])
 
         v_cubby = data_closet_parts.add_closet_array_part(self)
         props = home_builder_utils.get_object_props(v_cubby.obj_bp)
@@ -1804,7 +1699,7 @@ class Cubbies(pc_types.Assembly):
         v_cubby.rot_y(value = math.radians(-90))
         v_cubby.rot_z(value = 0)
         v_cubby.dim_x('IF(placement==2,height,c_height)',[placement,height,c_height])
-        v_cubby.dim_y('depth-setback',[depth,setback])
+        v_cubby.dim_y('depth-setback-back_inset',[depth,setback,back_inset])
         v_cubby.dim_z('-d_thickness',[d_thickness])
         qty = v_cubby.get_prompt('Z Quantity')
         offset = v_cubby.get_prompt('Z Offset')
@@ -1825,7 +1720,7 @@ class Cubbies(pc_types.Assembly):
         h_cubby.rot_y(value = 0)
         h_cubby.rot_z(value = 0)
         h_cubby.dim_x('width',[width])
-        h_cubby.dim_y('depth-setback',[depth,setback])
+        h_cubby.dim_y('depth-setback-back_inset',[depth,setback,back_inset])
         h_cubby.dim_z('s_thickness',[s_thickness])
         qty = h_cubby.get_prompt('Z Quantity')
         offset = h_cubby.get_prompt('Z Offset')

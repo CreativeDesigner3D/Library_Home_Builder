@@ -208,6 +208,8 @@ class Cabinet_Exterior(pc_types.Assembly):
         inside_depth = self.obj_y.pyclone.get_var('location.y','inside_depth')
         drawer_front_width = drawer_front.obj_y.pyclone.get_var('location.y','drawer_front_width')
         drawer_front_height = drawer_front.obj_x.pyclone.get_var('location.x','drawer_front_height')
+        back_inset = self.get_prompt("Back Inset")
+        back_inset_var = back_inset.get_var('back_inset_var')
 
         left_overlay = drawer_front.get_prompt("Left Overlay")
         lo = left_overlay.get_var('lo')
@@ -220,14 +222,14 @@ class Cabinet_Exterior(pc_types.Assembly):
 
         o_height = math.fabs(drawer_front.obj_x.location.x) - top_overlay.get_value() - bottom_overlay.get_value()
         if hasattr(drawer,'set_size'):
-            drawer.set_size(o_height,self.obj_y.location.y)
+            drawer.set_size(o_height,self.obj_y.location.y-back_inset.get_value())
         drawer.draw()
         self.add_assembly(drawer)
         drawer.loc_x('x_loc',[x_loc])
         drawer.loc_y('y_loc',[y_loc])
         drawer.loc_z('z_loc',[z_loc])
         drawer.dim_x('fabs(drawer_front_width)',[drawer_front_width])
-        drawer.dim_y('inside_depth',[inside_depth])
+        drawer.dim_y('inside_depth-back_inset_var',[inside_depth,back_inset_var])
         drawer.dim_z('drawer_front_height',[drawer_front_height])
         drawer.obj_x.hide_viewport = True
         drawer.obj_y.hide_viewport = True

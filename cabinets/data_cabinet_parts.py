@@ -112,6 +112,16 @@ class Square_Cutout(pc_types.Assembly):
         hook.object = self.obj_z
         hook.vertex_indices_set([4,5,6,7])
 
+def add_empty_assembly(assembly):
+    part = pc_types.Assembly()
+    part.create_assembly()
+    assembly.add_assembly(part)
+    part.obj_bp.hide_viewport = True
+    part.obj_x.hide_viewport = True
+    part.obj_y.hide_viewport = True
+    part.obj_z.hide_viewport = True
+    return part
+
 def add_buyout_drawer(assembly):
     part_path = path.join(home_builder_paths.get_assembly_path(),"Drawer Box.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))

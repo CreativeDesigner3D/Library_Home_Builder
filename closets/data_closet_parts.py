@@ -42,6 +42,8 @@ def add_closet_array_part(assembly):
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     part.obj_bp['IS_CUTPART_BP'] = True
     assembly.add_assembly(part)    
+    part.add_prompt("Left Depth",'DISTANCE',0)
+    part.add_prompt("Right Depth",'DISTANCE',0)      
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
     part.obj_y.empty_display_size = .001
@@ -80,6 +82,21 @@ def add_closet_wire_basket(assembly):
         # home_builder_utils.add_bevel(part)
         return part    
 
+def add_metal_shoe_shelf_part(assembly):
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Metal Shoe Shelf.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    # part.obj_bp['IS_CUTPART_BP'] = True
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
+    # home_builder_utils.add_bevel(part)
+    home_builder_pointers.assign_hanging_rods_pointers(part)
+    home_builder_pointers.assign_materials_to_assembly(part)
+    return part
+
 def add_closet_oval_hanging_rod(assembly):
     part_path = path.join(home_builder_paths.get_assembly_path(),"Oval Hanging Rod.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
@@ -102,6 +119,7 @@ def add_closet_opening(assembly):
     assembly.add_assembly(part)
     part.add_prompt("Left Depth",'DISTANCE',0)
     part.add_prompt("Right Depth",'DISTANCE',0)
+    part.add_prompt("Back Inset",'DISTANCE',0)
     part.obj_bp.empty_display_size = .001
     part.obj_x.empty_display_size = .001
     part.obj_y.empty_display_size = .001
@@ -110,7 +128,6 @@ def add_closet_opening(assembly):
     for child in part.obj_bp.children:
         if child.type == 'MESH':
             child['IS_OPENING_MESH'] = True
-    # home_builder_utils.add_bevel(part)
     return part    
 
 def add_closet_reference(assembly):
@@ -191,6 +208,21 @@ def add_corner_notch_countertop_part(assembly):
 
 def add_corner_notch_part(assembly):
     part_path = path.join(home_builder_paths.get_assembly_path(),"Corner Notch Part.blend")
+    part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
+    part.obj_bp['IS_CUTPART_BP'] = True
+    assembly.add_assembly(part)
+    part.obj_bp.empty_display_size = .001
+    part.obj_x.empty_display_size = .001
+    part.obj_y.empty_display_size = .001
+    part.obj_z.empty_display_size = .001
+    part.obj_prompts.empty_display_size = .001    
+    home_builder_utils.add_bevel(part)
+    home_builder_pointers.assign_double_sided_pointers(part)
+    home_builder_pointers.assign_materials_to_assembly(part)
+    return part 
+
+def add_corner_radius_part(assembly):
+    part_path = path.join(home_builder_paths.get_assembly_path(),"Corner Radius Part.blend")
     part = pc_types.Assembly(assembly.add_assembly_from_file(part_path))
     part.obj_bp['IS_CUTPART_BP'] = True
     assembly.add_assembly(part)

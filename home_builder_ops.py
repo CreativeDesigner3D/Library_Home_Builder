@@ -29,6 +29,7 @@ from .cabinets import cabinet_utils
 from . import home_builder_pointers
 from . import home_builder_utils
 from . import home_builder_paths
+from . import home_builder_enums
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 from mathutils import Vector
 
@@ -3508,6 +3509,40 @@ class home_builder_OT_update_checkbox_prompt_in_scene(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class home_builder_OT_update_closet_height(bpy.types.Operator):
+    bl_idname = "home_builder.update_closet_height"
+    bl_label = "Update Closet Height"
+
+    product_type: bpy.props.EnumProperty(name="Product Type",
+                                         items=[('BASE',"Base","Base Units"),
+                                                ('HANGING',"Hanging","Hanging Units")])
+
+    def execute(self, context):
+        props = home_builder_utils.get_scene_props(context.scene)
+
+        base_height = int(props.base_closet_panel_height)/1000
+        hang_height = int(props.default_closet_hanging_height)/1000
+        hang_panel_height = int(props.hanging_closet_panel_height)/1000
+        ctop_thickness = props.countertop_thickness
+        hanging_target_height = pc_unit.meter_to_millimeter(hang_height - (base_height + ctop_thickness))
+        base_target_height = pc_unit.meter_to_millimeter(hang_height - (hang_panel_height + ctop_thickness))
+        for index, height in enumerate(home_builder_enums.PANEL_HEIGHTS):
+            if self.product_type == 'BASE':
+                if not base_target_height >= int(height[0]):
+                    base_height = home_builder_enums.PANEL_HEIGHTS[index - 1][0]
+                    props.base_closet_panel_height = base_height                                                                                                                                                                                                     
+                    break
+            if self.product_type == 'HANGING':
+                if not hanging_target_height >= int(height[0]):
+                    hanging_height = home_builder_enums.PANEL_HEIGHTS[index - 1][0]
+                    props.hanging_closet_panel_height = hanging_height                                                                                                                                                                                                     
+                    break      
+        b_panel_height = int(props.base_closet_panel_height)/1000
+        h_panel_height = int(props.hanging_closet_panel_height)/1000
+        props.extend_panel_amount = hang_height - b_panel_height - h_panel_height - ctop_thickness
+        return {'FINISHED'}
+
+
 class home_builder_OT_unit_settings(bpy.types.Operator):
     bl_idname = "home_builder.unit_settings"
     bl_label = "Change Units"
@@ -3597,6 +3632,7 @@ classes = (
     home_builder_OT_free_move_object,
     home_builder_OT_update_distance_prompt_in_scene,
     home_builder_OT_update_checkbox_prompt_in_scene,
+    home_builder_OT_update_closet_height,
     home_builder_OT_unit_settings,
 )
 

@@ -33,7 +33,7 @@ class Closet(pc_types.Assembly):
             is_hanging_prompt = self.get_prompt('Is Hanging')
             if is_hanging_prompt and is_hanging_prompt.get_value() == False:
                 self.is_hanging = False
-            for i in range(1,9):
+            for i in range(1,10):
                 opening_height_prompt = self.get_prompt("Opening " + str(i) + " Height")
                 floor = self.get_prompt("Opening " + str(i) + " Floor Mounted")
                 if floor:
@@ -42,6 +42,35 @@ class Closet(pc_types.Assembly):
                 if not opening_height_prompt:
                     self.opening_qty = i - 1
                     break
+
+    def add_panel_prompts(self,panel):
+        prompt_dict = {}
+        panel.add_prompt("Left Depth",'DISTANCE',0)
+        panel.add_prompt("Left Height",'DISTANCE',0)       
+        panel.add_prompt("Left Floor",'CHECKBOX',False)  
+        panel.add_prompt("Left Drill Start",'DISTANCE',0)
+        panel.add_prompt("Left Drill Stop",'DISTANCE',0)
+        panel.add_prompt("Right Depth",'DISTANCE',0)     
+        panel.add_prompt("Right Height",'DISTANCE',0)
+        panel.add_prompt("Right Floor",'CHECKBOX',False)
+        panel.add_prompt("Right Drill Start",'DISTANCE',0)
+        panel.add_prompt("Right Drill Stop",'DISTANCE',0)                                     
+        panel.add_prompt("Drill From Left",'CHECKBOX',True)
+        panel.add_prompt("Drill From One Side",'CHECKBOX',True)        
+        
+        prompt_dict["Left Depth"] = panel.get_prompt("Left Depth")
+        prompt_dict["Left Height"] = panel.get_prompt("Left Height")
+        prompt_dict["Left Floor"] = panel.get_prompt("Left Floor")
+        prompt_dict["Left Drill Start"] = panel.get_prompt("Left Drill Start")
+        prompt_dict["Left Drill Stop"] = panel.get_prompt("Left Drill Stop")
+        prompt_dict["Right Depth"] = panel.get_prompt("Right Depth")
+        prompt_dict["Right Height"] = panel.get_prompt("Right Height")
+        prompt_dict["Right Floor"] = panel.get_prompt("Right Floor")
+        prompt_dict["Right Drill Start"] = panel.get_prompt("Right Drill Start")
+        prompt_dict["Right Drill Stop"] = panel.get_prompt("Right Drill Stop")
+        prompt_dict["Drill From Left"] = panel.get_prompt("Drill From Left")
+        prompt_dict["Drill From One Side"] = panel.get_prompt("Drill From One Side")
+        return prompt_dict
 
 class Closet_Starter(Closet):
     show_in_library = True
@@ -54,7 +83,7 @@ class Closet_Starter(Closet):
     right_filler = None
 
     def __init__(self,obj_bp=None):
-        super().__init__(obj_bp=obj_bp)  
+        super().__init__(obj_bp=obj_bp)
         self.left_bridge_parts = []
         self.right_bridge_parts = []
         if obj_bp:
@@ -67,35 +96,62 @@ class Closet_Starter(Closet):
                     self.left_filler = pc_types.Assembly(child)
                 if "IS_RIGHT_FILLER_BP" in child:
                     self.right_filler = pc_types.Assembly(child)
+        
+    def get_drivers(self,obj):
+        drivers = []
+        if obj.animation_data:
+            for driver in obj.animation_data.drivers:
+                drivers.append(driver)
 
-    def add_opening_prompts(self):
-        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        if obj.data and obj.data.animation_data:
+            for driver in obj.data.animation_data.drivers:
+                drivers.append(driver)
+
+        if obj.data and obj.data.shape_keys and obj.data.shape_keys.animation_data:
+            for driver in obj.data.shape_keys.animation_data.drivers:
+                drivers.append(driver)
+
+        return drivers            
+
+    def update_calculator_formula(self):
+        calculator = self.get_calculator("Opening Calculator")
         width = self.obj_x.pyclone.get_var('location.x','width')
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
         left_filler_width = self.get_prompt("Left Side Wall Filler").get_var("left_filler_width")
         right_filler_width = self.get_prompt("Right Side Wall Filler").get_var("right_filler_width")
-
-        calc_distance_obj = self.add_empty('Calc Distance Obj')
-        calc_distance_obj.empty_display_size = .001
-        opening_calculator = self.obj_prompts.pyclone.add_calculator("Opening Calculator",calc_distance_obj)
-
         calc_formula = 'width-left_filler_width-right_filler_width-p_thickness*' + str(self.opening_qty+1)
         calc_vars = [width,p_thickness,left_filler_width,right_filler_width]
+        drivers = self.get_drivers(calculator.distance_obj)
+
+        for driver in drivers:
+            for var in driver.driver.variables:
+                driver.driver.variables.remove(var)
 
         for i in range(1,self.opening_qty+1):
-            opening_calculator.add_calculator_prompt('Opening ' + str(i) + ' Width')
-            default_height = pc_unit.millimeter(int(props.hanging_closet_panel_height)) if self.is_hanging else self.obj_z.location.z
-            self.add_prompt("Opening " + str(i) + " Height",'DISTANCE',default_height)
-            self.add_prompt("Opening " + str(i) + " Depth",'DISTANCE',math.fabs(self.obj_y.location.y))
-            self.add_prompt("Opening " + str(i) + " Floor Mounted",'CHECKBOX',False if self.is_hanging else True)
-            self.add_prompt("Remove Bottom " + str(i),'CHECKBOX',False)
             if i != self.opening_qty:
-                double_panel = self.add_prompt("Double Panel " + str(i),'CHECKBOX',False)
-                d_panel = double_panel.get_var('d_panel_' + str(i))
+                d_panel = self.get_prompt("Double Panel " + str(i)).get_var("d_panel_" + str(i))
                 calc_vars.append(d_panel)
                 calc_formula += "-IF(d_panel_" + str(i) + ",p_thickness,0)"
 
-        opening_calculator.set_total_distance(calc_formula,calc_vars)
+        calculator.set_total_distance(calc_formula,calc_vars)
+        calculator.calculate()
+
+    def add_opening_calculator(self):
+        calc_distance_obj = self.add_empty('Calc Distance Obj')
+        calc_distance_obj.empty_display_size = .001
+        self.obj_prompts.pyclone.add_calculator("Opening Calculator",calc_distance_obj)
+
+    def add_opening_prompts(self,number):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
+        default_height = pc_unit.millimeter(int(props.hanging_closet_panel_height)) if self.is_hanging else self.obj_z.location.z
+        calculator = self.get_calculator("Opening Calculator")
+        calculator.add_calculator_prompt('Opening ' + str(number) + ' Width')
+        self.add_prompt("Opening " + str(number) + " Height",'DISTANCE',default_height)
+        self.add_prompt("Opening " + str(number) + " Depth",'DISTANCE',math.fabs(self.obj_y.location.y))
+        self.add_prompt("Opening " + str(number) + " Floor Mounted",'CHECKBOX',False if self.is_hanging else True)
+        self.add_prompt("Remove Bottom " + str(number),'CHECKBOX',False)
+        if number != self.opening_qty:
+            double_panel = self.add_prompt("Double Panel " + str(number),'CHECKBOX',False)        
 
     def add_panel(self,index,previous_panel):
         previous_panel_x = previous_panel.obj_bp.pyclone.get_var('location.x',"previous_panel_x")
@@ -109,54 +165,51 @@ class Closet_Starter(Closet):
         right_floor = self.get_prompt("Opening " + str(index+1) + " Floor Mounted").get_var('right_floor')
         right_depth = self.get_prompt("Opening " + str(index+1) + " Depth").get_var('right_depth')
         right_height = self.get_prompt("Opening " + str(index+1) + " Height").get_var('right_height')
+        drill_start_loc = self.get_prompt("Drill Start Location").get_var("drill_start_loc")
         dp = self.get_prompt("Double Panel " + str(index)).get_var('dp')
         left_filler = self.get_prompt("Left Side Wall Filler").get_var("left_filler")
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
+        ep = self.get_prompt("Extend Panels to Countertop").get_var("ep")
+        ea = self.get_prompt("Extend Panel Amount").get_var("ea")
 
         panel = data_closet_parts.add_closet_part(self)
         props = home_builder_utils.get_object_props(panel.obj_bp)
         props.ebl1 = True
         panel.obj_bp["IS_PANEL_BP"] = True
+        panel.obj_bp["IS_CLOSET_PARTITION_BP"] = True
         panel.set_name('Closet Partition ' + str(index))
         panel.loc_x('previous_panel_x+left_width+p_thickness+IF(dp,p_thickness,0)',[previous_panel_x,left_width,p_thickness,dp])
         panel.loc_y(value = 0)
-        panel.loc_z("IF(dp,IF(right_floor,0,height-right_height),IF(OR(left_floor,right_floor),0,min(height-left_height,height-right_height)))",
-                    [dp,left_floor,right_floor,height,left_height,right_height])        
+        panel.loc_z("IF(dp,IF(right_floor,0,height-right_height-IF(ep,ea,0)),IF(OR(left_floor,right_floor),0,min(height-left_height,height-right_height)-IF(ep,ea,0)))",
+                    [dp,left_floor,right_floor,height,left_height,right_height,ep,ea])        
         panel.rot_y(value=math.radians(-90))
         panel.rot_z(value=0)
-        panel.dim_x('IF(dp,right_height,max(IF(left_floor,left_height,IF(right_floor,height,left_height)),IF(right_floor,right_height,IF(left_floor,height,right_height))))',
-                    [left_floor,height,right_floor,left_height,right_height,dp])        
+        panel.dim_x('IF(dp,right_height+IF(ep,ea,0),max(IF(left_floor,left_height,IF(right_floor,height,left_height+IF(ep,ea,0))),IF(right_floor,right_height,IF(left_floor,height,right_height+IF(ep,ea,0)))))',
+                    [left_floor,height,right_floor,left_height,right_height,dp,ep,ea])        
         panel.dim_y('IF(dp,-right_depth,-max(left_depth,right_depth))',[dp,left_depth,right_depth])
         panel.dim_z('-p_thickness',[p_thickness])
-        left_depth_prompt = panel.add_prompt("Left Depth",'DISTANCE',0)
-        left_depth_prompt.set_formula('IF(dp,0,left_depth)',[left_depth,dp])
-        left_height_prompt = panel.add_prompt("Left Height",'DISTANCE',0)
-        left_height_prompt.set_formula('IF(dp,0,left_height)',[left_height,dp])        
-        left_floor_prompt = panel.add_prompt("Left Floor",'CHECKBOX',False)
-        left_floor_prompt.set_formula('IF(dp,0,left_floor)',[left_floor,dp])       
-        left_drill_start = panel.add_prompt("Left Drill Start",'DISTANCE',0)
-        left_drill_start.set_formula('IF(left_floor,.00889,IF(right_floor,height-left_height+.00889,IF(left_height<=right_height,right_height-left_height+.00889,.00889)))',
-                                     [left_floor,right_floor,height,left_height,right_height])  
-        left_drill_stop = panel.add_prompt("Left Drill Stop",'DISTANCE',0)
-        left_drill_stop.set_formula('IF(left_floor,left_height,IF(right_floor,height,max(left_height,right_height)))',
+        prompt_dict = self.add_panel_prompts(panel)
+        prompt_dict["Left Depth"].set_formula('IF(dp,0,left_depth)',[left_depth,dp])
+        prompt_dict["Left Height"].set_formula('IF(dp,0,left_height)',[left_height,dp])       
+        prompt_dict["Left Floor"].set_formula('IF(dp,0,left_floor)',[left_floor,dp])       
+        prompt_dict["Left Drill Start"].set_formula('IF(left_floor,drill_start_loc,IF(right_floor,height-left_height+drill_start_loc,IF(left_height<=right_height,right_height-left_height+drill_start_loc,drill_start_loc)))',
+                                     [left_floor,right_floor,height,left_height,right_height,drill_start_loc])  
+        prompt_dict["Left Drill Stop"].set_formula('IF(left_floor,left_height,IF(right_floor,height,max(left_height,right_height)))',
                                     [left_floor,right_floor,height,left_height,right_height])  
-
-        right_depth_prompt = panel.add_prompt("Right Depth",'DISTANCE',0)     
-        right_depth_prompt.set_formula('right_depth',[right_depth])          
-        right_height_prompt = panel.add_prompt("Right Height",'DISTANCE',0)
-        right_height_prompt.set_formula('right_height',[right_height])        
-        right_floor_prompt = panel.add_prompt("Right Floor",'CHECKBOX',False)
-        right_floor_prompt.set_formula('right_floor',[right_floor])   
-        right_drill_start = panel.add_prompt("Right Drill Start",'DISTANCE',0)
-        right_drill_start.set_formula('IF(right_floor,.00889,IF(left_floor,height-right_height+.00889,IF(right_height<=left_height,left_height-right_height+.00889,.00889)))',
-                                      [right_floor,left_floor,height,right_height,left_height])
-        right_drill_stop = panel.add_prompt("Right Drill Stop",'DISTANCE',0)
-        right_drill_stop.set_formula('IF(right_floor,right_height,IF(left_floor,height,max(left_height,right_height)))',
+        prompt_dict["Right Depth"].set_formula('right_depth',[right_depth])          
+        prompt_dict["Right Height"].set_formula('right_height',[right_height])        
+        prompt_dict["Right Floor"].set_formula('right_floor',[right_floor])   
+        prompt_dict["Right Drill Start"].set_formula('IF(right_floor,drill_start_loc,IF(left_floor,height-right_height+drill_start_loc,IF(right_height<=left_height,left_height-right_height+drill_start_loc,drill_start_loc)))',
+                                      [right_floor,left_floor,height,right_height,left_height,drill_start_loc])
+        prompt_dict["Right Drill Stop"].set_formula('IF(right_floor,right_height,IF(left_floor,height,max(left_height,right_height)))',
                                      [left_floor,right_floor,height,left_height,right_height])                                          
-        drill_from_left = panel.add_prompt("Drill From Left",'CHECKBOX',True)
+        prompt_dict["Drill From Left"].set_value(True)
+        prompt_dict["Drill From One Side"].set_formula('IF(left_depth==right_depth,IF(left_floor==right_floor,True,False),False)',
+                                        [left_depth,right_depth,left_floor,right_floor,dp])
 
         d_panel = data_closet_parts.add_closet_part(self)
         d_panel.obj_bp["IS_PANEL_BP"] = True
+        d_panel.obj_bp["IS_DOUBLE_PANEL_BP"] = True
         props = home_builder_utils.get_object_props(d_panel.obj_bp)
         props.ebl1 = True
         d_panel.set_name('Double Panel ' + str(index))
@@ -171,30 +224,21 @@ class Closet_Starter(Closet):
         home_builder_utils.flip_normals(d_panel)
         hide = d_panel.get_prompt('Hide')
         hide.set_formula('IF(dp,False,True)',[dp])
-        left_depth_prompt = d_panel.add_prompt("Left Depth",'DISTANCE',0)
-        left_depth_prompt.set_formula('left_depth',[left_depth])
-        left_height_prompt = d_panel.add_prompt("Left Height",'DISTANCE',0)
-        left_height_prompt.set_formula('left_height',[left_height])   
-        left_floor_prompt = d_panel.add_prompt("Left Floor",'CHECKBOX',False)
-        left_floor_prompt.set_formula('left_floor',[left_floor]) 
-        left_drill_start = d_panel.add_prompt("Left Drill Start",'DISTANCE',0)
-        left_drill_start.set_formula('IF(left_floor,.00889,IF(right_floor,height-left_height+.00889,IF(left_height<=right_height,right_height-left_height+.00889,.00889)))',
-                                     [left_floor,right_floor,height,left_height,right_height])  
-        left_drill_stop = d_panel.add_prompt("Left Drill Stop",'DISTANCE',0)
-        left_drill_stop.set_formula('IF(left_floor,left_height,IF(right_floor,height,max(left_height,right_height)))',
+        prompt_dict = self.add_panel_prompts(d_panel)
+        prompt_dict["Left Depth"].set_formula('left_depth',[left_depth])
+        prompt_dict["Left Height"].set_formula('left_height',[left_height])   
+        prompt_dict["Left Floor"].set_formula('left_floor',[left_floor])
+        prompt_dict["Left Drill Start"].set_formula('IF(left_floor,drill_start_loc,IF(right_floor,height-left_height+drill_start_loc,IF(left_height<=right_height,right_height-left_height+drill_start_loc,drill_start_loc)))',
+                                     [left_floor,right_floor,height,left_height,right_height,drill_start_loc]) 
+        prompt_dict["Left Drill Stop"].set_formula('IF(left_floor,left_height,IF(right_floor,height,max(left_height,right_height)))',
                                     [left_floor,right_floor,height,left_height,right_height])  
-
-        right_depth_prompt = d_panel.add_prompt("Right Depth",'DISTANCE',0)
-        right_depth_prompt.set_formula('0',[])      
-        right_height_prompt = d_panel.add_prompt("Right Height",'DISTANCE',0)
-        right_height_prompt.set_formula('0',[])   
-        right_floor_prompt = d_panel.add_prompt("Right Floor",'CHECKBOX',False)
-        right_floor_prompt.set_formula('False',[]) 
-        right_drill_start = d_panel.add_prompt("Right Drill Start",'DISTANCE',0)
-        right_drill_start.set_formula('0',[])
-        right_drill_stop = d_panel.add_prompt("Right Drill Stop",'DISTANCE',0)
-        right_drill_stop.set_formula('0',[])     
-        drill_from_left = d_panel.add_prompt("Drill From Left",'CHECKBOX',True)                                       
+        prompt_dict["Right Depth"].set_formula('0',[])  
+        prompt_dict["Right Height"].set_formula('0',[])  
+        prompt_dict["Right Floor"].set_formula('False',[]) 
+        prompt_dict["Right Drill Start"].set_formula('0',[])
+        prompt_dict["Right Drill Stop"].set_formula('0',[])    
+        prompt_dict["Drill From Left"].set_value(True)
+        prompt_dict["Drill From One Side"].set_value(True)                                     
         return panel
 
     def add_shelf(self,index,left_panel,right_panel):
@@ -210,7 +254,8 @@ class Closet_Starter(Closet):
 
         shelf = data_closet_parts.add_closet_part(self)
         props = home_builder_utils.get_object_props(shelf.obj_bp)
-        props.ebl1 = True        
+        props.ebl1 = True    
+        props.opening_number = index
         l_depth = shelf.add_prompt("Left Depth",'DISTANCE',0)
         l_depth.set_formula('left_depth',[left_depth])
         r_depth = shelf.add_prompt("Right Depth",'DISTANCE',0)
@@ -229,10 +274,11 @@ class Closet_Starter(Closet):
         return shelf
 
     def add_countertop(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
         width = self.obj_x.pyclone.get_var('location.x','width')
         height = self.obj_z.pyclone.get_var('location.z','height')
         depth = self.obj_y.pyclone.get_var('location.y','depth')
-        ctop_thickness = self.add_prompt("Countertop Thickness",'DISTANCE',pc_unit.inch(1.5)) 
+        ctop_thickness = self.add_prompt("Countertop Thickness",'DISTANCE',props.countertop_thickness) 
         ctop_overhang_front = self.add_prompt("Countertop Overhang Front",'DISTANCE',pc_unit.inch(1.5)) 
         ctop_overhang_left = self.add_prompt("Countertop Overhang Left",'DISTANCE',pc_unit.inch(0)) 
         ctop_overhang_right = self.add_prompt("Countertop Overhang Right",'DISTANCE',pc_unit.inch(0)) 
@@ -274,6 +320,8 @@ class Closet_Starter(Closet):
         kick_setback = self.get_prompt("Closet Kick Setback").get_var("kick_setback")
 
         kick = data_closet_parts.add_closet_part(self)
+        props = home_builder_utils.get_object_props(kick.obj_bp)  
+        props.opening_number = index        
         kick.obj_bp["IS_TOE_KICK_BP"] = True
         kick.set_name('Kick ' + str(index))
         kick.loc_x('left_panel_x+p_thickness',[left_panel_x,p_thickness])
@@ -293,12 +341,6 @@ class Closet_Starter(Closet):
     def add_opening(self,index,left_panel,right_panel):
         left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
         right_panel_x = right_panel.obj_bp.pyclone.get_var('location.x','right_panel_x')
-        # left_depth_p = self.get_prompt("Opening " + str(index-1) + " Depth")
-        # if left_depth_p:
-        #     left_depth = left_depth_p.get_var('left_depth')
-        # right_depth_p = self.get_prompt("Opening " + str(index+1) + " Depth")
-        # if right_depth_p:
-        #     right_depth = right_depth_p.get_var('right_depth')
         left_depth = left_panel.get_prompt('Left Depth').get_var('left_depth')
         right_depth = right_panel.get_prompt('Right Depth').get_var('right_depth')
         p_height = self.obj_z.pyclone.get_var('location.z','p_height')
@@ -310,21 +352,14 @@ class Closet_Starter(Closet):
         p_thickness = self.get_prompt("Panel Thickness").get_var("p_thickness")
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         kick_height = self.get_prompt("Closet Kick Height").get_var("kick_height")
+
         opening = data_closet_parts.add_closet_opening(self)
         l_depth = opening.get_prompt("Left Depth")
         l_depth.set_formula('left_depth',[left_depth])
         r_depth = opening.get_prompt("Right Depth")
         r_depth.set_formula('right_depth',[right_depth])
-        # if left_depth_p:
-        #     left_depth = left_depth_p.get_var('left_depth')
-        #     l_depth.set_formula('left_depth',[left_depth])
-        # else:
-        #     l_depth.set_formula('0',[])
-        # if right_depth_p:
-        #     right_depth = right_depth_p.get_var('right_depth')
-        #     r_depth.set_formula('right_depth',[right_depth])
-        # else:
-        #     r_depth.set_formula('0',[])
+        props = home_builder_utils.get_object_props(opening.obj_bp)  
+        props.opening_number = index 
         opening.obj_prompts.hide_viewport = False
         opening.set_name('Opening ' + str(index))
         opening.loc_x('left_panel_x+p_thickness',[left_panel_x,p_thickness])
@@ -373,6 +408,7 @@ class Closet_Starter(Closet):
         reference.dim_z('height',[height])          
 
     def add_left_blind_parts(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
         p_height = self.obj_z.pyclone.get_var('location.z','p_height')
         floor_1 = self.get_prompt("Opening 1 Floor Mounted").get_var("floor_1")
         height_1 = self.get_prompt("Opening 1 Height").get_var("height_1")
@@ -383,23 +419,41 @@ class Closet_Starter(Closet):
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         depth_1 = self.get_prompt("Opening 1 Depth").get_var("depth_1")
 
-        left_bot_bridge = data_closet_parts.add_closet_part(self)
-        props = home_builder_utils.get_object_props(left_bot_bridge.obj_bp)
-        props.ebl1 = True          
-        left_bot_bridge.obj_bp["IS_LEFT_BRIDGE_BP"] = True
-        left_bot_bridge.set_name('Left Bridge Bottom')
-        left_bot_bridge.loc_x('-b_left_width',[b_left_width])
-        left_bot_bridge.loc_y(value = 0)
-        left_bot_bridge.loc_z('IF(floor_1,kick_height,p_height-height_1)',[floor_1,kick_height,p_height,height_1])
-        left_bot_bridge.rot_y(value = 0)
-        left_bot_bridge.rot_z(value = 0)
-        left_bot_bridge.dim_x('b_left_width',[b_left_width])
-        left_bot_bridge.dim_y('-depth_1',[depth_1])
-        left_bot_bridge.dim_z('s_thickness',[s_thickness])
-        hide = left_bot_bridge.get_prompt("Hide")
-        hide.set_formula('IF(b_left,False,True)',[b_left])
-        home_builder_utils.flip_normals(left_bot_bridge)
-        self.left_bridge_parts.append(left_bot_bridge)
+        if props.add_bottom_filler_shelf:
+            left_bot_bridge = data_closet_parts.add_closet_part(self)
+            props = home_builder_utils.get_object_props(left_bot_bridge.obj_bp)
+            props.ebl1 = True          
+            left_bot_bridge.obj_bp["IS_LEFT_BRIDGE_BP"] = True
+            left_bot_bridge.set_name('Left Bridge Bottom')
+            left_bot_bridge.loc_x('-b_left_width',[b_left_width])
+            left_bot_bridge.loc_y(value = 0)
+            left_bot_bridge.loc_z('IF(floor_1,kick_height,p_height-height_1)',[floor_1,kick_height,p_height,height_1])
+            left_bot_bridge.rot_y(value = 0)
+            left_bot_bridge.rot_z(value = 0)
+            left_bot_bridge.dim_x('b_left_width',[b_left_width])
+            left_bot_bridge.dim_y('-depth_1',[depth_1])
+            left_bot_bridge.dim_z('s_thickness',[s_thickness])
+            hide = left_bot_bridge.get_prompt("Hide")
+            hide.set_formula('IF(b_left,False,True)',[b_left])
+            home_builder_utils.flip_normals(left_bot_bridge)
+            self.left_bridge_parts.append(left_bot_bridge)
+
+            left_bridge_kick = data_closet_parts.add_closet_part(self)
+            left_bridge_kick.obj_bp["IS_LEFT_BRIDGE_BP"] = True
+            left_bridge_kick.set_name('Left Bridge Bottom')
+            left_bridge_kick.loc_x('-b_left_width-kick_setback',[b_left_width,kick_setback])
+            left_bridge_kick.loc_y('-depth_1+kick_setback',[depth_1,kick_setback])
+            left_bridge_kick.loc_z(value = 0)
+            left_bridge_kick.rot_x(value = math.radians(-90))
+            left_bridge_kick.rot_y(value = 0)
+            left_bridge_kick.rot_z(value = 0)
+            left_bridge_kick.dim_x('b_left_width+kick_setback',[b_left_width,kick_setback])
+            left_bridge_kick.dim_y('-kick_height',[kick_height])
+            left_bridge_kick.dim_z('s_thickness',[s_thickness])
+            hide = left_bridge_kick.get_prompt("Hide")
+            hide.set_formula('IF(b_left,IF(floor_1,False,True),True)',[b_left,floor_1])
+            home_builder_utils.flip_normals(left_bridge_kick)
+            self.left_bridge_parts.append(left_bridge_kick)
 
         left_top_bridge = data_closet_parts.add_closet_part(self)
         props = home_builder_utils.get_object_props(left_top_bridge.obj_bp)
@@ -419,24 +473,8 @@ class Closet_Starter(Closet):
         home_builder_utils.flip_normals(left_top_bridge)
         self.left_bridge_parts.append(left_top_bridge)
 
-        left_bridge_kick = data_closet_parts.add_closet_part(self)
-        left_bridge_kick.obj_bp["IS_LEFT_BRIDGE_BP"] = True
-        left_bridge_kick.set_name('Left Bridge Bottom')
-        left_bridge_kick.loc_x('-b_left_width-kick_setback',[b_left_width,kick_setback])
-        left_bridge_kick.loc_y('-depth_1+kick_setback',[depth_1,kick_setback])
-        left_bridge_kick.loc_z(value = 0)
-        left_bridge_kick.rot_x(value = math.radians(-90))
-        left_bridge_kick.rot_y(value = 0)
-        left_bridge_kick.rot_z(value = 0)
-        left_bridge_kick.dim_x('b_left_width+kick_setback',[b_left_width,kick_setback])
-        left_bridge_kick.dim_y('-kick_height',[kick_height])
-        left_bridge_kick.dim_z('s_thickness',[s_thickness])
-        hide = left_bridge_kick.get_prompt("Hide")
-        hide.set_formula('IF(b_left,IF(floor_1,False,True),True)',[b_left,floor_1])
-        home_builder_utils.flip_normals(left_bridge_kick)
-        self.left_bridge_parts.append(left_bridge_kick)
-
     def add_right_blind_parts(self):
+        props = home_builder_utils.get_scene_props(bpy.context.scene)
         p_height = self.obj_z.pyclone.get_var('location.z','p_height')
         floor_last = self.get_prompt("Opening " + str(self.opening_qty) + " Floor Mounted").get_var("floor_last")        
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -448,23 +486,41 @@ class Closet_Starter(Closet):
         s_thickness = self.get_prompt("Shelf Thickness").get_var("s_thickness")
         depth_last = self.get_prompt("Opening " + str(self.opening_qty) + " Depth").get_var("depth_last")
 
-        right_bot_bridge = data_closet_parts.add_closet_part(self)
-        props = home_builder_utils.get_object_props(right_bot_bridge.obj_bp)
-        props.ebl1 = True              
-        right_bot_bridge.obj_bp["IS_RIGHT_BRIDGE_BP"] = True
-        right_bot_bridge.set_name('Right Bridge Bottom')
-        right_bot_bridge.loc_x('width',[width])
-        right_bot_bridge.loc_y(value = 0)
-        right_bot_bridge.loc_z('IF(floor_last,kick_height,p_height-height_last)',[floor_last,kick_height,p_height,height_last])
-        right_bot_bridge.rot_y(value = 0)
-        right_bot_bridge.rot_z(value = 0)
-        right_bot_bridge.dim_x('b_right_width',[b_right_width])
-        right_bot_bridge.dim_y('-depth_last',[depth_last])
-        right_bot_bridge.dim_z('s_thickness',[s_thickness])
-        hide = right_bot_bridge.get_prompt("Hide")
-        hide.set_formula('IF(b_right,False,True)',[b_right])        
-        home_builder_utils.flip_normals(right_bot_bridge)
-        self.right_bridge_parts.append(right_bot_bridge)
+        if props.add_bottom_filler_shelf:
+            right_bot_bridge = data_closet_parts.add_closet_part(self)
+            props = home_builder_utils.get_object_props(right_bot_bridge.obj_bp)
+            props.ebl1 = True              
+            right_bot_bridge.obj_bp["IS_RIGHT_BRIDGE_BP"] = True
+            right_bot_bridge.set_name('Right Bridge Bottom')
+            right_bot_bridge.loc_x('width',[width])
+            right_bot_bridge.loc_y(value = 0)
+            right_bot_bridge.loc_z('IF(floor_last,kick_height,p_height-height_last)',[floor_last,kick_height,p_height,height_last])
+            right_bot_bridge.rot_y(value = 0)
+            right_bot_bridge.rot_z(value = 0)
+            right_bot_bridge.dim_x('b_right_width',[b_right_width])
+            right_bot_bridge.dim_y('-depth_last',[depth_last])
+            right_bot_bridge.dim_z('s_thickness',[s_thickness])
+            hide = right_bot_bridge.get_prompt("Hide")
+            hide.set_formula('IF(b_right,False,True)',[b_right])        
+            home_builder_utils.flip_normals(right_bot_bridge)
+            self.right_bridge_parts.append(right_bot_bridge)
+
+            right_bridge_kick = data_closet_parts.add_closet_part(self)
+            right_bridge_kick.obj_bp["IS_RIGHT_BRIDGE_BP"] = True
+            right_bridge_kick.set_name('Right Bridge Kick')
+            right_bridge_kick.loc_x('width',[width])
+            right_bridge_kick.loc_y('-depth_last+kick_setback',[depth_last,kick_setback])
+            right_bridge_kick.loc_z(value = 0)
+            right_bridge_kick.rot_x(value = math.radians(-90))
+            right_bridge_kick.rot_y(value = 0)
+            right_bridge_kick.rot_z(value = 0)
+            right_bridge_kick.dim_x('b_right_width+kick_setback',[b_right_width,kick_setback])
+            right_bridge_kick.dim_y('-kick_height',[kick_height])
+            right_bridge_kick.dim_z('s_thickness',[s_thickness])
+            hide = right_bridge_kick.get_prompt("Hide")
+            hide.set_formula('IF(b_right,IF(floor_last,False,True),True)',[b_right,floor_last])  
+            home_builder_utils.flip_normals(right_bridge_kick)
+            self.right_bridge_parts.append(right_bridge_kick)
 
         right_top_bridge = data_closet_parts.add_closet_part(self)
         props = home_builder_utils.get_object_props(right_top_bridge.obj_bp)
@@ -483,23 +539,6 @@ class Closet_Starter(Closet):
         hide.set_formula('IF(b_right,False,True)',[b_right])        
         home_builder_utils.flip_normals(right_top_bridge)
         self.right_bridge_parts.append(right_top_bridge)
-
-        right_bridge_kick = data_closet_parts.add_closet_part(self)
-        right_bridge_kick.obj_bp["IS_RIGHT_BRIDGE_BP"] = True
-        right_bridge_kick.set_name('Right Bridge Kick')
-        right_bridge_kick.loc_x('width',[width])
-        right_bridge_kick.loc_y('-depth_last+kick_setback',[depth_last,kick_setback])
-        right_bridge_kick.loc_z(value = 0)
-        right_bridge_kick.rot_x(value = math.radians(-90))
-        right_bridge_kick.rot_y(value = 0)
-        right_bridge_kick.rot_z(value = 0)
-        right_bridge_kick.dim_x('b_right_width+kick_setback',[b_right_width,kick_setback])
-        right_bridge_kick.dim_y('-kick_height',[kick_height])
-        right_bridge_kick.dim_z('s_thickness',[s_thickness])
-        hide = right_bridge_kick.get_prompt("Hide")
-        hide.set_formula('IF(b_right,IF(floor_last,False,True),True)',[b_right,floor_last])  
-        home_builder_utils.flip_normals(right_bridge_kick)
-        self.right_bridge_parts.append(right_bridge_kick)
 
     def add_system_holes(self,index,left_panel,right_panel):
         left_panel_x = left_panel.obj_bp.pyclone.get_var('location.x','left_panel_x')
@@ -578,6 +617,72 @@ class Closet_Starter(Closet):
         home_builder_utils.flip_normals(self.right_filler)
         home_builder_pointers.assign_pointer_to_assembly(self.right_filler,"Cabinet Exposed Surfaces")
 
+    def add_top_and_bottom_shelf(self,index,left_panel,right_panel):
+        height = self.obj_z.pyclone.get_var('location.z','height')
+        shelf_thickness_var = self.get_prompt("Shelf Thickness").get_var("shelf_thickness_var") 
+        closet_kick_height_var = self.get_prompt("Closet Kick Height").get_var("closet_kick_height_var") 
+        opening_height = self.get_prompt("Opening " + str(index) + " Height").get_var('opening_height')
+        floor = self.get_prompt("Opening " + str(index) + " Floor Mounted").get_var('floor')
+        remove_bottom = self.get_prompt("Remove Bottom " + str(index)).get_var('remove_bottom')
+
+        bottom = self.add_shelf(index,left_panel,right_panel)
+        bottom.loc_z('IF(floor,closet_kick_height_var,height-opening_height)',[floor,closet_kick_height_var,height,opening_height])
+        hide = bottom.get_prompt('Hide')
+        hide.set_formula('remove_bottom',[remove_bottom])
+
+        top = self.add_shelf(index,left_panel,right_panel)
+        top.loc_z('IF(floor,opening_height,height)-shelf_thickness_var',[floor,opening_height,height,shelf_thickness_var])
+
+    def update_last_panel_formulas(self,last_panel):
+        drivers = self.get_drivers(last_panel.obj_bp)
+        home_builder_utils.delete_driver_variables(drivers)
+        drivers = self.get_drivers(last_panel.obj_x)
+        home_builder_utils.delete_driver_variables(drivers)
+        drivers = self.get_drivers(last_panel.obj_y)
+        home_builder_utils.delete_driver_variables(drivers)
+        drivers = self.get_drivers(last_panel.obj_prompts)
+        home_builder_utils.delete_driver_variables(drivers)
+
+        width = self.obj_x.pyclone.get_var('location.x','width')
+        height = self.obj_z.pyclone.get_var('location.z','height')      
+        rfe = self.get_prompt("Right Finished End").get_var("rfe")                 
+        depth_last = self.get_prompt("Opening " + str(self.opening_qty) + " Depth").get_var("depth_last")
+        height_last = self.get_prompt("Opening " + str(self.opening_qty) + " Height").get_var("height_last")
+        floor_last = self.get_prompt("Opening " + str(self.opening_qty) + " Floor Mounted").get_var("floor_last")
+        right_filler = self.get_prompt("Right Side Wall Filler").get_var("right_filler")
+        drill_start_loc = self.get_prompt("Drill Start Location").get_var("drill_start_loc")
+
+        is_finished = last_panel.get_prompt("Is Finished")
+        left_depth = last_panel.get_prompt("Left Depth")
+        left_height = last_panel.get_prompt("Left Height") 
+        left_floor = last_panel.get_prompt("Left Floor")
+        left_drill_start = last_panel.get_prompt("Left Drill Start")
+        left_drill_stop = last_panel.get_prompt("Left Drill Stop")
+        right_depth = last_panel.get_prompt("Right Depth")
+        right_height = last_panel.get_prompt("Right Height")   
+        right_floor = last_panel.get_prompt("Right Floor")   
+        right_drill_start = last_panel.get_prompt("Right Drill Start")
+        right_drill_stop = last_panel.get_prompt("Right Drill Stop")
+
+        last_panel.loc_x('width-right_filler',[width,right_filler])
+        last_panel.loc_z('IF(floor_last,0,height-height_last)',[floor_last,height,height_last])
+        last_panel.dim_x('height_last',[height_last])
+        last_panel.dim_y('-depth_last',[depth_last])
+        last_panel.dim_x('height_last',[height_last])
+        last_panel.dim_y('-depth_last',[depth_last])
+        if is_finished:       
+            is_finished.set_formula('rfe',[rfe])
+        left_depth.set_formula('depth_last',[depth_last]) 
+        left_height.set_formula('height_last',[height_last])  
+        left_floor.set_formula('floor_last',[floor_last])  
+        left_drill_start.set_formula("drill_start_loc",[drill_start_loc]) 
+        left_drill_stop.set_formula('height_last',[height_last]) 
+        right_depth.set_formula('0',[])  
+        right_height.set_formula('0',[]) 
+        right_floor.set_formula('False',[]) 
+        right_drill_start.set_formula('0',[]) 
+        right_drill_stop.set_formula('0',[]) 
+
     def draw(self):
         props = home_builder_utils.get_scene_props(bpy.context.scene)
 
@@ -597,34 +702,41 @@ class Closet_Starter(Closet):
         common_prompts.add_closet_thickness_prompts(self)
         common_prompts.add_closet_toe_kick_prompts(self)
         panel_thickness_var = self.get_prompt("Panel Thickness").get_var("panel_thickness_var")
-        shelf_thickness_var = self.get_prompt("Shelf Thickness").get_var("shelf_thickness_var")     
-        closet_kick_height_var = self.get_prompt("Closet Kick Height").get_var("closet_kick_height_var")  
-        left_fin_end = self.add_prompt("Left Finished End",'CHECKBOX',False)  
-        right_fin_end = self.add_prompt("Right Finished End",'CHECKBOX',False)   
-        left_end_condition = self.add_prompt("Left End Condition",'COMBOBOX',0,["EP","WP","CP","OFF"]) 
-        lec = left_end_condition.get_var("lec")
-        right_end_condition = self.add_prompt("Right End Condition",'COMBOBOX',0,["EP","WP","CP","OFF"]) 
-        rec = right_end_condition.get_var("rec")
-        left_side_wall_filler = self.add_prompt("Left Side Wall Filler",'DISTANCE',0) 
-        left_filler = left_side_wall_filler.get_var("left_filler")
-        right_side_wall_filler = self.add_prompt("Right Side Wall Filler",'DISTANCE',0) 
-        right_filler = right_side_wall_filler.get_var("right_filler")
-        bridge_left = self.add_prompt("Bridge Left",'CHECKBOX',False) 
-        bridge_right = self.add_prompt("Bridge Right",'CHECKBOX',False) 
-        left_bridge_shelf_width = self.add_prompt("Left Bridge Shelf Width",'DISTANCE',pc_unit.inch(12)) 
-        right_bridge_shelf_width = self.add_prompt("Right Bridge Shelf Width",'DISTANCE',pc_unit.inch(12)) 
-        lfe = left_fin_end.get_var("lfe")
-        rfe = right_fin_end.get_var("rfe")
+        
+        self.add_prompt("Drill Start Location",'DISTANCE',pc_unit.inch(.35)) 
+        self.add_prompt("Left Finished End",'CHECKBOX',False)  
+        self.add_prompt("Right Finished End",'CHECKBOX',False)   
+        self.add_prompt("Left End Condition",'COMBOBOX',0,["EP","WP","CP","OFF"]) 
+        self.add_prompt("Right End Condition",'COMBOBOX',0,["EP","WP","CP","OFF"]) 
+        self.add_prompt("Left Side Wall Filler",'DISTANCE',0) 
+        self.add_prompt("Right Side Wall Filler",'DISTANCE',0) 
+        self.add_prompt("Bridge Left",'CHECKBOX',False) 
+        self.add_prompt("Bridge Right",'CHECKBOX',False) 
+        self.add_prompt("Left Bridge Shelf Width",'DISTANCE',pc_unit.inch(14))
+        self.add_prompt("Right Bridge Shelf Width",'DISTANCE',pc_unit.inch(14))
+        self.add_prompt("Extend Panels to Countertop",'CHECKBOX',False)   
+        self.add_prompt("Extend Panel Amount",'DISTANCE',props.extend_panel_amount)
 
-        self.add_opening_prompts()
+        self.add_opening_calculator()
+        for i in range(self.opening_qty):
+            self.add_opening_prompts(i + 1)
+        self.update_calculator_formula()
 
         depth_1 = self.get_prompt("Opening 1 Depth").get_var("depth_1")
         height_1 = self.get_prompt("Opening 1 Height").get_var("height_1")
         floor_1 = self.get_prompt("Opening 1 Floor Mounted").get_var("floor_1")
+        drill_start_loc = self.get_prompt("Drill Start Location").get_var("drill_start_loc")
         depth_last = self.get_prompt("Opening " + str(self.opening_qty) + " Depth").get_var("depth_last")
         height_last = self.get_prompt("Opening " + str(self.opening_qty) + " Height").get_var("height_last")
         floor_last = self.get_prompt("Opening " + str(self.opening_qty) + " Floor Mounted").get_var("floor_last")
-        
+        lfe = self.get_prompt("Left Finished End").get_var("lfe")
+        rfe = self.get_prompt("Right Finished End").get_var("rfe")
+        lec = self.get_prompt("Left End Condition").get_var("lec")
+        rec = self.get_prompt("Right End Condition").get_var("rec")
+        left_filler = self.get_prompt("Left Side Wall Filler").get_var("left_filler")
+        right_filler = self.get_prompt("Right Side Wall Filler").get_var("right_filler")
+        ep = self.get_prompt("Extend Panels to Countertop").get_var("ep")
+        ea = self.get_prompt("Extend Panel Amount").get_var("ea")
 
         left_side = data_closet_parts.add_closet_part(self)
         hb_props = home_builder_utils.get_object_props(left_side.obj_bp)
@@ -633,39 +745,56 @@ class Closet_Starter(Closet):
         left_side.set_name('Closet Partition')
         left_side.loc_x('left_filler',[left_filler])
         left_side.loc_y(value = 0)
-        left_side.loc_z('IF(floor_1,0,height-height_1)',[floor_1,height,height_1])
+        left_side.loc_z('IF(floor_1,0,height-height_1-IF(ep,ea,0))',[floor_1,height,height_1,ep,ea])
         left_side.rot_y(value=math.radians(-90))
         left_side.rot_z(value=0)
-        left_side.dim_x('height_1',[height_1])
+        left_side.dim_x('height_1+IF(floor_1,0,IF(ep,ea,0))',[height_1,floor_1,ep,ea])
         left_side.dim_y('-depth_1',[depth_1])
         left_side.dim_z('-panel_thickness_var',[panel_thickness_var])
         self.panels.append(left_side)
         is_finished = left_side.add_prompt("Is Finished",'CHECKBOX',False)
         is_finished.set_formula('lfe',[lfe])
-        left_depth = left_side.add_prompt("Left Depth",'DISTANCE',0)
-        left_depth.set_formula('0',[])     
-        left_height = left_side.add_prompt("Left Height",'DISTANCE',0) 
-        left_height.set_formula('0',[])   
-        left_floor = left_side.add_prompt("Left Floor",'CHECKBOX',0)     
-        left_floor.set_formula('False',[])     
-        left_drill_start = left_side.add_prompt("Left Drill Start",'DISTANCE',0)
-        left_drill_start.set_formula('0',[])  
-        left_drill_stop = left_side.add_prompt("Left Drill Stop",'DISTANCE',0)
-        left_drill_stop.set_formula('0',[])  
+        left_side.add_prompt("Is Left End Panel",'CHECKBOX',True)
 
-        right_depth = left_side.add_prompt("Right Depth",'DISTANCE',0)
-        right_depth.set_formula('depth_1',[depth_1])  
-        right_height = left_side.add_prompt("Right Height",'DISTANCE',0)   
-        right_height.set_formula('height_1',[height_1])  
-        right_floor = left_side.add_prompt("Right Floor",'CHECKBOX',0)   
-        right_floor.set_formula('floor_1',[floor_1])   
-        right_drill_start = left_side.add_prompt("Right Drill Start",'DISTANCE',0)
-        right_drill_start.set_formula('.00889',[]) 
-        right_drill_stop = left_side.add_prompt("Right Drill Stop",'DISTANCE',0)
-        right_drill_stop.set_formula('height_1',[height_1])  
+        prompt_dict = self.add_panel_prompts(left_side)
+        prompt_dict["Left Depth"].set_formula('0',[])
+        prompt_dict["Left Height"].set_formula('0',[])   
+        prompt_dict["Left Floor"].set_formula('False',[])
+        prompt_dict["Left Drill Start"].set_formula('0',[])
+        prompt_dict["Left Drill Stop"].set_formula('0',[])  
+        prompt_dict["Right Depth"].set_formula('depth_1',[depth_1]) 
+        prompt_dict["Right Height"].set_formula('height_1',[height_1])  
+        prompt_dict["Right Floor"].set_formula('floor_1',[floor_1]) 
+        prompt_dict["Right Drill Start"].set_formula('drill_start_loc',[drill_start_loc])
+        prompt_dict["Right Drill Stop"].set_formula('height_1',[height_1])    
+        prompt_dict["Drill From Left"].set_value(False)
+        prompt_dict["Drill From One Side"].set_value(True)      
 
-        is_left_end_panel = left_side.add_prompt("Is Left End Panel",'CHECKBOX',True)
-        drill_from_left = left_side.add_prompt("Drill From Left",'CHECKBOX',False)  
+        # left_depth = left_side.add_prompt("Left Depth",'DISTANCE',0)
+        # left_depth.set_formula('0',[])     
+        # left_height = left_side.add_prompt("Left Height",'DISTANCE',0) 
+        # left_height.set_formula('0',[])   
+        # left_floor = left_side.add_prompt("Left Floor",'CHECKBOX',0)     
+        # left_floor.set_formula('False',[])     
+        # left_drill_start = left_side.add_prompt("Left Drill Start",'DISTANCE',0)
+        # left_drill_start.set_formula('0',[])  
+        # left_drill_stop = left_side.add_prompt("Left Drill Stop",'DISTANCE',0)
+        # left_drill_stop.set_formula('0',[])  
+
+        # right_depth = left_side.add_prompt("Right Depth",'DISTANCE',0)
+        # right_depth.set_formula('depth_1',[depth_1])  
+        # right_height = left_side.add_prompt("Right Height",'DISTANCE',0)   
+        # right_height.set_formula('height_1',[height_1])  
+        # right_floor = left_side.add_prompt("Right Floor",'CHECKBOX',0)   
+        # right_floor.set_formula('floor_1',[floor_1])   
+        # right_drill_start = left_side.add_prompt("Right Drill Start",'DISTANCE',0)
+        # right_drill_start.set_formula('drill_start_loc',[drill_start_loc]) 
+        # right_drill_stop = left_side.add_prompt("Right Drill Stop",'DISTANCE',0)
+        # right_drill_stop.set_formula('height_1',[height_1])  
+
+        # drill_from_one_side = left_side.add_prompt("Drill From One Side",'CHECKBOX',True)
+        # is_left_end_panel = left_side.add_prompt("Is Left End Panel",'CHECKBOX',True)
+        # drill_from_left = left_side.add_prompt("Drill From Left",'CHECKBOX',False)  
 
         bpy.context.view_layer.update()
 
@@ -687,57 +816,63 @@ class Closet_Starter(Closet):
         right_side.set_name('Closet Partition')
         right_side.loc_x('width-right_filler',[width,right_filler])
         right_side.loc_y(value = 0)
-        right_side.loc_z('IF(floor_last,0,height-height_last)',[floor_last,height,height_last])
+        right_side.loc_z('IF(floor_last,0,height-height_last-IF(ep,ea,0))',[floor_last,height,height_last,ep,ea])
         right_side.rot_y(value=math.radians(-90))
         right_side.rot_z(value=0)
-        right_side.dim_x('height_last',[height_last])
+        right_side.dim_x('height_last+IF(floor_last,0,IF(ep,ea,0))',[height_last,floor_last,ep,ea])
         right_side.dim_y('-depth_last',[depth_last])
         right_side.dim_z('panel_thickness_var',[panel_thickness_var])
         home_builder_utils.flip_normals(right_side)
         self.panels.append(right_side)
         is_finished = right_side.add_prompt("Is Finished",'CHECKBOX',False)
-        is_finished.set_formula('rfe',[rfe])        
-        left_depth = right_side.add_prompt("Left Depth",'DISTANCE',0)
-        left_depth.set_formula('depth_last',[depth_last])     
-        left_height = right_side.add_prompt("Left Height",'DISTANCE',0) 
-        left_height.set_formula('height_last',[height_last])   
-        left_floor = right_side.add_prompt("Left Floor",'CHECKBOX',0)
-        left_floor.set_formula('floor_last',[floor_last])  
-        left_drill_start = right_side.add_prompt("Left Drill Start",'DISTANCE',0)
-        left_drill_start.set_formula(".00889",[]) 
-        left_drill_stop = right_side.add_prompt("Left Drill Stop",'DISTANCE',0)
-        left_drill_stop.set_formula('height_last',[height_last])  
+        is_finished.set_formula('rfe',[rfe])
+        right_side.add_prompt("Is Right End Panel",'CHECKBOX',True)        
 
-        right_depth = right_side.add_prompt("Right Depth",'DISTANCE',0)
-        right_depth.set_formula('0',[])  
-        right_height = right_side.add_prompt("Right Height",'DISTANCE',0)   
-        right_height.set_formula('0',[])  
-        right_floor = right_side.add_prompt("Right Floor",'CHECKBOX',0)   
-        right_floor.set_formula('False',[])   
-        right_drill_start = right_side.add_prompt("Right Drill Start",'DISTANCE',0)
-        right_drill_start.set_formula('0',[])  
-        right_drill_stop = right_side.add_prompt("Right Drill Stop",'DISTANCE',0)
-        right_drill_stop.set_formula('0',[])  
+        prompt_dict = self.add_panel_prompts(right_side)
+        prompt_dict["Left Depth"].set_formula('depth_last',[depth_last]) 
+        prompt_dict["Left Height"].set_formula('height_last',[height_last])   
+        prompt_dict["Left Floor"].set_formula('floor_last',[floor_last])
+        prompt_dict["Left Drill Start"].set_formula("drill_start_loc",[drill_start_loc])
+        prompt_dict["Left Drill Stop"].set_formula('height_last',[height_last])  
+        prompt_dict["Right Depth"].set_formula('0',[]) 
+        prompt_dict["Right Height"].set_formula('0',[])  
+        prompt_dict["Right Floor"].set_formula('False',[]) 
+        prompt_dict["Right Drill Start"].set_formula('0',[])
+        prompt_dict["Right Drill Stop"].set_formula('0',[])    
+        prompt_dict["Drill From Left"].set_value(True)
+        prompt_dict["Drill From One Side"].set_value(True)    
 
-        is_right_end_panel = right_side.add_prompt("Is Right End Panel",'CHECKBOX',True)
-        drill_from_left = right_side.add_prompt("Drill From Left",'CHECKBOX',True)  
+        # left_depth = right_side.add_prompt("Left Depth",'DISTANCE',0)
+        # left_depth.set_formula('depth_last',[depth_last])     
+        # left_height = right_side.add_prompt("Left Height",'DISTANCE',0) 
+        # left_height.set_formula('height_last',[height_last])   
+        # left_floor = right_side.add_prompt("Left Floor",'CHECKBOX',0)
+        # left_floor.set_formula('floor_last',[floor_last])  
+        # left_drill_start = right_side.add_prompt("Left Drill Start",'DISTANCE',0)
+        # left_drill_start.set_formula("drill_start_loc",[drill_start_loc]) 
+        # left_drill_stop = right_side.add_prompt("Left Drill Stop",'DISTANCE',0)
+        # left_drill_stop.set_formula('height_last',[height_last])  
+
+        # right_depth = right_side.add_prompt("Right Depth",'DISTANCE',0)
+        # right_depth.set_formula('0',[])  
+        # right_height = right_side.add_prompt("Right Height",'DISTANCE',0)   
+        # right_height.set_formula('0',[])  
+        # right_floor = right_side.add_prompt("Right Floor",'CHECKBOX',0)   
+        # right_floor.set_formula('False',[])   
+        # right_drill_start = right_side.add_prompt("Right Drill Start",'DISTANCE',0)
+        # right_drill_start.set_formula('0',[])  
+        # right_drill_stop = right_side.add_prompt("Right Drill Stop",'DISTANCE',0)
+        # right_drill_stop.set_formula('0',[])  
+
+        # drill_from_one_side = right_side.add_prompt("Drill From One Side",'CHECKBOX',True)
+        # is_right_end_panel = right_side.add_prompt("Is Right End Panel",'CHECKBOX',True)
+        # drill_from_left = right_side.add_prompt("Drill From Left",'CHECKBOX',True)  
 
         bpy.context.view_layer.update()
 
         for index, panel in enumerate(self.panels):
             if index + 1 < len(self.panels):
-                opening_height = self.get_prompt("Opening " + str(index+1) + " Height").get_var('opening_height')
-                floor = self.get_prompt("Opening " + str(index+1) + " Floor Mounted").get_var('floor')
-                remove_bottom = self.get_prompt("Remove Bottom " + str(index+1)).get_var('remove_bottom')
-
-                bottom = self.add_shelf(index + 1,panel,self.panels[index+1])
-                bottom.loc_z('IF(floor,closet_kick_height_var,height-opening_height)',[floor,closet_kick_height_var,height,opening_height])
-                hide = bottom.get_prompt('Hide')
-                hide.set_formula('remove_bottom',[remove_bottom])
-
-                top = self.add_shelf(index + 1,panel,self.panels[index+1])
-                top.loc_z('IF(floor,opening_height,height)-shelf_thickness_var',[floor,opening_height,height,shelf_thickness_var])
-
+                self.add_top_and_bottom_shelf(index + 1,panel,self.panels[index+1])
                 kick = self.add_toe_kick(index + 1,panel,self.panels[index+1])
                 opening = self.add_opening(index + 1,panel,self.panels[index+1])
                 if props.show_closet_panel_drilling:
@@ -812,11 +947,15 @@ class Closet_Inside_Corner(Closet):
         common_prompts.add_closet_toe_kick_prompts(self)
 
         depth = props.default_hanging_closet_depth if self.is_hanging else props.default_tall_closet_depth
+        self.add_prompt("Drill Start Location",'DISTANCE',pc_unit.inch(.35))
         self.add_prompt("Back Width",'DISTANCE',pc_unit.inch(6))
         self.add_prompt("Left Depth",'DISTANCE',depth)
         self.add_prompt("Right Depth",'DISTANCE',depth)
+        self.add_prompt("Shelf Wall Offset Amount",'DISTANCE',pc_unit.inch(.5))
         self.add_prompt("Shelf Quantity",'QUANTITY',3) 
         self.add_prompt("Is Hanging",'CHECKBOX',self.is_hanging) 
+        self.add_prompt("Use Square Notch Top Shelf",'CHECKBOX',False) 
+        self.add_prompt("Flip Back Support Location",'CHECKBOX',False) 
         self.add_prompt("Panel Height",'DISTANCE',pc_unit.millimeter(int(props.hanging_closet_panel_height)))
 
         width = self.obj_x.pyclone.get_var('location.x','width')
@@ -832,6 +971,10 @@ class Closet_Inside_Corner(Closet):
         panel_thickness_var = self.get_prompt("Panel Thickness").get_var("panel_thickness_var")
         st = self.get_prompt("Shelf Thickness").get_var("st") 
         qty = self.get_prompt("Shelf Quantity").get_var("qty")
+        flip_back_support = self.get_prompt("Flip Back Support Location").get_var("flip_back_support")
+        shelf_wall_offset = self.get_prompt("Shelf Wall Offset Amount").get_var("shelf_wall_offset")
+        use_square_notch_top_shelf = self.get_prompt("Use Square Notch Top Shelf").get_var("use_square_notch_top_shelf")
+        drill_start_loc = self.get_prompt("Drill Start Location").get_var("drill_start_loc")
 
         left_side = data_closet_parts.add_closet_part(self)
         props = home_builder_utils.get_object_props(left_side.obj_bp)
@@ -846,53 +989,49 @@ class Closet_Inside_Corner(Closet):
         left_side.dim_x('IF(is_hang,p_height,height)',[is_hang,height,p_height])
         left_side.dim_y('left_depth_var',[left_depth_var])
         left_side.dim_z('panel_thickness_var',[panel_thickness_var])
-        left_depth_prompt = left_side.add_prompt("Left Depth",'DISTANCE',0)
-        left_height_prompt = left_side.add_prompt("Left Height",'DISTANCE',0)       
-        left_floor_prompt = left_side.add_prompt("Left Floor",'CHECKBOX',False) 
-        left_drill_start = left_side.add_prompt("Left Drill Start",'DISTANCE',0)
-        left_drill_stop = left_side.add_prompt("Left Drill Stop",'DISTANCE',0)
-        right_depth_prompt = left_side.add_prompt("Right Depth",'DISTANCE',0)     
-        right_depth_prompt.set_formula('left_depth_var',[left_depth_var])          
-        right_height_prompt = left_side.add_prompt("Right Height",'DISTANCE',0)
-        right_height_prompt.set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])        
-        right_floor_prompt = left_side.add_prompt("Right Floor",'CHECKBOX',False)
-        right_floor_prompt.set_formula('IF(is_hang,False,True)',[is_hang])   
-        right_drill_start = left_side.add_prompt("Right Drill Start",'DISTANCE',0)
-        right_drill_start.set_formula('.00889',[])
-        right_drill_stop = left_side.add_prompt("Right Drill Stop",'DISTANCE',0)
-        right_drill_stop.set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])                                          
-        drill_from_left = left_side.add_prompt("Drill From Left",'CHECKBOX',False)
+
+        prompt_dict = self.add_panel_prompts(left_side)
+        prompt_dict["Left Depth"].set_formula('left_depth_var',[left_depth_var]) 
+        prompt_dict["Left Height"].set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])   
+        prompt_dict["Left Floor"].set_formula('IF(is_hang,False,True)',[is_hang]) 
+        prompt_dict["Left Drill Start"].set_formula("drill_start_loc",[drill_start_loc])
+        prompt_dict["Left Drill Stop"].set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])    
+        prompt_dict["Right Depth"].set_formula('0',[]) 
+        prompt_dict["Right Height"].set_formula('0',[])  
+        prompt_dict["Right Floor"].set_formula('0',[]) 
+        prompt_dict["Right Drill Start"].set_formula("0",[])
+        prompt_dict["Right Drill Stop"].set_formula('0',[])     
+        prompt_dict["Drill From Left"].set_value(True)
+        prompt_dict["Drill From One Side"].set_value(True)    
 
         back = data_closet_parts.add_closet_part(self)
         back.obj_bp["IS_PANEL_BP"] = True
         props = home_builder_utils.get_object_props(back.obj_bp)
         props.ebl1 = True           
-        back.set_name('Closet Partition')
-        back.loc_x(value = 0)
-        back.loc_y(value = 0)
+        back.set_name('Back Support')
+        back.loc_x('shelf_wall_offset',[shelf_wall_offset])
+        back.loc_y('IF(flip_back_support,-back_width_var,0)-shelf_wall_offset',[flip_back_support,back_width_var,shelf_wall_offset])
         back.loc_z('IF(is_hang,height-p_height,0)',[is_hang,height,p_height])
         back.rot_y(value=math.radians(-90))
-        back.rot_z(value=math.radians(-90))
+        back.rot_z('IF(flip_back_support,0,radians(-90))',[flip_back_support])
         back.dim_x('IF(is_hang,p_height,height)',[is_hang,height,p_height])
         back.dim_y('back_width_var',[back_width_var])
         back.dim_z('-panel_thickness_var',[panel_thickness_var])
         home_builder_utils.flip_normals(back)
-        left_depth_prompt = back.add_prompt("Left Depth",'DISTANCE',0)
-        left_depth_prompt.set_formula('back_width_var',[back_width_var])
-        left_height_prompt = back.add_prompt("Left Height",'DISTANCE',0)      
-        left_height_prompt.set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])    
-        left_floor_prompt = back.add_prompt("Left Floor",'CHECKBOX',False)
-        left_floor_prompt.set_formula('IF(is_hang,False,True)',[is_hang])    
-        left_drill_start = back.add_prompt("Left Drill Start",'DISTANCE',0)
-        left_drill_start.set_formula('.00889',[])
-        left_drill_stop = back.add_prompt("Left Drill Stop",'DISTANCE',0)
-        left_drill_stop.set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])  
-        right_depth_prompt = back.add_prompt("Right Depth",'DISTANCE',0)           
-        right_height_prompt = back.add_prompt("Right Height",'DISTANCE',0)      
-        right_floor_prompt = back.add_prompt("Right Floor",'CHECKBOX',False)
-        right_drill_start = back.add_prompt("Right Drill Start",'DISTANCE',0)
-        right_drill_stop = back.add_prompt("Right Drill Stop",'DISTANCE',0)                                   
-        drill_from_left = back.add_prompt("Drill From Left",'CHECKBOX',True)
+
+        prompt_dict = self.add_panel_prompts(back)
+        prompt_dict["Left Depth"].set_formula('0',[])
+        prompt_dict["Left Height"].set_formula('0',[])   
+        prompt_dict["Left Floor"].set_formula('0',[])  
+        prompt_dict["Left Drill Start"].set_formula("0",[])
+        prompt_dict["Left Drill Stop"].set_formula('',[])
+        prompt_dict["Right Depth"].set_formula('back_width_var',[back_width_var])
+        prompt_dict["Right Height"].set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height]) 
+        prompt_dict["Right Floor"].set_formula('IF(is_hang,False,True)',[is_hang])  
+        prompt_dict["Right Drill Start"].set_formula("drill_start_loc",[drill_start_loc])
+        prompt_dict["Right Drill Stop"].set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])  
+        prompt_dict["Drill From Left"].set_value(False)
+        prompt_dict["Drill From One Side"].set_value(True) 
 
         right_side = data_closet_parts.add_closet_part(self)
         props = home_builder_utils.get_object_props(right_side.obj_bp)
@@ -908,61 +1047,82 @@ class Closet_Inside_Corner(Closet):
         right_side.dim_y('right_depth_var',[right_depth_var])
         right_side.dim_z('-panel_thickness_var',[panel_thickness_var])
         home_builder_utils.flip_normals(right_side)
-        left_depth_prompt = right_side.add_prompt("Left Depth",'DISTANCE',0)
-        left_depth_prompt.set_formula('right_depth_var',[right_depth_var])
-        left_height_prompt = right_side.add_prompt("Left Height",'DISTANCE',0)      
-        left_height_prompt.set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])    
-        left_floor_prompt = right_side.add_prompt("Left Floor",'CHECKBOX',False)
-        left_floor_prompt.set_formula('IF(is_hang,False,True)',[is_hang])    
-        left_drill_start = right_side.add_prompt("Left Drill Start",'DISTANCE',0)
-        left_drill_start.set_formula('.00889',[])
-        left_drill_stop = right_side.add_prompt("Left Drill Stop",'DISTANCE',0)
-        left_drill_stop.set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])  
-        right_depth_prompt = right_side.add_prompt("Right Depth",'DISTANCE',0)           
-        right_height_prompt = right_side.add_prompt("Right Height",'DISTANCE',0)      
-        right_floor_prompt = right_side.add_prompt("Right Floor",'CHECKBOX',False)
-        right_drill_start = right_side.add_prompt("Right Drill Start",'DISTANCE',0)
-        right_drill_stop = right_side.add_prompt("Right Drill Stop",'DISTANCE',0)                                   
-        drill_from_left = right_side.add_prompt("Drill From Left",'CHECKBOX',True)
 
-        bottom = data_closet_parts.add_corner_notch_part(self)
-        bottom.obj_bp["IS_L_SHELF_BP"] = True
+        prompt_dict = self.add_panel_prompts(right_side)
+        prompt_dict["Left Depth"].set_formula('0',[])
+        prompt_dict["Left Height"].set_formula('0',[]) 
+        prompt_dict["Left Floor"].set_formula('0',[]) 
+        prompt_dict["Left Drill Start"].set_formula("0",[])
+        prompt_dict["Left Drill Stop"].set_formula('0',[])
+        prompt_dict["Right Depth"].set_formula('right_depth_var',[right_depth_var])
+        prompt_dict["Right Height"].set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height]) 
+        prompt_dict["Right Floor"].set_formula('IF(is_hang,False,True)',[is_hang]) 
+        prompt_dict["Right Drill Start"].set_formula("drill_start_loc",[drill_start_loc])
+        prompt_dict["Right Drill Stop"].set_formula('IF(is_hang,p_height,height)',[is_hang,p_height,height])    
+        prompt_dict["Drill From Left"].set_value(False)
+        prompt_dict["Drill From One Side"].set_value(True) 
+
+        bottom = data_closet_parts.add_corner_radius_part(self)
+        bottom.obj_bp["IS_FIXED_L_SHELF_BP"] = True
         props = home_builder_utils.get_object_props(bottom.obj_bp)
         props.ebl1 = True        
         bottom.set_name('Closet L Shelf')
-        bottom.loc_x(value = 0)
-        bottom.loc_y(value = 0)
+        bottom.loc_x('shelf_wall_offset',[shelf_wall_offset])
+        bottom.loc_y('-shelf_wall_offset',[shelf_wall_offset])
         bottom.loc_z('IF(is_hang,height-p_height,kick_height)',[is_hang,height,p_height,kick_height])
         bottom.rot_x(value = 0)
         bottom.rot_y(value = 0)
         bottom.rot_z(value = math.radians(-90))
-        bottom.dim_x('fabs(depth)-panel_thickness_var',[depth,panel_thickness_var])
-        bottom.dim_y('width-panel_thickness_var',[width,panel_thickness_var])
+        bottom.dim_x('fabs(depth)-panel_thickness_var-shelf_wall_offset',[depth,panel_thickness_var,shelf_wall_offset])
+        bottom.dim_y('width-panel_thickness_var-shelf_wall_offset',[width,panel_thickness_var,shelf_wall_offset])
         bottom.dim_z('st',[st])
         l_depth = bottom.get_prompt('Left Depth')
-        l_depth.set_formula('left_depth_var',[left_depth_var])
+        l_depth.set_formula('left_depth_var-shelf_wall_offset',[left_depth_var,shelf_wall_offset])
         r_depth = bottom.get_prompt('Right Depth')
-        r_depth.set_formula('right_depth_var',[right_depth_var])
+        r_depth.set_formula('right_depth_var-shelf_wall_offset',[right_depth_var,shelf_wall_offset])
 
         top = data_closet_parts.add_corner_notch_part(self)
-        top.obj_bp["IS_L_SHELF_BP"] = True
+        top.obj_bp["IS_FIXED_L_SHELF_BP"] = True
         props = home_builder_utils.get_object_props(top.obj_bp)
         props.ebl1 = True         
         top.set_name('Closet L Shelf')
-        top.loc_x(value = 0)
-        top.loc_y(value = 0)
-        top.loc_z('height',[height])
+        top.loc_x('shelf_wall_offset',[shelf_wall_offset])
+        top.loc_y('-shelf_wall_offset',[shelf_wall_offset])
+        top.loc_z('height-st',[height,st])
         top.rot_x(value = 0)
         top.rot_y(value = 0)
         top.rot_z(value = math.radians(-90))
-        top.dim_x('fabs(depth)-panel_thickness_var',[depth,panel_thickness_var])
-        top.dim_y('width-panel_thickness_var',[width,panel_thickness_var])
-        top.dim_z('-st',[st])
+        top.dim_x('fabs(depth)-panel_thickness_var-shelf_wall_offset',[depth,panel_thickness_var,shelf_wall_offset])
+        top.dim_y('width-panel_thickness_var-shelf_wall_offset',[width,panel_thickness_var,shelf_wall_offset])
+        top.dim_z('st',[st])
+        hide = top.get_prompt('Hide')
+        hide.set_formula('IF(use_square_notch_top_shelf,False,True)',[use_square_notch_top_shelf])        
         l_depth = top.get_prompt('Left Depth')
-        l_depth.set_formula('left_depth_var',[left_depth_var])
+        l_depth.set_formula('left_depth_var-shelf_wall_offset',[left_depth_var,shelf_wall_offset])
         r_depth = top.get_prompt('Right Depth')
-        r_depth.set_formula('right_depth_var',[right_depth_var])
-        home_builder_utils.flip_normals(top)
+        r_depth.set_formula('right_depth_var-shelf_wall_offset',[right_depth_var,shelf_wall_offset])
+        # home_builder_utils.flip_normals(top)
+
+        top_radius = data_closet_parts.add_corner_radius_part(self)
+        top_radius.obj_bp["IS_FIXED_L_SHELF_BP"] = True
+        props = home_builder_utils.get_object_props(top_radius.obj_bp)
+        props.ebl1 = True         
+        top_radius.set_name('Closet L Shelf')
+        top_radius.loc_x('shelf_wall_offset',[shelf_wall_offset])
+        top_radius.loc_y('-shelf_wall_offset',[shelf_wall_offset])
+        top_radius.loc_z('height-st',[height,st])
+        top_radius.rot_x(value = 0)
+        top_radius.rot_y(value = 0)
+        top_radius.rot_z(value = math.radians(-90))
+        top_radius.dim_x('fabs(depth)-panel_thickness_var-shelf_wall_offset',[depth,panel_thickness_var,shelf_wall_offset])
+        top_radius.dim_y('width-panel_thickness_var-shelf_wall_offset',[width,panel_thickness_var,shelf_wall_offset])
+        top_radius.dim_z('st',[st])
+        hide = top_radius.get_prompt('Hide')
+        hide.set_formula('IF(use_square_notch_top_shelf,True,False)',[use_square_notch_top_shelf])
+        l_depth = top_radius.get_prompt('Left Depth')
+        l_depth.set_formula('left_depth_var-shelf_wall_offset',[left_depth_var,shelf_wall_offset])
+        r_depth = top_radius.get_prompt('Right Depth')
+        r_depth.set_formula('right_depth_var-shelf_wall_offset',[right_depth_var,shelf_wall_offset])
 
         left_kick = data_closet_parts.add_closet_part(self)
         left_kick.obj_bp["IS_TOE_KICK_BP"] = True
@@ -997,27 +1157,27 @@ class Closet_Inside_Corner(Closet):
         b_loc = bottom.obj_bp.pyclone.get_var('location.z','b_loc')
         t_loc = top.obj_bp.pyclone.get_var('location.z','t_loc')
 
-        shelf = data_closet_parts.add_corner_notch_part(self)
-        shelf.obj_bp["IS_L_SHELF_BP"] = True
+        shelf = data_closet_parts.add_corner_radius_part(self)
+        shelf.obj_bp["IS_ADJ_L_SHELF_BP"] = True
         props = home_builder_utils.get_object_props(shelf.obj_bp)
         props.ebl1 = True  
         props.ebl2 = True 
         props.ebw1 = True 
         props.ebw2 = True             
         shelf.set_name('Closet L Shelf')
-        shelf.loc_x(value = 0)
-        shelf.loc_y(value = 0)
+        shelf.loc_x('shelf_wall_offset',[shelf_wall_offset])
+        shelf.loc_y('-shelf_wall_offset',[shelf_wall_offset])
         shelf.loc_z('b_loc+st+(((t_loc-b_loc-(st*2)-(st*qty)))/(qty+1))',[b_loc,t_loc,kick_height,st,height,qty])
         shelf.rot_x(value = 0)
         shelf.rot_y(value = 0)
         shelf.rot_z(value = math.radians(-90))
-        shelf.dim_x('fabs(depth)-panel_thickness_var',[depth,panel_thickness_var])
-        shelf.dim_y('width-panel_thickness_var',[width,panel_thickness_var])
+        shelf.dim_x('fabs(depth)-panel_thickness_var-shelf_wall_offset',[depth,panel_thickness_var,shelf_wall_offset])
+        shelf.dim_y('width-panel_thickness_var-shelf_wall_offset',[width,panel_thickness_var,shelf_wall_offset])
         shelf.dim_z('st',[st])
         l_depth = shelf.get_prompt('Left Depth')
-        l_depth.set_formula('left_depth_var',[left_depth_var])
+        l_depth.set_formula('left_depth_var-shelf_wall_offset',[left_depth_var,shelf_wall_offset])
         r_depth = shelf.get_prompt('Right Depth')
-        r_depth.set_formula('right_depth_var',[right_depth_var])
+        r_depth.set_formula('right_depth_var-shelf_wall_offset',[right_depth_var,shelf_wall_offset])
         quantity = shelf.get_prompt('Z Quantity')
         quantity.set_formula('qty',[qty])
         offset = shelf.get_prompt('Z Offset')
