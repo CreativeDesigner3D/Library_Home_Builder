@@ -139,7 +139,7 @@ class HOME_BUILDER_MT_windows(bpy.types.Menu):
     def draw(self, context):
         window_bp = home_builder_utils.get_window_bp(context.object)
         layout = self.layout
-        layout.operator('home_builder.window_prompts',text="Wall Prompts",icon='WINDOW') 
+        layout.operator('home_builder.window_prompts',text="Window Prompts",icon='WINDOW') 
         props = layout.operator('home_builder.place_door_window',text="Place Window",icon='OBJECT_ORIGIN')
         props.obj_bp_name = window_bp.name
         props.filepath = ""
