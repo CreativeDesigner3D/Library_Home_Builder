@@ -3216,6 +3216,13 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
 
             self.assign_active_curve_properties(obj_curve)    
 
+    def is_valid_bp_assembly(self,obj_bp):
+        a = pc_types.Assembly(obj_bp)
+        if a.obj_bp and a.obj_x and a.obj_y and a.obj_z and a.obj_prompts:
+            return True
+        else:
+            return False
+
     def execute(self,context):
         #LOAD PROFILES
         props = home_builder_utils.get_scene_props(context.scene)  
@@ -3263,11 +3270,14 @@ class home_builder_OT_auto_add_molding(bpy.types.Operator):
             closet_bp = home_builder_utils.get_closet_bp(obj)
             wall_bp = home_builder_utils.get_wall_bp(obj)
             if cabinet_bp and cabinet_bp not in cabinets:
-                cabinets.append(cabinet_bp)
+                if self.is_valid_bp_assembly(cabinet_bp):
+                    cabinets.append(cabinet_bp)
             if wall_bp and wall_bp not in walls:
-                walls.append(wall_bp)
+                if self.is_valid_bp_assembly(wall_bp):
+                    walls.append(wall_bp)
             if closet_bp and closet_bp not in closets:
-                closets.append(closet_bp)
+                if self.is_valid_bp_assembly(closet_bp):
+                    closets.append(closet_bp)
 
         #DELETE OLD CURVES
         if self.add_base_molding:
